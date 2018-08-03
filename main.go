@@ -100,6 +100,7 @@ func main() {
 	if cfg.Verbose {
 		debug.SetOutput(os.Stderr)
 	}
+	debug.Printf("Parsed config as: `%+v'", cfg)
 
 	app := tview.NewApplication()
 	pane := ui.New(app, ui.ShowJIDs(!cfg.Roster.HideJIDs))
