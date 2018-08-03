@@ -1,0 +1,7 @@
+*.sw[op]
+*.svg
+*.xml
+*.out
+vendor/
+communiqué
+communiqué.test

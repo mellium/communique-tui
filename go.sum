@@ -1,0 +1,14 @@
+github.com/BurntSushi/toml v0.3.0 h1:e1/Ivsx3Z0FVTV0NSOv/aVgbUWyQuzj7DDnFblkRvsY=
+github.com/BurntSushi/toml v0.3.0/go.mod h1:xHWCNGjB5oqiDr8zfno3MHue2Ht5sIBksp03qcyfWMU=
+github.com/gdamore/encoding v0.0.0-20151215212835-b23993cbb635 h1:hheUEMzaOie/wKeIc1WPa7CDVuIO5hqQxjS+dwTQEnI=
+github.com/gdamore/encoding v0.0.0-20151215212835-b23993cbb635/go.mod h1:yrQYJKKDTrHmbYxI7CYi+/hbdiDT2m4Hj+t0ikCjsrQ=
+github.com/gdamore/tcell v1.1.0 h1:RbQgl7jukmdqROeNcKps7R2YfDCQbWkOd1BwdXrxfr4=
+github.com/gdamore/tcell v1.1.0/go.mod h1:tqyG50u7+Ctv1w5VX67kLzKcj9YXR/JSBZQq/+mLl1A=
+github.com/lucasb-eyer/go-colorful v0.0.0-20180709185858-c7842319cf3a h1:B2QfFRl5yGVGGcyEVFzfdXlC1BBvszsIAsCeef2oD0k=
+github.com/lucasb-eyer/go-colorful v0.0.0-20180709185858-c7842319cf3a/go.mod h1:NXg0ArsFk0Y01623LgUqoqcouGDB+PwCCQlrwrG6xJ4=
+github.com/mattn/go-runewidth v0.0.2 h1:UnlwIPBGaTZfPQ6T1IGzPI0EkYAQmT9fAEJ/poFC63o=
+github.com/mattn/go-runewidth v0.0.2/go.mod h1:LwmH8dsx7+W8Uxz3IHJYH5QSwggIsqBzpuz5H//U1FU=
+github.com/rivo/tview v0.0.0-20180728193050-6614b16d9037 h1:k2jl6rqIDcpsegRVS1EVA/jD1xFXuf9joc4phngNWAY=
+github.com/rivo/tview v0.0.0-20180728193050-6614b16d9037/go.mod h1:J4W+hErFfITUbyFAEXizpmkuxX7ZN56dopxHB4XQhMw=
+golang.org/x/text v0.3.0 h1:g61tztE5qeGQ89tm6NTjjM9VPIm088od1l6aSorWRWg=
+golang.org/x/text v0.3.0/go.mod h1:NqM8EUOU14njkJ3fqMW+pc6Ldnwhi/IjpwHt7yyuwOQ=
