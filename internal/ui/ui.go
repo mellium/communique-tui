@@ -108,9 +108,6 @@ func New(app *tview.Application, opts ...Option) UI {
 	rosterBox.Upsert("[red]●[white] Twinkletoes", "  cathycathy@example.net", mainFocus)
 	rosterBox.Upsert("[green]●[white] Papa Shrimp", "  joooley@example.org", mainFocus)
 	rosterBox.Upsert("[silver]●[white] Pockets full of Sunshine", "  pockets@example.com", mainFocus)
-	rosterBox.Upsert("Quit", "Exit the application", func() {
-		app.Stop()
-	})
 
 	ui := UI{
 		roster:      rosterBox,
