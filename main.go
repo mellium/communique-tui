@@ -10,8 +10,10 @@
 package main
 
 import (
+	"bytes"
 	"flag"
 	"fmt"
+	"io"
 	"io/ioutil"
 	"log"
 	"os"
@@ -19,10 +21,10 @@ import (
 	"path/filepath"
 	"runtime"
 
-	"mellium.im/communiqué/internal/ui"
-
 	"github.com/BurntSushi/toml"
 	"github.com/rivo/tview"
+
+	"mellium.im/communiqué/internal/ui"
 )
 
 const (
@@ -84,8 +86,9 @@ func configFile(f string) (*os.File, string, error) {
 }
 
 func main() {
-	logger := log.New(os.Stderr, appName+" ", log.LstdFlags)
-	debug := log.New(ioutil.Discard, appName+" DEBUG ", log.LstdFlags)
+	earlyLogs := &bytes.Buffer{}
+	logger := log.New(io.MultiWriter(os.Stderr, earlyLogs), "", log.LstdFlags)
+	debug := log.New(ioutil.Discard, "DEBUG ", log.LstdFlags)
 
 	var (
 		configPath string
@@ -94,30 +97,34 @@ func main() {
 	flags.StringVar(&configPath, "f", configPath, "the config file to load")
 	err := flags.Parse(os.Args[1:])
 	if err != nil {
-		logger.Fatalf("error parsing command line flags: %q", err)
+		logger.Printf("error parsing command line flags: %q", err)
 	}
 
 	f, fPath, err := configFile(configPath)
 	if err != nil {
-		logger.Fatalf("error loading config %q: %q", fPath, err)
+		logger.Printf("error loading config %q: %q", fPath, err)
 	}
 	cfg := config{}
 	_, err = toml.DecodeReader(f, &cfg)
 	if err != nil {
-		logger.Fatalf("error parsing config file: %q", err)
+		logger.Printf("error parsing config file: %q", err)
 	}
-	if cfg.Verbose {
-		debug.SetOutput(os.Stderr)
-	}
-	debug.Printf("Parsed config as: `%+v'", cfg)
 
 	app := tview.NewApplication()
 	pane := ui.New(app,
 		ui.ShowJIDs(!cfg.Roster.HideJIDs),
 		ui.RosterWidth(cfg.Roster.Width),
 		ui.Log(fmt.Sprintf(`%s %s (%s)
-Go %s %s %s`, string(appName[0]^0x20)+appName[1:], Version, Commit, runtime.Version(), runtime.GOOS, runtime.GOARCH)),
-	)
+Go %s %s %s
+`, string(appName[0]^0x20)+appName[1:], Version, Commit, runtime.Version(), runtime.GOOS, runtime.GOARCH)))
+	_, err = io.Copy(pane, earlyLogs)
+	logger.SetOutput(pane)
+	if cfg.Verbose {
+		debug.SetOutput(pane)
+	}
+	if err != nil {
+		debug.Printf("Error copying early log data to output buffer: %q", err)
+	}
 
 	if err := app.SetRoot(pane, true).SetFocus(pane.Roster()).Run(); err != nil {
 		panic(err)
