@@ -72,10 +72,10 @@ func New(opts ...Option) Roster {
 						n = 0
 					}
 					r.list.SetCurrentItem(n)
-				}
 
-				events.Reset()
-				return nil
+					events.Reset()
+					return nil
+				}
 			}
 
 			events.Reset()
@@ -97,10 +97,10 @@ func New(opts ...Option) Roster {
 						n = 0
 					}
 					r.list.SetCurrentItem(n)
-				}
 
-				events.Reset()
-				return nil
+					events.Reset()
+					return nil
+				}
 			}
 
 			events.Reset()
