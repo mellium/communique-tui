@@ -23,6 +23,7 @@ type UI struct {
 	roster      roster.Roster
 	hideJIDs    bool
 	rosterWidth int
+	defaultLog  string
 }
 
 // Option can be used to configure a new roster widget.
@@ -56,6 +57,14 @@ func RosterWidth(width int) Option {
 	}
 }
 
+// Log returns an option that sets the default string to show in the log window
+// on startup.
+func Log(s string) Option {
+	return func(ui *UI) {
+		ui.defaultLog = s
+	}
+}
+
 // New constructs a new UI.
 func New(app *tview.Application, opts ...Option) UI {
 	statusBar := tview.NewBox().SetBorder(true)
@@ -81,7 +90,8 @@ func New(app *tview.Application, opts ...Option) UI {
 		return event
 	}
 
-	logs := tview.NewBox().SetBorder(true).SetTitle("Status")
+	logs := tview.NewTextView()
+	logs.SetBorder(true).SetTitle("Logs")
 	logs.SetInputCapture(rosterFocus)
 	pages.AddPage(statusPageName, logs, true, true)
 	setStatusPage := tview.NewModal().
@@ -116,6 +126,7 @@ func New(app *tview.Application, opts ...Option) UI {
 	for _, o := range opts {
 		o(&ui)
 	}
+	logs.SetText(ui.defaultLog)
 
 	ltrFlex := tview.NewFlex().
 		AddItem(rosterBox, ui.rosterWidth, 1, true).
