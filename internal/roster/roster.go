@@ -7,6 +7,7 @@ package roster
 
 import (
 	"bytes"
+	"fmt"
 	"strconv"
 	"sync"
 
@@ -132,9 +133,34 @@ func New(opts ...Option) Roster {
 	}
 
 	// Add default status indicator.
-	r.Upsert("Status", "[silver::d]──────", nil)
+	r.Upsert("", "", nil)
+	r.Offline()
 
 	return r
+}
+
+// Offline sets the state of the roster to show the user as offline.
+func (r Roster) Offline() {
+	r.setStatus("silver::d", "Offline")
+}
+
+// Online sets the state of the roster to show the user as online.
+func (r Roster) Online() {
+	r.setStatus("green", "Online")
+}
+
+// Away sets the state of the roster to show the user as away.
+func (r Roster) Away() {
+	r.setStatus("orange", "Away")
+}
+
+// Busy sets the state of the roster to show the user as busy.
+func (r Roster) Busy() {
+	r.setStatus("red", "Busy")
+}
+
+func (r Roster) setStatus(color, name string) {
+	r.list.SetItemText(0, name, fmt.Sprintf("[%s]──────", color))
 }
 
 // Upsert inserts or updates an item in the roster.
