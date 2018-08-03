@@ -11,11 +11,13 @@ package main
 
 import (
 	"flag"
+	"fmt"
 	"io/ioutil"
 	"log"
 	"os"
 	"os/user"
 	"path/filepath"
+	"runtime"
 
 	"mellium.im/communiqué/internal/ui"
 
@@ -24,7 +26,13 @@ import (
 )
 
 const (
-	app = "communiqué"
+	appName = "communiqué"
+)
+
+// Set at build time while linking.
+var (
+	Version = "devel"
+	Commit  = "unknown commit"
 )
 
 type config struct {
@@ -50,14 +58,14 @@ func configFile(f string) (*os.File, string, error) {
 		return cfgFile, f, err
 	}
 
-	fPath := filepath.Join(".", app+".toml")
+	fPath := filepath.Join(".", appName+".toml")
 	if cfgFile, err := os.Open(fPath); err == nil {
 		return cfgFile, fPath, err
 	}
 
 	cfgDir := os.Getenv("XDG_CONFIG_HOME")
 	if cfgDir != "" {
-		fPath = filepath.Join(cfgDir, app)
+		fPath = filepath.Join(cfgDir, appName)
 		if cfgFile, err := os.Open(fPath); err == nil {
 			return cfgFile, fPath, nil
 		}
@@ -65,24 +73,24 @@ func configFile(f string) (*os.File, string, error) {
 
 	u, err := user.Current()
 	if err != nil || u.HomeDir == "" {
-		fPath = filepath.Join("/etc", app)
+		fPath = filepath.Join("/etc", appName)
 		cfgFile, err := os.Open(fPath)
 		return cfgFile, fPath, err
 	}
 
-	fPath = filepath.Join(u.HomeDir, ".config", app)
+	fPath = filepath.Join(u.HomeDir, ".config", appName)
 	cfgFile, err := os.Open(fPath)
 	return cfgFile, fPath, err
 }
 
 func main() {
-	logger := log.New(os.Stderr, app+" ", log.LstdFlags)
-	debug := log.New(ioutil.Discard, app+" DEBUG ", log.LstdFlags)
+	logger := log.New(os.Stderr, appName+" ", log.LstdFlags)
+	debug := log.New(ioutil.Discard, appName+" DEBUG ", log.LstdFlags)
 
 	var (
 		configPath string
 	)
-	flags := flag.NewFlagSet(app, flag.ContinueOnError)
+	flags := flag.NewFlagSet(appName, flag.ContinueOnError)
 	flags.StringVar(&configPath, "f", configPath, "the config file to load")
 	err := flags.Parse(os.Args[1:])
 	if err != nil {
@@ -107,6 +115,8 @@ func main() {
 	pane := ui.New(app,
 		ui.ShowJIDs(!cfg.Roster.HideJIDs),
 		ui.RosterWidth(cfg.Roster.Width),
+		ui.Log(fmt.Sprintf(`%s %s (%s)
+Go %s %s %s`, string(appName[0]^0x20)+appName[1:], Version, Commit, runtime.Version(), runtime.GOOS, runtime.GOARCH)),
 	)
 
 	if err := app.SetRoot(pane, true).SetFocus(pane.Roster()).Run(); err != nil {
