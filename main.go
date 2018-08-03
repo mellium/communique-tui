@@ -115,8 +115,8 @@ func main() {
 		ui.ShowJIDs(!cfg.Roster.HideJIDs),
 		ui.RosterWidth(cfg.Roster.Width),
 		ui.Log(fmt.Sprintf(`%s %s (%s)
-Go %s %s %s
-`, string(appName[0]^0x20)+appName[1:], Version, Commit, runtime.Version(), runtime.GOOS, runtime.GOARCH)))
+Go %s %s
+`, string(appName[0]^0x20)+appName[1:], Version, Commit, runtime.Version(), runtime.Compiler)))
 	_, err = io.Copy(pane, earlyLogs)
 	logger.SetOutput(pane)
 	if cfg.Verbose {
