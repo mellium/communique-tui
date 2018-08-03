@@ -9,6 +9,7 @@ import (
 	"bytes"
 	"fmt"
 	"strconv"
+	"strings"
 	"sync"
 
 	"github.com/gdamore/tcell"
@@ -32,9 +33,18 @@ func ShowJIDs(show bool) Option {
 	}
 }
 
+// OnStatus returns an option that sets a callback for when the status item is
+// selected.
+func OnStatus(f func()) Option {
+	return func(r *Roster) {
+		r.onStatus = f
+	}
+}
+
 // Roster is a tview.Primitive that draws a roster pane.
 type Roster struct {
-	list *tview.List
+	list     *tview.List
+	onStatus func()
 }
 
 // New creates a new roster widget with the provided options.
@@ -133,7 +143,7 @@ func New(opts ...Option) Roster {
 	}
 
 	// Add default status indicator.
-	r.Upsert("", "", nil)
+	r.Upsert("", "", r.onStatus)
 	r.Offline()
 
 	return r
@@ -160,7 +170,7 @@ func (r Roster) Busy() {
 }
 
 func (r Roster) setStatus(color, name string) {
-	r.list.SetItemText(0, name, fmt.Sprintf("[%s]──────", color))
+	r.list.SetItemText(0, name, fmt.Sprintf("[%s]%s", color, strings.Repeat("─", 50)))
 }
 
 // Upsert inserts or updates an item in the roster.
