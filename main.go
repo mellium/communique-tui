@@ -33,6 +33,7 @@ type config struct {
 
 	Roster struct {
 		HideJIDs bool `toml:"hide_jids"`
+		Width    int  `toml:"width"`
 	}
 }
 
@@ -103,7 +104,10 @@ func main() {
 	debug.Printf("Parsed config as: `%+v'", cfg)
 
 	app := tview.NewApplication()
-	pane := ui.New(app, ui.ShowJIDs(!cfg.Roster.HideJIDs))
+	pane := ui.New(app,
+		ui.ShowJIDs(!cfg.Roster.HideJIDs),
+		ui.RosterWidth(cfg.Roster.Width),
+	)
 
 	if err := app.SetRoot(pane, true).SetFocus(pane.Roster()).Run(); err != nil {
 		panic(err)

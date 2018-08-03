@@ -14,9 +14,10 @@ import (
 
 // UI is a widget that combines other widgets to make the main UI.
 type UI struct {
-	flex     *tview.Flex
-	roster   roster.Roster
-	hideJIDs bool
+	flex        *tview.Flex
+	roster      roster.Roster
+	hideJIDs    bool
+	rosterWidth int
 }
 
 // Option can be used to configure a new roster widget.
@@ -27,6 +28,26 @@ func ShowJIDs(show bool) Option {
 	s := roster.ShowJIDs(show)
 	return func(ui *UI) {
 		s(&ui.roster)
+	}
+}
+
+// RosterWidth returns an option that sets the width of the roster.
+// It accepts a minimum of 2 and a max of 50 the default is 25.
+func RosterWidth(width int) Option {
+	return func(ui *UI) {
+		if width == 0 {
+			ui.rosterWidth = 25
+			return
+		}
+		if width < 2 {
+			ui.rosterWidth = 2
+			return
+		}
+		if width > 50 {
+			ui.rosterWidth = 50
+			return
+		}
+		ui.rosterWidth = width
 	}
 }
 
@@ -58,20 +79,22 @@ func New(app *tview.Application, opts ...Option) UI {
 		app.Stop()
 	})
 
-	ltrFlex := tview.NewFlex().
-		AddItem(rosterBox, 25, 1, true).
-		AddItem(pages, 0, 1, false)
-	flex := tview.NewFlex().SetDirection(tview.FlexRow).
-		AddItem(ltrFlex, 0, 1, true).
-		AddItem(statusBar, 2, 1, false)
-
 	ui := UI{
-		roster: rosterBox,
-		flex:   flex,
+		roster:      rosterBox,
+		rosterWidth: 25,
 	}
 	for _, o := range opts {
 		o(&ui)
 	}
+
+	ltrFlex := tview.NewFlex().
+		AddItem(rosterBox, ui.rosterWidth, 1, true).
+		AddItem(pages, 0, 1, false)
+	flex := tview.NewFlex().SetDirection(tview.FlexRow).
+		AddItem(ltrFlex, 0, 1, true).
+		AddItem(statusBar, 2, 1, false)
+	ui.flex = flex
+
 	return ui
 }
 

@@ -3,4 +3,8 @@ verbose = true
 
 [Roster]
 
-hide_jids = false
+# Don't show XMPP addresses (JIDs) below contact nicknames.
+# hide_addresses = false
+#
+# The width (in columns) of the roster.
+# width = 25
