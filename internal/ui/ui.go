@@ -6,10 +6,12 @@
 package ui
 
 import (
-	"mellium.im/communiqué/internal/roster"
+	"io"
 
 	"github.com/gdamore/tcell"
 	"github.com/rivo/tview"
+
+	"mellium.im/communiqué/internal/roster"
 )
 
 const (
@@ -24,6 +26,7 @@ type UI struct {
 	hideJIDs    bool
 	rosterWidth int
 	defaultLog  string
+	logWriter   io.Writer
 }
 
 // Option can be used to configure a new roster widget.
@@ -122,6 +125,7 @@ func New(app *tview.Application, opts ...Option) UI {
 	ui := UI{
 		roster:      rosterBox,
 		rosterWidth: 25,
+		logWriter:   logs,
 	}
 	for _, o := range opts {
 		o(&ui)
@@ -137,6 +141,11 @@ func New(app *tview.Application, opts ...Option) UI {
 	ui.flex = flex
 
 	return ui
+}
+
+// Write writes to the logging text view.
+func (ui UI) Write(p []byte) (n int, err error) {
+	return ui.logWriter.Write(p)
 }
 
 // Roster returns the underlying roster pane widget.
