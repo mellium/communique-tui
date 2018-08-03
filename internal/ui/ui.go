@@ -12,6 +12,11 @@ import (
 	"github.com/rivo/tview"
 )
 
+const (
+	setStatusPageName = "Set Status"
+	statusPageName    = "Status"
+)
+
 // UI is a widget that combines other widgets to make the main UI.
 type UI struct {
 	flex        *tview.Flex
@@ -54,22 +59,50 @@ func RosterWidth(width int) Option {
 // New constructs a new UI.
 func New(app *tview.Application, opts ...Option) UI {
 	statusBar := tview.NewBox().SetBorder(true)
-	rosterBox := roster.New(roster.Title("Roster"))
-
 	pages := tview.NewPages()
-	logs := tview.NewBox().SetBorder(true).SetTitle("Status")
-	logs.SetInputCapture(func(event *tcell.EventKey) *tcell.EventKey {
+
+	mainFocus := func() {
+		app.SetFocus(pages)
+	}
+
+	rosterBox := roster.New(
+		roster.Title("Roster"),
+		roster.OnStatus(func() {
+			mainFocus()
+			pages.ShowPage(setStatusPageName)
+		}),
+	)
+
+	rosterFocus := func(event *tcell.EventKey) *tcell.EventKey {
 		if event.Key() == tcell.KeyESC {
 			app.SetFocus(rosterBox)
 			return nil
 		}
 		return event
-	})
-	pages.AddPage("Status", logs, true, true)
-
-	mainFocus := func() {
-		app.SetFocus(pages)
 	}
+
+	logs := tview.NewBox().SetBorder(true).SetTitle("Status")
+	logs.SetInputCapture(rosterFocus)
+	pages.AddPage(statusPageName, logs, true, true)
+	setStatusPage := tview.NewModal().
+		SetText("Set Status").
+		AddButtons([]string{"Online [green]●", "Away [orange]●", "Busy [red]●", "Offline [silver]●"}).
+		SetDoneFunc(func(buttonIndex int, buttonLabel string) {
+			switch buttonIndex {
+			case 0:
+				rosterBox.Online()
+			case 1:
+				rosterBox.Away()
+			case 2:
+				rosterBox.Busy()
+			case 3:
+				rosterBox.Offline()
+			}
+			pages.SwitchToPage(statusPageName)
+			app.SetFocus(rosterBox)
+		})
+	//setStatusPage.SetInputCapture(rosterFocus)
+	pages.AddPage(setStatusPageName, setStatusPage, true, false)
 
 	rosterBox.Upsert("[orange]●[white] Thespian", "  me@example.net", mainFocus)
 	rosterBox.Upsert("[red]●[white] Twinkletoes", "  cathycathy@example.net", mainFocus)
