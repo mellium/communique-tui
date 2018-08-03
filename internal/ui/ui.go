@@ -33,26 +33,34 @@ func ShowJIDs(show bool) Option {
 // New constructs a new UI.
 func New(app *tview.Application, opts ...Option) UI {
 	statusBar := tview.NewBox().SetBorder(true)
-	mainBox := tview.NewBox().SetBorder(true).SetTitle("Conversation")
 	rosterBox := roster.New(roster.Title("Roster"))
-	mainBox.SetInputCapture(func(event *tcell.EventKey) *tcell.EventKey {
+
+	pages := tview.NewPages()
+	logs := tview.NewBox().SetBorder(true).SetTitle("Status")
+	logs.SetInputCapture(func(event *tcell.EventKey) *tcell.EventKey {
 		if event.Key() == tcell.KeyESC {
 			app.SetFocus(rosterBox)
+			return nil
 		}
 		return event
 	})
+	pages.AddPage("Status", logs, true, true)
 
-	rosterBox.Upsert("[orange]●[white] Thespian", "  me@example.net", nil)
-	rosterBox.Upsert("[red]●[white] Twinkletoes", "  cathycathy@example.net", nil)
-	rosterBox.Upsert("[green]●[white] Papa Shrimp", "  joooley@example.org", nil)
-	rosterBox.Upsert("[silver]●[white] Pockets full of Sunshine", "  pockets@example.com", nil)
+	mainFocus := func() {
+		app.SetFocus(pages)
+	}
+
+	rosterBox.Upsert("[orange]●[white] Thespian", "  me@example.net", mainFocus)
+	rosterBox.Upsert("[red]●[white] Twinkletoes", "  cathycathy@example.net", mainFocus)
+	rosterBox.Upsert("[green]●[white] Papa Shrimp", "  joooley@example.org", mainFocus)
+	rosterBox.Upsert("[silver]●[white] Pockets full of Sunshine", "  pockets@example.com", mainFocus)
 	rosterBox.Upsert("Quit", "Exit the application", func() {
 		app.Stop()
 	})
 
 	ltrFlex := tview.NewFlex().
 		AddItem(rosterBox, 25, 1, true).
-		AddItem(mainBox, 0, 1, false)
+		AddItem(pages, 0, 1, false)
 	flex := tview.NewFlex().SetDirection(tview.FlexRow).
 		AddItem(ltrFlex, 0, 1, true).
 		AddItem(statusBar, 2, 1, false)
