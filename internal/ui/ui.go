@@ -95,6 +95,9 @@ func New(app *tview.Application, opts ...Option) UI {
 	}
 
 	logs := tview.NewTextView()
+	logs.SetChangedFunc(func() {
+		app.Draw()
+	})
 	logs.SetBorder(true).SetTitle("Logs")
 	logs.SetInputCapture(rosterFocus)
 	pages.AddPage(statusPageName, logs, true, true)
