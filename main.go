@@ -12,21 +12,25 @@ package main
 import (
 	"bytes"
 	"context"
+	"crypto/tls"
 	"flag"
 	"fmt"
 	"io"
 	"io/ioutil"
 	"log"
 	"os"
+	"os/exec"
 	"os/user"
 	"path/filepath"
 	"runtime"
+	"strings"
 	"time"
 
 	"github.com/BurntSushi/toml"
 	"github.com/rivo/tview"
 
 	"mellium.im/communiqué/internal/ui"
+	"mellium.im/sasl"
 	"mellium.im/xmpp"
 	"mellium.im/xmpp/jid"
 )
@@ -43,12 +47,14 @@ var (
 
 type config struct {
 	JID     string `toml:"jid"`
+	PassCmd string `toml:"password_eval"`
 	Verbose bool   `toml:"verbose"`
+	KeyLog  string `toml:"keylog_file"`
 
-	Roster struct {
-		HideJIDs bool `toml:"hide_jids"`
-		Width    int  `toml:"width"`
-	}
+	UI struct {
+		HideStatus bool `toml:"hide_status"`
+		Width      int  `toml:"width"`
+	} `toml:"ui"`
 }
 
 // configFile attempts to open the config file for reading.
@@ -116,8 +122,8 @@ func main() {
 
 	app := tview.NewApplication()
 	pane := ui.New(app,
-		ui.ShowJIDs(!cfg.Roster.HideJIDs),
-		ui.RosterWidth(cfg.Roster.Width),
+		ui.ShowStatus(!cfg.UI.HideStatus),
+		ui.RosterWidth(cfg.UI.Width),
 		ui.Log(fmt.Sprintf(`%s %s (%s)
 Go %s %s
 
@@ -131,30 +137,60 @@ Go %s %s
 		debug.Printf("Error copying early log data to output buffer: %q", err)
 	}
 
-	go client(cfg.JID, logger, debug)
+	go func() {
+		ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+		defer cancel()
+
+		args := strings.Fields(cfg.PassCmd)
+		if len(args) < 1 {
+			logger.Println("No `password_eval' command specified in config file")
+			return
+		}
+		logger.Printf("Running command: %q", cfg.PassCmd)
+		pass, err := exec.CommandContext(ctx, args[0], args[1:]...).Output()
+		if err != nil {
+			logger.Println(err)
+			return
+		}
+		client(ctx, cfg.JID, string(pass), cfg.KeyLog, logger, debug)
+	}()
 
 	if err := app.SetRoot(pane, true).SetFocus(pane.Roster()).Run(); err != nil {
 		panic(err)
 	}
 }
 
-func client(addr string, logger, debug *log.Logger) {
+func client(ctx context.Context, addr, pass, keylogFile string, logger, debug *log.Logger) {
 	logger.Printf("User address: %q", addr)
 	j, err := jid.Parse(addr)
 	if err != nil {
 		logger.Printf("Error parsing user address: %q", err)
 	}
-	ctx, cancel := context.WithTimeout(context.Background(), 1*time.Second)
+
 	conn, err := xmpp.DialClient(ctx, "tcp", j)
 	if err != nil {
 		logger.Printf("Error connecting to %q: %q", j.Domain(), err)
 		return
 	}
 
-	_, err = xmpp.NewClientSession(ctx, j, "en", conn)
+	var keylog io.Writer
+	if keylogFile != "" {
+		keylog, err = os.OpenFile(keylogFile, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, 0400)
+		if err != nil {
+			logger.Printf("Error creating keylog file: %q", err)
+		}
+	}
+	_, err = xmpp.NewClientSession(
+		ctx, j, "en", conn,
+		xmpp.StartTLS(true, &tls.Config{
+			ServerName:   j.Domain().String(),
+			KeyLogWriter: keylog,
+		}),
+		xmpp.SASL("", pass, sasl.ScramSha256Plus, sasl.ScramSha1Plus, sasl.ScramSha256, sasl.ScramSha1),
+		xmpp.BindResource(),
+	)
 	if err != nil {
 		logger.Printf("Error establishing stream: %q", err)
 		return
 	}
-	cancel()
 }

@@ -8,5 +8,6 @@ require (
 	github.com/mattn/go-runewidth v0.0.2 // indirect
 	github.com/rivo/tview v0.0.0-20180728193050-6614b16d9037
 	golang.org/x/text v0.3.0 // indirect
+	mellium.im/sasl v0.1.1
 	mellium.im/xmpp v0.4.0
 )
