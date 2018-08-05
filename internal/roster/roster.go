@@ -26,8 +26,9 @@ func Title(title string) Option {
 	}
 }
 
-// ShowJIDs returns an option that shows or hides JIDs in the roster.
-func ShowJIDs(show bool) Option {
+// ShowStatus returns an option that shows or hides the status line under
+// contacts in the roster.
+func ShowStatus(show bool) Option {
 	return func(r *Roster) {
 		r.list.ShowSecondaryText(show)
 	}

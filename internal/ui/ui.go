@@ -32,9 +32,10 @@ type UI struct {
 // Option can be used to configure a new roster widget.
 type Option func(*UI)
 
-// ShowJIDs returns an option that shows or hides JIDs in the roster.
-func ShowJIDs(show bool) Option {
-	s := roster.ShowJIDs(show)
+// ShowStatus returns an option that shows or hides the status line under
+// contacts in the roster.
+func ShowStatus(show bool) Option {
+	s := roster.ShowStatus(show)
 	return func(ui *UI) {
 		s(&ui.roster)
 	}
@@ -117,10 +118,10 @@ func New(app *tview.Application, opts ...Option) UI {
 	//setStatusPage.SetInputCapture(rosterFocus)
 	pages.AddPage(setStatusPageName, setStatusPage, true, false)
 
-	rosterBox.Upsert("[orange]●[white] Thespian", "  me@example.net", mainFocus)
-	rosterBox.Upsert("[red]●[white] Twinkletoes", "  cathycathy@example.net", mainFocus)
-	rosterBox.Upsert("[green]●[white] Papa Shrimp", "  joooley@example.org", mainFocus)
-	rosterBox.Upsert("[silver]●[white] Pockets full of Sunshine", "  pockets@example.com", mainFocus)
+	rosterBox.Upsert("[orange]●[white] Thespian", "", mainFocus)
+	rosterBox.Upsert("[red]●[white] Twinkletoes", "  🆒🍩 🍪 🍫👆👇👈👉👊👋", mainFocus)
+	rosterBox.Upsert("[green]●[white] Papa Shrimp", "  Online, let's chat", mainFocus)
+	rosterBox.Upsert("[silver]●[white] Pockets full of Sunshine", "  Listening to: Watermark by Enya", mainFocus)
 
 	ui := UI{
 		roster:      rosterBox,
