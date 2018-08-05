@@ -11,6 +11,7 @@ package main
 
 import (
 	"bytes"
+	"context"
 	"flag"
 	"fmt"
 	"io"
@@ -20,11 +21,14 @@ import (
 	"os/user"
 	"path/filepath"
 	"runtime"
+	"time"
 
 	"github.com/BurntSushi/toml"
 	"github.com/rivo/tview"
 
 	"mellium.im/communiqué/internal/ui"
+	"mellium.im/xmpp"
+	"mellium.im/xmpp/jid"
 )
 
 const (
@@ -116,6 +120,7 @@ func main() {
 		ui.RosterWidth(cfg.Roster.Width),
 		ui.Log(fmt.Sprintf(`%s %s (%s)
 Go %s %s
+
 `, string(appName[0]^0x20)+appName[1:], Version, Commit, runtime.Version(), runtime.Compiler)))
 	_, err = io.Copy(pane, earlyLogs)
 	logger.SetOutput(pane)
@@ -126,7 +131,30 @@ Go %s %s
 		debug.Printf("Error copying early log data to output buffer: %q", err)
 	}
 
+	go client(cfg.JID, logger, debug)
+
 	if err := app.SetRoot(pane, true).SetFocus(pane.Roster()).Run(); err != nil {
 		panic(err)
 	}
+}
+
+func client(addr string, logger, debug *log.Logger) {
+	logger.Printf("User address: %q", addr)
+	j, err := jid.Parse(addr)
+	if err != nil {
+		logger.Printf("Error parsing user address: %q", err)
+	}
+	ctx, cancel := context.WithTimeout(context.Background(), 1*time.Second)
+	conn, err := xmpp.DialClient(ctx, "tcp", j)
+	if err != nil {
+		logger.Printf("Error connecting to %q: %q", j.Domain(), err)
+		return
+	}
+
+	_, err = xmpp.NewClientSession(ctx, j, "en", conn)
+	if err != nil {
+		logger.Printf("Error establishing stream: %q", err)
+		return
+	}
+	cancel()
 }
