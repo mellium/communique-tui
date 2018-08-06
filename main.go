@@ -167,12 +167,6 @@ func client(ctx context.Context, addr, pass, keylogFile string, logger, debug *l
 		logger.Printf("Error parsing user address: %q", err)
 	}
 
-	conn, err := xmpp.DialClient(ctx, "tcp", j)
-	if err != nil {
-		logger.Printf("Error connecting to %q: %q", j.Domain(), err)
-		return
-	}
-
 	var keylog io.Writer
 	if keylogFile != "" {
 		keylog, err = os.OpenFile(keylogFile, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, 0400)
@@ -180,12 +174,21 @@ func client(ctx context.Context, addr, pass, keylogFile string, logger, debug *l
 			logger.Printf("Error creating keylog file: %q", err)
 		}
 	}
-	_, err = xmpp.NewClientSession(
-		ctx, j, "en", conn,
-		xmpp.StartTLS(true, &tls.Config{
+	dialer := &xmpp.Dialer{
+		TLSConfig: &tls.Config{
 			ServerName:   j.Domain().String(),
 			KeyLogWriter: keylog,
-		}),
+		},
+	}
+	conn, err := dialer.Dial(ctx, "tcp", j)
+	if err != nil {
+		logger.Printf("Error connecting to %q: %q", j.Domain(), err)
+		return
+	}
+
+	_, err = xmpp.NewClientSession(
+		ctx, j, "en", conn,
+		xmpp.StartTLS(true, dialer.TLSConfig),
 		xmpp.SASL("", pass, sasl.ScramSha256Plus, sasl.ScramSha1Plus, sasl.ScramSha256, sasl.ScramSha1),
 		xmpp.BindResource(),
 	)
