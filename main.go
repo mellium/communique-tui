@@ -19,13 +19,16 @@ import (
 	"log"
 	"os"
 	"os/exec"
+	"os/signal"
 	"os/user"
 	"path/filepath"
 	"runtime"
 	"strings"
+	"syscall"
 	"time"
 
 	"github.com/BurntSushi/toml"
+	"github.com/gdamore/tcell"
 	"github.com/rivo/tview"
 
 	"mellium.im/communiqué/internal/ui"
@@ -116,7 +119,20 @@ func main() {
 		logger.Printf("error parsing config file: %q", err)
 	}
 
+	sigs := make(chan os.Signal, 1)
+	signal.Notify(sigs, os.Interrupt, syscall.SIGQUIT, syscall.SIGTERM)
+
+	pages := tview.NewPages()
 	app := tview.NewApplication()
+	quitModal := tview.NewModal().
+		SetText("Are you sure you want to quit?").
+		AddButtons([]string{"Quit", "Cancel"}).
+		SetDoneFunc(func(buttonIndex int, buttonLabel string) {
+			if buttonIndex == 0 {
+				app.Stop()
+			}
+			pages.HidePage("quit")
+		})
 	pane := ui.New(app,
 		ui.ShowStatus(!cfg.UI.HideStatus),
 		ui.RosterWidth(cfg.UI.Width),
@@ -124,6 +140,29 @@ func main() {
 Go %s %s
 
 `, string(appName[0]^0x20)+appName[1:], Version, Commit, runtime.Version(), runtime.Compiler)))
+
+	pages.AddPage("ui", pane, true, true)
+	pages.AddPage("quit", quitModal, true, false)
+
+	app.SetInputCapture(func(event *tcell.EventKey) *tcell.EventKey {
+		// The application intercepts Ctrl-C by default and terminates itself. We
+		// don't want Ctrl-C to stop the application, so disable this behavior by
+		// default. Manually sending a SIGINT will still work (see the signal
+		// handling goroutine in this file).
+		if event.Key() == tcell.KeyCtrlC {
+			return nil
+		}
+
+		// Temporary way to exit the application that should be removed when we get
+		// commands. Or maybe don't do commands and make this trigger a prompt?
+		if event.Rune() == 'q' {
+			pages.ShowPage("quit")
+			app.Draw()
+			return nil
+		}
+		return event
+	})
+
 	_, err = io.Copy(pane, earlyLogs)
 	logger.SetOutput(pane)
 	if cfg.Verbose {
@@ -151,7 +190,14 @@ Go %s %s
 		client(ctx, cfg.JID, string(pass), cfg.KeyLog, logger, debug)
 	}()
 
-	if err := app.SetRoot(pane, true).SetFocus(pane.Roster()).Run(); err != nil {
+	pane.Handle(newUIHandler(c, debug, logger))
+
+	go func() {
+		s := <-sigs
+		debug.Printf("Got signal: %v", s)
+		app.Stop()
+	}()
+	if err := app.SetRoot(pages, true).SetFocus(pane.Roster()).Run(); err != nil {
 		panic(err)
 	}
 }
