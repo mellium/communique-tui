@@ -20,8 +20,6 @@ import (
 	"os"
 	"os/exec"
 	"os/signal"
-	"os/user"
-	"path/filepath"
 	"runtime"
 	"strings"
 	"syscall"
@@ -43,56 +41,6 @@ var (
 	Version = "devel"
 	Commit  = "unknown commit"
 )
-
-type config struct {
-	JID     string `toml:"jid"`
-	PassCmd string `toml:"password_eval"`
-	Verbose bool   `toml:"verbose"`
-	KeyLog  string `toml:"keylog_file"`
-
-	UI struct {
-		HideStatus bool `toml:"hide_status"`
-		Width      int  `toml:"width"`
-	} `toml:"ui"`
-}
-
-// configFile attempts to open the config file for reading.
-// If a file is provided, only that file is checked, otherwise it attempts to
-// open the following (falling back if the file does not exist or cannot be
-// read):
-//
-// ./communiqué.toml, $XDG_CONFIG_HOME/communiqué/config.toml,
-// $HOME/.config/communiqué/config.toml, /etc/communiqué/config.toml
-func configFile(f string) (*os.File, string, error) {
-	if f != "" {
-		cfgFile, err := os.Open(f)
-		return cfgFile, f, err
-	}
-
-	fPath := filepath.Join(".", appName+".toml")
-	if cfgFile, err := os.Open(fPath); err == nil {
-		return cfgFile, fPath, err
-	}
-
-	cfgDir := os.Getenv("XDG_CONFIG_HOME")
-	if cfgDir != "" {
-		fPath = filepath.Join(cfgDir, appName)
-		if cfgFile, err := os.Open(fPath); err == nil {
-			return cfgFile, fPath, nil
-		}
-	}
-
-	u, err := user.Current()
-	if err != nil || u.HomeDir == "" {
-		fPath = filepath.Join("/etc", appName)
-		cfgFile, err := os.Open(fPath)
-		return cfgFile, fPath, err
-	}
-
-	fPath = filepath.Join(u.HomeDir, ".config", appName)
-	cfgFile, err := os.Open(fPath)
-	return cfgFile, fPath, err
-}
 
 func main() {
 	earlyLogs := &bytes.Buffer{}
