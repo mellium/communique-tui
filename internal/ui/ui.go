@@ -19,14 +19,28 @@ const (
 	statusPageName    = "Status"
 )
 
+// Event is any UI event.
+type Event uint64
+
+// A list of events.
+const (
+	Online Event = iota
+	Offline
+	Away
+	Busy
+)
+
 // UI is a widget that combines other widgets to make the main UI.
 type UI struct {
 	flex        *tview.Flex
+	pages       *tview.Pages
 	roster      roster.Roster
 	hideJIDs    bool
 	rosterWidth int
 	defaultLog  string
 	logWriter   io.Writer
+	handler     func(Event)
+	redraw      func() *tview.Application
 }
 
 // Option can be used to configure a new roster widget.
@@ -38,6 +52,18 @@ func ShowStatus(show bool) Option {
 	s := roster.ShowStatus(show)
 	return func(ui *UI) {
 		s(&ui.roster)
+	}
+}
+
+// Handle returns an option that configures an event handler which will be called
+// when the user performs certain actions in the UI.
+// Only one event handler can be registered, and subsequent calls to Event will
+// replace the handler.
+// The function will be called synchronously on the UI goroutine, so don't do
+// any intensive work (or launch a new goroutine if you must).
+func Handle(handler func(Event)) Option {
+	return func(ui *UI) {
+		ui.handler = handler
 	}
 }
 
@@ -101,24 +127,31 @@ func New(app *tview.Application, opts ...Option) UI {
 	logs.SetBorder(true).SetTitle("Logs")
 	logs.SetInputCapture(rosterFocus)
 	pages.AddPage(statusPageName, logs, true, true)
+	ui := UI{
+		roster:      rosterBox,
+		rosterWidth: 25,
+		logWriter:   logs,
+		handler:     func(Event) {},
+		redraw:      app.Draw,
+		pages:       pages,
+	}
 	setStatusPage := tview.NewModal().
 		SetText("Set Status").
 		AddButtons([]string{"Online [green]●", "Away [orange]●", "Busy [red]●", "Offline [silver]●"}).
 		SetDoneFunc(func(buttonIndex int, buttonLabel string) {
 			switch buttonIndex {
 			case 0:
-				rosterBox.Online()
+				ui.handler(Online)
 			case 1:
-				rosterBox.Away()
+				ui.handler(Away)
 			case 2:
-				rosterBox.Busy()
+				ui.handler(Busy)
 			case 3:
-				rosterBox.Offline()
+				ui.handler(Offline)
 			}
 			pages.SwitchToPage(statusPageName)
 			app.SetFocus(rosterBox)
 		})
-	//setStatusPage.SetInputCapture(rosterFocus)
 	pages.AddPage(setStatusPageName, setStatusPage, true, false)
 
 	rosterBox.Upsert("[orange]●[white] Thespian", "", mainFocus)
@@ -126,11 +159,6 @@ func New(app *tview.Application, opts ...Option) UI {
 	rosterBox.Upsert("[green]●[white] Papa Shrimp", "  Online, let's chat", mainFocus)
 	rosterBox.Upsert("[silver]●[white] Pockets full of Sunshine", "  Listening to: Watermark by Enya", mainFocus)
 
-	ui := UI{
-		roster:      rosterBox,
-		rosterWidth: 25,
-		logWriter:   logs,
-	}
 	for _, o := range opts {
 		o(&ui)
 	}
@@ -190,4 +218,38 @@ func (ui UI) Blur() {
 // GetFocusable implements tview.Primitive foui UI.
 func (ui UI) GetFocusable() tview.Focusable {
 	return ui.flex.GetFocusable()
+}
+
+// Offline sets the state of the roster to show the user as offline.
+func (ui UI) Offline() {
+	ui.roster.Offline()
+	ui.redraw()
+}
+
+// Online sets the state of the roster to show the user as online.
+func (ui UI) Online() {
+	ui.roster.Online()
+	ui.redraw()
+}
+
+// Away sets the state of the roster to show the user as away.
+func (ui UI) Away() {
+	ui.roster.Away()
+	ui.redraw()
+}
+
+// Busy sets the state of the roster to show the user as busy.
+func (ui UI) Busy() {
+	ui.roster.Busy()
+	ui.redraw()
+}
+
+// Handle configures an event handler which will be called when the user
+// performs certain actions in the UI.
+// Only one event handler can be registered, and subsequent calls to Event will
+// replace the handler.
+// The function will be called synchronously on the UI goroutine, so don't do
+// any intensive work (or launch a new goroutine if you must).
+func (ui *UI) Handle(handler func(Event)) {
+	ui.handler = handler
 }

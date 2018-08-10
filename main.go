@@ -46,6 +46,7 @@ func main() {
 	earlyLogs := &bytes.Buffer{}
 	logger := log.New(io.MultiWriter(os.Stderr, earlyLogs), "", log.LstdFlags)
 	debug := log.New(ioutil.Discard, "DEBUG ", log.LstdFlags)
+	var xmlInLog, xmlOutLog *log.Logger
 
 	var (
 		configPath string
@@ -111,31 +112,41 @@ Go %s %s
 		return event
 	})
 
+	if cfg.Log.XML {
+		xmlInLog = log.New(pane, "RECV ", log.LstdFlags)
+		xmlOutLog = log.New(pane, "SENT ", log.LstdFlags)
+	}
+
 	_, err = io.Copy(pane, earlyLogs)
 	logger.SetOutput(pane)
-	if cfg.Verbose {
+	if cfg.Log.Verbose {
 		debug.SetOutput(pane)
 	}
 	if err != nil {
 		debug.Printf("Error copying early log data to output buffer: %q", err)
 	}
 
+	var c *client
 	go func() {
 		ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 		defer cancel()
 
+		var pass []byte
 		args := strings.Fields(cfg.PassCmd)
 		if len(args) < 1 {
+			// TODO: No command was specified, prompt for a password.
 			logger.Println("No `password_eval' command specified in config file")
 			return
+		} else {
+			debug.Printf("Running command: %q", cfg.PassCmd)
+			pass, err = exec.CommandContext(ctx, args[0], args[1:]...).Output()
+			if err != nil {
+				logger.Println(err)
+				return
+			}
 		}
-		debug.Printf("Running command: %q", cfg.PassCmd)
-		pass, err := exec.CommandContext(ctx, args[0], args[1:]...).Output()
-		if err != nil {
-			logger.Println(err)
-			return
-		}
-		client(ctx, cfg.JID, string(pass), cfg.KeyLog, logger, debug)
+
+		c = newClient(ctx, cfg.JID, string(pass), cfg.KeyLog, pane, xmlInLog, xmlOutLog, logger, debug)
 	}()
 
 	pane.Handle(newUIHandler(c, debug, logger))
