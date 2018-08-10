@@ -1,10 +1,49 @@
-jid="sam@samwhited.com"
-verbose = true
+# The Jabber ID (JID) to log in as.
+# jid=""
 
-[Roster]
-
-# Don't show XMPP addresses (JIDs) below contact nicknames.
-# hide_addresses = false
+# Gets the password by executing the given command and reading from its standard
+# output. This lets you use a keyring or password manager instead of writing
+# your password to a config file.
 #
+# You shouldn't put your password in a plaintext config file, but if you must do
+# so you can use echo(1):
+#
+#     password_eval="echo -n password"
+#
+# Alternatives might be to install libsecret and use the secret-tool command to
+# get a password from a keyring such as GNOME keyring:
+#
+#     secret-tool store --label='jabber' jabber myjid@example.com
+#     password_eval="secret-tool lookup jabber myjid@example.com"
+#
+# The default is empty, which will cause communiqué to prompt for a password:
+#
+# password_eval=""
+
+# Specifies a file where TLS master secrets will be written in NSS key log
+# format. This can be used to allow external programs such as Wireshark to
+# decrypt TLS connections. The file will be truncated without a prompt if it
+# already exists.
+# See https://developer.mozilla.org/en-US/docs/Mozilla/Projects/NSS/Key_Log_Format.
+# Use of KeyLogWriter compromises security and should only be used for
+# debugging.
+#
+# keylog_file=""
+
+[log]
+
+# Turns on debug logging.
+# verbose = false
+
+# Log a normalized XML stream.
+# This is re-encoded and is not a byte-for-byte representation of what gets sent
+# over the wire.
+# xml = false
+
+[ui]
+
+# Don't show status line below contacts in the roster.
+# hide_status = false
+
 # The width (in columns) of the roster.
 # width = 25
