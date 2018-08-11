@@ -26,7 +26,7 @@ func (lw logWriter) Write(p []byte) (int, error) {
 	return len(p), nil
 }
 
-func newClient(ctx context.Context, addr, pass, keylogFile string, pane ui.UI, xmlIn, xmlOut, logger, debug *log.Logger) *client {
+func newClient(ctx context.Context, addr, pass, keylogFile string, pane *ui.UI, xmlIn, xmlOut, logger, debug *log.Logger) *client {
 	logger.Printf("User address: %q", addr)
 	j, err := jid.Parse(addr)
 	if err != nil {
@@ -92,7 +92,7 @@ func newClient(ctx context.Context, addr, pass, keylogFile string, pane ui.UI, x
 		}
 		_, err = xmlstream.Copy(e, r)
 		if err != nil {
-			debug.Println("Error reencoding token: %q", err)
+			debug.Printf("Error reencoding token: %q", err)
 			return nil
 		}
 		if xmlInEnc != nil {
@@ -111,7 +111,7 @@ func newClient(ctx context.Context, addr, pass, keylogFile string, pane ui.UI, x
 // client represents an XMPP client.
 type client struct {
 	*xmpp.Session
-	pane ui.UI
+	pane *ui.UI
 	w    xmlstream.TokenWriter
 	r    xml.TokenReader
 }
@@ -165,4 +165,24 @@ func (c *client) Away() {
 		return
 	}
 	c.pane.Away()
+}
+
+// Busy sets the status to busy.
+func (c *client) Busy() {
+	_, err := xmlstream.Copy(
+		c,
+		stanza.WrapPresence(
+			nil,
+			stanza.AvailablePresence,
+			xmlstream.Wrap(
+				xmlstream.ReaderFunc(func() (xml.Token, error) {
+					return xml.CharData("dnd"), io.EOF
+				}),
+				xml.StartElement{Name: xml.Name{Local: "show"}},
+			)))
+	if err != nil {
+		log.Printf("Error sending initial presence: %q", err)
+		return
+	}
+	c.pane.Busy()
 }

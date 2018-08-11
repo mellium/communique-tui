@@ -20,14 +20,15 @@ const (
 )
 
 // Event is any UI event.
-type Event uint64
+type Event string
 
 // A list of events.
 const (
-	Online Event = iota
-	Offline
-	Away
-	Busy
+	// The user has indicated that they want to change their status.
+	GoOnline  Event = "go-online"
+	GoOffline Event = "go-offline"
+	GoAway    Event = "go-away"
+	GoBusy    Event = "go-busy"
 )
 
 // UI is a widget that combines other widgets to make the main UI.
@@ -96,7 +97,7 @@ func Log(s string) Option {
 }
 
 // New constructs a new UI.
-func New(app *tview.Application, opts ...Option) UI {
+func New(app *tview.Application, opts ...Option) *UI {
 	statusBar := tview.NewBox().SetBorder(true)
 	pages := tview.NewPages()
 
@@ -127,7 +128,7 @@ func New(app *tview.Application, opts ...Option) UI {
 	logs.SetBorder(true).SetTitle("Logs")
 	logs.SetInputCapture(rosterFocus)
 	pages.AddPage(statusPageName, logs, true, true)
-	ui := UI{
+	ui := &UI{
 		roster:      rosterBox,
 		rosterWidth: 25,
 		logWriter:   logs,
@@ -141,13 +142,13 @@ func New(app *tview.Application, opts ...Option) UI {
 		SetDoneFunc(func(buttonIndex int, buttonLabel string) {
 			switch buttonIndex {
 			case 0:
-				ui.handler(Online)
+				ui.handler(GoOnline)
 			case 1:
-				ui.handler(Away)
+				ui.handler(GoAway)
 			case 2:
-				ui.handler(Busy)
+				ui.handler(GoBusy)
 			case 3:
-				ui.handler(Offline)
+				ui.handler(GoOffline)
 			}
 			pages.SwitchToPage(statusPageName)
 			app.SetFocus(rosterBox)
@@ -160,7 +161,7 @@ func New(app *tview.Application, opts ...Option) UI {
 	rosterBox.Upsert("[silver]●[white] Pockets full of Sunshine", "  Listening to: Watermark by Enya", mainFocus)
 
 	for _, o := range opts {
-		o(&ui)
+		o(ui)
 	}
 	logs.SetText(ui.defaultLog)
 
@@ -176,70 +177,70 @@ func New(app *tview.Application, opts ...Option) UI {
 }
 
 // Write writes to the logging text view.
-func (ui UI) Write(p []byte) (n int, err error) {
+func (ui *UI) Write(p []byte) (n int, err error) {
 	return ui.logWriter.Write(p)
 }
 
 // Roster returns the underlying roster pane widget.
-func (ui UI) Roster() roster.Roster {
+func (ui *UI) Roster() roster.Roster {
 	return ui.roster
 }
 
 // Draw implements tview.Primitive foui UI.
-func (ui UI) Draw(screen tcell.Screen) {
+func (ui *UI) Draw(screen tcell.Screen) {
 	ui.flex.Draw(screen)
 }
 
 // GetRect implements tview.Primitive foui UI.
-func (ui UI) GetRect() (int, int, int, int) {
+func (ui *UI) GetRect() (int, int, int, int) {
 	return ui.flex.GetRect()
 }
 
 // SetRect implements tview.Primitive foui UI.
-func (ui UI) SetRect(x, y, width, height int) {
+func (ui *UI) SetRect(x, y, width, height int) {
 	ui.flex.SetRect(x, y, width, height)
 }
 
 // InputHandler implements tview.Primitive foui UI.
-func (ui UI) InputHandler() func(event *tcell.EventKey, setFocus func(p tview.Primitive)) {
+func (ui *UI) InputHandler() func(event *tcell.EventKey, setFocus func(p tview.Primitive)) {
 	return ui.flex.InputHandler()
 }
 
 // Focus implements tview.Primitive foui UI.
-func (ui UI) Focus(delegate func(p tview.Primitive)) {
+func (ui *UI) Focus(delegate func(p tview.Primitive)) {
 	ui.flex.Focus(delegate)
 }
 
 // Blur implements tview.Primitive foui UI.
-func (ui UI) Blur() {
+func (ui *UI) Blur() {
 	ui.flex.Blur()
 }
 
 // GetFocusable implements tview.Primitive foui UI.
-func (ui UI) GetFocusable() tview.Focusable {
+func (ui *UI) GetFocusable() tview.Focusable {
 	return ui.flex.GetFocusable()
 }
 
 // Offline sets the state of the roster to show the user as offline.
-func (ui UI) Offline() {
+func (ui *UI) Offline() {
 	ui.roster.Offline()
 	ui.redraw()
 }
 
 // Online sets the state of the roster to show the user as online.
-func (ui UI) Online() {
+func (ui *UI) Online() {
 	ui.roster.Online()
 	ui.redraw()
 }
 
 // Away sets the state of the roster to show the user as away.
-func (ui UI) Away() {
+func (ui *UI) Away() {
 	ui.roster.Away()
 	ui.redraw()
 }
 
 // Busy sets the state of the roster to show the user as busy.
-func (ui UI) Busy() {
+func (ui *UI) Busy() {
 	ui.roster.Busy()
 	ui.redraw()
 }

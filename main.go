@@ -102,8 +102,6 @@ Go %s %s
 			return nil
 		}
 
-		// Temporary way to exit the application that should be removed when we get
-		// commands. Or maybe don't do commands and make this trigger a prompt?
 		if event.Rune() == 'q' {
 			pages.ShowPage("quit")
 			app.Draw()
@@ -147,9 +145,8 @@ Go %s %s
 		}
 
 		c = newClient(ctx, cfg.JID, string(pass), cfg.KeyLog, pane, xmlInLog, xmlOutLog, logger, debug)
+		pane.Handle(newUIHandler(c, debug, logger))
 	}()
-
-	pane.Handle(newUIHandler(c, debug, logger))
 
 	go func() {
 		s := <-sigs
