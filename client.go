@@ -186,3 +186,13 @@ func (c *client) Busy() {
 	}
 	c.pane.Busy()
 }
+
+// Offline logs the client off.
+func (c *client) Offline() {
+	err := c.Close()
+	if err != nil {
+		log.Printf("Error logging off: %q", err)
+		return
+	}
+	c.pane.Offline()
+}
