@@ -7,7 +7,6 @@ import (
 	"io"
 	"log"
 	"os"
-	"strings"
 
 	"mellium.im/communiqué/internal/ui"
 	"mellium.im/sasl"
@@ -63,47 +62,8 @@ func newClient(ctx context.Context, addr, pass, keylogFile string, pane *ui.UI, 
 		return nil
 	}
 
-	// TODO: figure out a way to get the xml log from the beginning of the session
-	// including establishing the stream.
-
 	c := &client{Session: s, pane: pane}
-	if xmlOut != nil {
-		c.w = xmlstream.MultiWriter(s, xml.NewEncoder(logWriter{xmlOut}))
-	}
-	if xmlIn != nil {
-		c.r = xmlstream.TeeReader(s, xml.NewEncoder(logWriter{xmlIn}))
-	}
-
 	c.Online()
-
-	go s.Serve(xmpp.HandlerFunc(func(t xmlstream.TokenReadWriter, start *xml.StartElement) error {
-		sbuild := &strings.Builder{}
-		e := xml.NewEncoder(sbuild)
-		err := e.EncodeToken(start.Copy())
-		if err != nil {
-			debug.Printf("Error encoding start token: %q", err)
-			return nil
-		}
-		var r xml.TokenReader = t
-		var xmlInEnc *xml.Encoder
-		if xmlIn != nil {
-			xmlInEnc = xml.NewEncoder(logWriter{xmlIn})
-			r = xmlstream.TeeReader(r, xmlInEnc)
-		}
-		_, err = xmlstream.Copy(e, r)
-		if err != nil {
-			debug.Printf("Error reencoding token: %q", err)
-			return nil
-		}
-		if xmlInEnc != nil {
-			/* #nosec */
-			xmlInEnc.Flush()
-		}
-		if x := sbuild.String(); x != "" {
-			debug.Printf("In:\n\t%s", x)
-		}
-		return nil
-	}))
 
 	return c
 }
@@ -112,29 +72,6 @@ func newClient(ctx context.Context, addr, pass, keylogFile string, pane *ui.UI, 
 type client struct {
 	*xmpp.Session
 	pane *ui.UI
-	w    xmlstream.TokenWriter
-	r    xml.TokenReader
-}
-
-func (c *client) EncodeToken(t xml.Token) error {
-	if c.w != nil {
-		return c.w.EncodeToken(t)
-	}
-	return c.Session.EncodeToken(t)
-}
-
-func (c *client) Flush() error {
-	if c.w != nil {
-		return c.w.Flush()
-	}
-	return c.Session.Flush()
-}
-
-func (c *client) Token() (xml.Token, error) {
-	if c.r != nil {
-		return c.r.Token()
-	}
-	return c.Session.Token()
 }
 
 // Online sets the status to online.
