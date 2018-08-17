@@ -51,18 +51,30 @@ func newClient(ctx context.Context, addr, pass, keylogFile string, pane *ui.UI, 
 		return nil
 	}
 
-	s, err := xmpp.NewClientSession(
-		ctx, j, "en", conn,
-		xmpp.StartTLS(true, dialer.TLSConfig),
-		xmpp.SASL("", pass, sasl.ScramSha256Plus, sasl.ScramSha1Plus, sasl.ScramSha256, sasl.ScramSha1),
-		xmpp.BindResource(),
-	)
+	var win, wout io.Writer
+	if xmlIn != nil {
+		win = logWriter{xmlIn}
+	}
+	if xmlOut != nil {
+		wout = logWriter{xmlOut}
+	}
+
+	s, err := xmpp.NegotiateSession(ctx, j.Domain(), j, conn, xmpp.NewNegotiator(xmpp.StreamConfig{
+		Features: []xmpp.StreamFeature{
+			xmpp.StartTLS(true, dialer.TLSConfig),
+			xmpp.SASL("", pass, sasl.ScramSha256Plus, sasl.ScramSha1Plus, sasl.ScramSha256, sasl.ScramSha1),
+			xmpp.BindResource(),
+		},
+		TeeIn:  win,
+		TeeOut: wout,
+	}))
 	if err != nil {
 		logger.Printf("Error establishing stream: %q", err)
 		return nil
 	}
 
 	c := &client{Session: s, pane: pane}
+
 	c.Online()
 
 	return c

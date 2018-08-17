@@ -25,8 +25,7 @@
 # decrypt TLS connections. The file will be truncated without a prompt if it
 # already exists.
 # See https://developer.mozilla.org/en-US/docs/Mozilla/Projects/NSS/Key_Log_Format.
-# Use of KeyLogWriter compromises security and should only be used for
-# debugging.
+# Use of this option compromises security and should only be used for debugging.
 #
 # keylog_file=""
 
@@ -35,9 +34,8 @@
 # Turns on debug logging.
 # verbose = false
 
-# Log a normalized XML stream.
-# This is re-encoded and is not a byte-for-byte representation of what gets sent
-# over the wire.
+# Log the XML stream.
+# Use of this option compromises security and should only be used for debugging.
 # xml = false
 
 [ui]
