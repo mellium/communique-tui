@@ -6,7 +6,9 @@ import (
 	"encoding/xml"
 	"io"
 	"log"
+	"net"
 	"os"
+	"time"
 
 	"mellium.im/communiqué/internal/ui"
 	"mellium.im/sasl"
@@ -25,7 +27,7 @@ func (lw logWriter) Write(p []byte) (int, error) {
 	return len(p), nil
 }
 
-func newClient(ctx context.Context, addr, pass, keylogFile string, pane *ui.UI, xmlIn, xmlOut, logger, debug *log.Logger) *client {
+func newClient(ctx context.Context, addr, keylogFile string, pane *ui.UI, xmlIn, xmlOut, logger, debug *log.Logger, getPass func() (string, error)) *client {
 	logger.Printf("User address: %q", addr)
 	j, err := jid.Parse(addr)
 	if err != nil {
@@ -51,46 +53,71 @@ func newClient(ctx context.Context, addr, pass, keylogFile string, pane *ui.UI, 
 		return nil
 	}
 
-	var win, wout io.Writer
+	c := &client{
+		addr:    j,
+		conn:    conn,
+		dialer:  dialer,
+		logger:  logger,
+		pane:    pane,
+		getPass: getPass,
+	}
 	if xmlIn != nil {
-		win = logWriter{xmlIn}
+		c.win = logWriter{xmlIn}
 	}
 	if xmlOut != nil {
-		wout = logWriter{xmlOut}
+		c.wout = logWriter{xmlOut}
 	}
 
-	s, err := xmpp.NegotiateSession(ctx, j.Domain(), j, conn, xmpp.NewNegotiator(xmpp.StreamConfig{
-		Features: []xmpp.StreamFeature{
-			xmpp.StartTLS(true, dialer.TLSConfig),
-			xmpp.SASL("", pass, sasl.ScramSha256Plus, sasl.ScramSha1Plus, sasl.ScramSha256, sasl.ScramSha1),
-			xmpp.BindResource(),
-		},
-		TeeIn:  win,
-		TeeOut: wout,
-	}))
+	err = c.reconnect(ctx)
 	if err != nil {
 		logger.Printf("Error establishing stream: %q", err)
 		return nil
 	}
 
-	c := &client{Session: s, pane: pane}
+	return c
+}
+
+func (c *client) reconnect(ctx context.Context) error {
+	pass, err := c.getPass()
+	if err != nil {
+		return err
+	}
+
+	c.Session, err = xmpp.NegotiateSession(ctx, c.addr.Domain(), c.addr, c.conn, xmpp.NewNegotiator(xmpp.StreamConfig{
+		Features: []xmpp.StreamFeature{
+			xmpp.StartTLS(true, c.dialer.TLSConfig),
+			xmpp.SASL("", pass, sasl.ScramSha256Plus, sasl.ScramSha1Plus, sasl.ScramSha256, sasl.ScramSha1),
+			xmpp.BindResource(),
+		},
+		TeeIn:  c.win,
+		TeeOut: c.wout,
+	}))
+	if err != nil {
+		return err
+	}
 
 	c.Online()
-
-	return c
+	return nil
 }
 
 // client represents an XMPP client.
 type client struct {
 	*xmpp.Session
-	pane *ui.UI
+	pane    *ui.UI
+	logger  *log.Logger
+	conn    net.Conn
+	addr    jid.JID
+	win     io.Writer
+	wout    io.Writer
+	dialer  *xmpp.Dialer
+	getPass func() (string, error)
 }
 
 // Online sets the status to online.
 func (c *client) Online() {
 	_, err := xmlstream.Copy(c, stanza.WrapPresence(nil, stanza.AvailablePresence, nil))
 	if err != nil {
-		log.Printf("Error sending initial presence: %q", err)
+		c.logger.Printf("Error sending online presence: %q", err)
 		return
 	}
 	c.pane.Online()
@@ -110,7 +137,7 @@ func (c *client) Away() {
 				xml.StartElement{Name: xml.Name{Local: "show"}},
 			)))
 	if err != nil {
-		log.Printf("Error sending initial presence: %q", err)
+		c.logger.Printf("Error sending away presence: %q", err)
 		return
 	}
 	c.pane.Away()
@@ -130,7 +157,7 @@ func (c *client) Busy() {
 				xml.StartElement{Name: xml.Name{Local: "show"}},
 			)))
 	if err != nil {
-		log.Printf("Error sending initial presence: %q", err)
+		c.logger.Printf("Error sending busy presence: %q", err)
 		return
 	}
 	c.pane.Busy()
@@ -138,10 +165,14 @@ func (c *client) Busy() {
 
 // Offline logs the client off.
 func (c *client) Offline() {
-	err := c.Close()
+	err := c.SetCloseDeadline(time.Now().Add(30 * time.Second))
 	if err != nil {
-		log.Printf("Error logging off: %q", err)
+		c.logger.Printf("Error setting close deadline: %q", err)
+		// Don't return; we still want to attempt to close the connection.
+	}
+	err = c.Close()
+	if err != nil {
+		c.logger.Printf("Error logging off: %q", err)
 		return
 	}
-	c.pane.Offline()
 }
