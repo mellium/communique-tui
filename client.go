@@ -6,7 +6,6 @@ import (
 	"encoding/xml"
 	"io"
 	"log"
-	"net"
 	"os"
 	"time"
 
@@ -27,7 +26,9 @@ func (lw logWriter) Write(p []byte) (int, error) {
 	return len(p), nil
 }
 
-func newClient(ctx context.Context, addr, keylogFile string, pane *ui.UI, xmlIn, xmlOut, logger, debug *log.Logger, getPass func() (string, error)) *client {
+// newClient creates a new XMPP client but does not attempt to negotiate a
+// session or send an initial presence, etc.
+func newClient(addr, keylogFile string, pane *ui.UI, xmlIn, xmlOut, logger, debug *log.Logger, getPass func(context.Context) (string, error)) *client {
 	logger.Printf("User address: %q", addr)
 	j, err := jid.Parse(addr)
 	if err != nil {
@@ -47,15 +48,9 @@ func newClient(ctx context.Context, addr, keylogFile string, pane *ui.UI, xmlIn,
 			KeyLogWriter: keylog,
 		},
 	}
-	conn, err := dialer.Dial(ctx, "tcp", j)
-	if err != nil {
-		logger.Printf("Error connecting to %q: %q", j.Domain(), err)
-		return nil
-	}
 
 	c := &client{
 		addr:    j,
-		conn:    conn,
 		dialer:  dialer,
 		logger:  logger,
 		pane:    pane,
@@ -68,22 +63,24 @@ func newClient(ctx context.Context, addr, keylogFile string, pane *ui.UI, xmlIn,
 		c.wout = logWriter{xmlOut}
 	}
 
-	err = c.reconnect(ctx)
-	if err != nil {
-		logger.Printf("Error establishing stream: %q", err)
-		return nil
-	}
-
 	return c
 }
 
 func (c *client) reconnect(ctx context.Context) error {
-	pass, err := c.getPass()
+	if c.online {
+		return nil
+	}
+
+	pass, err := c.getPass(ctx)
+	if err != nil {
+		return err
+	}
+	conn, err := c.dialer.Dial(ctx, "tcp", c.addr)
 	if err != nil {
 		return err
 	}
 
-	c.Session, err = xmpp.NegotiateSession(ctx, c.addr.Domain(), c.addr, c.conn, xmpp.NewNegotiator(xmpp.StreamConfig{
+	c.Session, err = xmpp.NegotiateSession(ctx, c.addr.Domain(), c.addr, conn, xmpp.NewNegotiator(xmpp.StreamConfig{
 		Features: []xmpp.StreamFeature{
 			xmpp.StartTLS(true, c.dialer.TLSConfig),
 			xmpp.SASL("", pass, sasl.ScramSha256Plus, sasl.ScramSha1Plus, sasl.ScramSha256, sasl.ScramSha1),
@@ -96,7 +93,18 @@ func (c *client) reconnect(ctx context.Context) error {
 		return err
 	}
 
-	c.Online()
+	c.online = true
+	go func() {
+		err := c.Serve(nil)
+		if err != nil {
+			c.logger.Printf("Error while handling XMPP streams: %q", err)
+		}
+		c.online = false
+		c.pane.Offline()
+		if err = conn.Close(); err != nil {
+			c.logger.Printf("Error closing the connection: %q", err)
+		}
+	}()
 	return nil
 }
 
@@ -105,17 +113,25 @@ type client struct {
 	*xmpp.Session
 	pane    *ui.UI
 	logger  *log.Logger
-	conn    net.Conn
 	addr    jid.JID
 	win     io.Writer
 	wout    io.Writer
 	dialer  *xmpp.Dialer
-	getPass func() (string, error)
+	getPass func(context.Context) (string, error)
+	online  bool
 }
 
 // Online sets the status to online.
-func (c *client) Online() {
-	_, err := xmlstream.Copy(c, stanza.WrapPresence(nil, stanza.AvailablePresence, nil))
+// The provided context is only used if the client was previously offline and we
+// have to re-establish the session.
+func (c *client) Online(ctx context.Context) {
+	err := c.reconnect(ctx)
+	if err != nil {
+		c.logger.Printf("Error reconnecting: %q", err)
+		return
+	}
+
+	_, err = xmlstream.Copy(c, stanza.WrapPresence(nil, stanza.AvailablePresence, nil))
 	if err != nil {
 		c.logger.Printf("Error sending online presence: %q", err)
 		return
@@ -124,8 +140,14 @@ func (c *client) Online() {
 }
 
 // Away sets the status to away.
-func (c *client) Away() {
-	_, err := xmlstream.Copy(
+func (c *client) Away(ctx context.Context) {
+	err := c.reconnect(ctx)
+	if err != nil {
+		c.logger.Printf("Error reconnecting: %q", err)
+		return
+	}
+
+	_, err = xmlstream.Copy(
 		c,
 		stanza.WrapPresence(
 			nil,
@@ -144,8 +166,14 @@ func (c *client) Away() {
 }
 
 // Busy sets the status to busy.
-func (c *client) Busy() {
-	_, err := xmlstream.Copy(
+func (c *client) Busy(ctx context.Context) {
+	err := c.reconnect(ctx)
+	if err != nil {
+		c.logger.Printf("Error reconnecting: %q", err)
+		return
+	}
+
+	_, err = xmlstream.Copy(
 		c,
 		stanza.WrapPresence(
 			nil,
@@ -165,6 +193,11 @@ func (c *client) Busy() {
 
 // Offline logs the client off.
 func (c *client) Offline() {
+	if !c.online {
+		c.pane.Offline()
+		return
+	}
+
 	err := c.SetCloseDeadline(time.Now().Add(30 * time.Second))
 	if err != nil {
 		c.logger.Printf("Error setting close deadline: %q", err)

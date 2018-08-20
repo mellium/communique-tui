@@ -125,35 +125,30 @@ Go %s %s
 		debug.Printf("Error copying early log data to output buffer: %q", err)
 	}
 
-	var c *client
-	go func() {
-		ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
-		defer cancel()
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
 
-		getPass := func() (string, error) {
-			var pass []byte
-			args := strings.Fields(cfg.PassCmd)
-			if len(args) < 1 {
-				// TODO: No command was specified, prompt for a password.
-				return "", errors.New("No `password_eval' command specified in config file")
-			} else {
-				debug.Printf("Running command: %q", cfg.PassCmd)
-				pass, err = exec.CommandContext(ctx, args[0], args[1:]...).Output()
-				if err != nil {
-					return "", err
-				}
+	getPass := func(ctx context.Context) (string, error) {
+		var pass []byte
+		args := strings.Fields(cfg.PassCmd)
+		if len(args) < 1 {
+			// TODO: No command was specified, prompt for a password.
+			return "", errors.New("No `password_eval' command specified in config file")
+		} else {
+			debug.Printf("Running command: %q", cfg.PassCmd)
+			pass, err = exec.CommandContext(ctx, args[0], args[1:]...).Output()
+			if err != nil {
+				return "", err
 			}
-			return string(pass), nil
 		}
+		return string(pass), nil
+	}
 
-		c = newClient(ctx, cfg.JID, cfg.KeyLog, pane, xmlInLog, xmlOutLog, logger, debug, getPass)
-		pane.Handle(newUIHandler(c, debug, logger))
-		err := c.Serve(nil)
-		pane.Offline()
-		if err != nil {
-			logger.Printf("Error while handling XMPP streams: %q", err)
-		}
-	}()
+	c := newClient(cfg.JID, cfg.KeyLog, pane, xmlInLog, xmlOutLog, logger, debug, getPass)
+	pane.Handle(newUIHandler(c, debug, logger))
+	pane.Offline()
+
+	go c.Online(ctx)
 
 	go func() {
 		s := <-sigs
