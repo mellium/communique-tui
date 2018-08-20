@@ -28,11 +28,21 @@ func (lw logWriter) Write(p []byte) (int, error) {
 
 // newClient creates a new XMPP client but does not attempt to negotiate a
 // session or send an initial presence, etc.
-func newClient(addr, keylogFile string, pane *ui.UI, xmlIn, xmlOut, logger, debug *log.Logger, getPass func(context.Context) (string, error)) *client {
-	logger.Printf("User address: %q", addr)
-	j, err := jid.Parse(addr)
-	if err != nil {
-		logger.Printf("Error parsing user address: %q", err)
+func newClient(configPath, addr, keylogFile string, pane *ui.UI, xmlIn, xmlOut, logger, debug *log.Logger, getPass func(context.Context) (string, error)) *client {
+	var j jid.JID
+	var err error
+	if addr == "" {
+		logger.Printf(`No user address specified, edit %q and add:
+
+	jid="me@example.com"
+
+`, configPath)
+	} else {
+		logger.Printf("User address: %q", addr)
+		j, err = jid.Parse(addr)
+		if err != nil {
+			logger.Printf("Error parsing user address: %q", err)
+		}
 	}
 
 	var keylog io.Writer
@@ -127,7 +137,7 @@ type client struct {
 func (c *client) Online(ctx context.Context) {
 	err := c.reconnect(ctx)
 	if err != nil {
-		c.logger.Printf("Error reconnecting: %q", err)
+		c.logger.Println(err)
 		return
 	}
 
@@ -143,7 +153,7 @@ func (c *client) Online(ctx context.Context) {
 func (c *client) Away(ctx context.Context) {
 	err := c.reconnect(ctx)
 	if err != nil {
-		c.logger.Printf("Error reconnecting: %q", err)
+		c.logger.Println(err)
 		return
 	}
 
@@ -169,7 +179,7 @@ func (c *client) Away(ctx context.Context) {
 func (c *client) Busy(ctx context.Context) {
 	err := c.reconnect(ctx)
 	if err != nil {
-		c.logger.Printf("Error reconnecting: %q", err)
+		c.logger.Println(err)
 		return
 	}
 

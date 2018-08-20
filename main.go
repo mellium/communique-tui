@@ -12,7 +12,6 @@ package main
 import (
 	"bytes"
 	"context"
-	"errors"
 	"flag"
 	"fmt"
 	"io"
@@ -61,7 +60,7 @@ func main() {
 
 	f, fPath, err := configFile(configPath)
 	if err != nil {
-		logger.Printf("error loading config %q: %q", fPath, err)
+		logger.Println(err)
 	}
 	cfg := config{}
 	_, err = toml.DecodeReader(f, &cfg)
@@ -133,7 +132,11 @@ Go %s %s
 		args := strings.Fields(cfg.PassCmd)
 		if len(args) < 1 {
 			// TODO: No command was specified, prompt for a password.
-			return "", errors.New("No `password_eval' command specified in config file")
+			return "", fmt.Errorf(`No password command specified, edit %q and add:
+
+	password_eval="password_command"
+
+`, fPath)
 		} else {
 			debug.Printf("Running command: %q", cfg.PassCmd)
 			pass, err = exec.CommandContext(ctx, args[0], args[1:]...).Output()
@@ -144,7 +147,7 @@ Go %s %s
 		return string(pass), nil
 	}
 
-	c := newClient(cfg.JID, cfg.KeyLog, pane, xmlInLog, xmlOutLog, logger, debug, getPass)
+	c := newClient(fPath, cfg.JID, cfg.KeyLog, pane, xmlInLog, xmlOutLog, logger, debug, getPass)
 	pane.Handle(newUIHandler(c, debug, logger))
 	pane.Offline()
 
