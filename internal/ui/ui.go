@@ -42,6 +42,7 @@ type UI struct {
 	logWriter   io.Writer
 	handler     func(Event)
 	redraw      func() *tview.Application
+	mainFocus   func()
 }
 
 // Option can be used to configure a new roster widget.
@@ -135,6 +136,7 @@ func New(app *tview.Application, opts ...Option) *UI {
 		handler:     func(Event) {},
 		redraw:      app.Draw,
 		pages:       pages,
+		mainFocus:   mainFocus,
 	}
 	setStatusPage := tview.NewModal().
 		SetText("Set Status").
@@ -155,11 +157,6 @@ func New(app *tview.Application, opts ...Option) *UI {
 		})
 	pages.AddPage(setStatusPageName, setStatusPage, true, false)
 
-	rosterBox.Upsert("[orange]●[white] Thespian", "", mainFocus)
-	rosterBox.Upsert("[red]●[white] Twinkletoes", "  🆒🍩 🍪 🍫👆👇👈👉👊👋", mainFocus)
-	rosterBox.Upsert("[green]●[white] Papa Shrimp", "  Online, let's chat", mainFocus)
-	rosterBox.Upsert("[silver]●[white] Pockets full of Sunshine", "  Listening to: Watermark by Enya", mainFocus)
-
 	for _, o := range opts {
 		o(ui)
 	}
@@ -174,6 +171,11 @@ func New(app *tview.Application, opts ...Option) *UI {
 	ui.flex = flex
 
 	return ui
+}
+
+// AddRoster adds an item to the roster.
+func (ui *UI) AddRoster(name, addr string) {
+	ui.roster.Upsert("[silver]●[white] "+name, "  "+addr, ui.mainFocus)
 }
 
 // Write writes to the logging text view.

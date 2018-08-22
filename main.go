@@ -124,9 +124,6 @@ Go %s %s
 		debug.Printf("Error copying early log data to output buffer: %q", err)
 	}
 
-	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
-	defer cancel()
-
 	getPass := func(ctx context.Context) (string, error) {
 		var pass []byte
 		args := strings.Fields(cfg.PassCmd)
@@ -151,7 +148,26 @@ Go %s %s
 	pane.Handle(newUIHandler(c, debug, logger))
 	pane.Offline()
 
-	go c.Online(ctx)
+	go func() {
+		ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+		defer cancel()
+
+		err := c.reconnect(ctx)
+		if err != nil {
+			logger.Printf("Initial connection failed: %q", err)
+			return
+		}
+
+		rosterCtx, rosterCancel := context.WithTimeout(context.Background(), 30*time.Second)
+		defer rosterCancel()
+
+		err = c.Roster(rosterCtx)
+		if err != nil {
+			logger.Printf("Error fetching roster: %q", err)
+		}
+
+		c.Online(ctx)
+	}()
 
 	go func() {
 		s := <-sigs

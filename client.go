@@ -18,6 +18,7 @@ import (
 	"mellium.im/xmlstream"
 	"mellium.im/xmpp"
 	"mellium.im/xmpp/jid"
+	"mellium.im/xmpp/roster"
 	"mellium.im/xmpp/stanza"
 )
 
@@ -150,7 +151,39 @@ func (c *client) Online(ctx context.Context) {
 		c.logger.Printf("Error sending online presence: %q", err)
 		return
 	}
+	if err = c.Flush(); err != nil {
+		c.logger.Printf("Error sending online presence: %q", err)
+		return
+	}
 	c.pane.Online()
+}
+
+// Roster requests the users contact list.
+func (c *client) Roster(ctx context.Context) error {
+	rosterIQ := roster.IQ{}
+	r, err := c.Send(ctx, rosterIQ.TokenReader())
+	if err != nil {
+		return err
+	}
+
+	// TODO: don't parse this all at once, do it incrementally.
+	d := xml.NewTokenDecoder(r)
+	err = d.Decode(&rosterIQ)
+	if err != nil && err != io.EOF {
+		return err
+	}
+
+	for _, item := range rosterIQ.Query.Item {
+		if item.Name == "" {
+			item.Name = item.JID.Localpart()
+		}
+		if item.Name == "" {
+			item.Name = item.JID.Domainpart()
+		}
+		c.pane.AddRoster(item.Name, item.JID.String())
+	}
+
+	return nil
 }
 
 // Away sets the status to away.
