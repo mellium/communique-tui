@@ -46,6 +46,7 @@ func OnStatus(f func()) Option {
 type Roster struct {
 	list     *tview.List
 	onStatus func()
+	Width    int
 }
 
 // New creates a new roster widget with the provided options.
@@ -53,7 +54,8 @@ func New(opts ...Option) Roster {
 	r := Roster{
 		list: tview.NewList(),
 	}
-	r.list.SetBorder(true)
+	r.list.SetBorder(true).
+		SetBorderPadding(0, 0, 1, 0)
 
 	events := &bytes.Buffer{}
 	m := &sync.Mutex{}
@@ -171,7 +173,11 @@ func (r Roster) Busy() {
 }
 
 func (r Roster) setStatus(color, name string) {
-	r.list.SetItemText(0, name, fmt.Sprintf("[%s]%s", color, strings.Repeat("─", 50)))
+	var width int
+	if r.Width > 4 {
+		width = r.Width - 4
+	}
+	r.list.SetItemText(0, name, fmt.Sprintf("[%s]%s", color, strings.Repeat("─", width)))
 }
 
 // Upsert inserts or updates an item in the roster.

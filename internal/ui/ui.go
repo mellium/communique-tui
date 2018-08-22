@@ -74,17 +74,21 @@ func Handle(handler func(Event)) Option {
 func RosterWidth(width int) Option {
 	return func(ui *UI) {
 		if width == 0 {
+			ui.roster.Width = 25
 			ui.rosterWidth = 25
 			return
 		}
 		if width < 2 {
+			ui.roster.Width = 2
 			ui.rosterWidth = 2
 			return
 		}
 		if width > 50 {
+			ui.roster.Width = 50
 			ui.rosterWidth = 50
 			return
 		}
+		ui.roster.Width = width
 		ui.rosterWidth = width
 	}
 }
