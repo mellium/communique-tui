@@ -176,6 +176,10 @@ func (c *client) Away(ctx context.Context) {
 		c.logger.Printf("Error sending away presence: %q", err)
 		return
 	}
+	if err = c.Flush(); err != nil {
+		c.logger.Printf("Error sending away presence: %q", err)
+		return
+	}
 	c.pane.Away()
 }
 
@@ -199,6 +203,10 @@ func (c *client) Busy(ctx context.Context) {
 				xml.StartElement{Name: xml.Name{Local: "show"}},
 			)))
 	if err != nil {
+		c.logger.Printf("Error sending busy presence: %q", err)
+		return
+	}
+	if err = c.Flush(); err != nil {
 		c.logger.Printf("Error sending busy presence: %q", err)
 		return
 	}
