@@ -110,9 +110,10 @@ func New(app *tview.Application, opts ...Option) *UI {
 		app.Draw()
 	})
 	statusBar.
+		SetTextColor(tview.Styles.PrimaryTextColor).
+		SetBackgroundColor(tcell.ColorGreen).
 		SetBorder(false).
-		SetBorderPadding(0, 0, 2, 0).
-		SetBackgroundColor(tcell.ColorGreen)
+		SetBorderPadding(0, 0, 2, 0)
 	pages := tview.NewPages()
 
 	mainFocus := func() {
@@ -161,7 +162,7 @@ func New(app *tview.Application, opts ...Option) *UI {
 	}
 	setStatusPage := tview.NewModal().
 		SetText("Set Status").
-		AddButtons([]string{"Online [green]●", "Away [orange]●", "Busy [red]●", "Offline [silver]●"}).
+		AddButtons([]string{"Online [green]●", "Away [orange]◓", "Busy [red]◑", "Offline ○"}).
 		SetDoneFunc(func(buttonIndex int, buttonLabel string) {
 			switch buttonIndex {
 			case 0:
