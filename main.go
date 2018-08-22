@@ -154,7 +154,7 @@ Go %s %s
 
 		err := c.reconnect(ctx)
 		if err != nil {
-			logger.Printf("Initial connection failed: %q", err)
+			logger.Println(err)
 			return
 		}
 
