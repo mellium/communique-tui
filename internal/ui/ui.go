@@ -6,6 +6,7 @@
 package ui
 
 import (
+	"fmt"
 	"io"
 
 	"github.com/gdamore/tcell"
@@ -35,6 +36,7 @@ const (
 type UI struct {
 	flex        *tview.Flex
 	pages       *tview.Pages
+	statusBar   *tview.TextView
 	roster      roster.Roster
 	hideJIDs    bool
 	rosterWidth int
@@ -103,7 +105,14 @@ func Log(s string) Option {
 
 // New constructs a new UI.
 func New(app *tview.Application, opts ...Option) *UI {
-	statusBar := tview.NewBox().SetBorder(true)
+	statusBar := tview.NewTextView()
+	statusBar.SetChangedFunc(func() {
+		app.Draw()
+	})
+	statusBar.
+		SetBorder(false).
+		SetBorderPadding(0, 0, 2, 0).
+		SetBackgroundColor(tcell.ColorGreen)
 	pages := tview.NewPages()
 
 	mainFocus := func() {
@@ -115,6 +124,13 @@ func New(app *tview.Application, opts ...Option) *UI {
 		roster.OnStatus(func() {
 			mainFocus()
 			pages.ShowPage(setStatusPageName)
+		}),
+		roster.OnChanged(func(idx int, main string, secondary string, shortcut rune) {
+			if idx == 0 {
+				statusBar.SetText("Status: " + main)
+				return
+			}
+			statusBar.SetText(fmt.Sprintf("Chat: %q (%s)", main, secondary))
 		}),
 	)
 
@@ -136,6 +152,7 @@ func New(app *tview.Application, opts ...Option) *UI {
 	ui := &UI{
 		roster:      rosterBox,
 		rosterWidth: 25,
+		statusBar:   statusBar,
 		logWriter:   logs,
 		handler:     func(Event) {},
 		redraw:      app.Draw,
@@ -171,15 +188,15 @@ func New(app *tview.Application, opts ...Option) *UI {
 		AddItem(pages, 0, 1, false)
 	flex := tview.NewFlex().SetDirection(tview.FlexRow).
 		AddItem(ltrFlex, 0, 1, true).
-		AddItem(statusBar, 2, 1, false)
+		AddItem(statusBar, 1, 1, false)
 	ui.flex = flex
 
 	return ui
 }
 
 // AddRoster adds an item to the roster.
-func (ui *UI) AddRoster(name, addr string) {
-	ui.roster.Upsert("[silver]●[white] "+name, "  "+addr, ui.mainFocus)
+func (ui *UI) AddRoster(item roster.Item) {
+	ui.roster.Upsert(item, ui.mainFocus)
 }
 
 // Write writes to the logging text view.

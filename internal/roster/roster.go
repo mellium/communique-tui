@@ -14,7 +14,13 @@ import (
 
 	"github.com/gdamore/tcell"
 	"github.com/rivo/tview"
+	"mellium.im/xmpp/roster"
 )
+
+// Item represents a contact in the roster.
+type Item struct {
+	roster.Item
+}
 
 // Option can be used to configure a new roster widget.
 type Option func(*Roster)
@@ -42,8 +48,17 @@ func OnStatus(f func()) Option {
 	}
 }
 
+// OnChanged returns an option that sets a callback for when the user navigates
+// to a roster item.
+func OnChanged(f func(int, string, string, rune)) Option {
+	return func(r *Roster) {
+		r.list.SetChangedFunc(f)
+	}
+}
+
 // Roster is a tview.Primitive that draws a roster pane.
 type Roster struct {
+	items    map[string]Item
 	list     *tview.List
 	onStatus func()
 	Width    int
@@ -52,7 +67,8 @@ type Roster struct {
 // New creates a new roster widget with the provided options.
 func New(opts ...Option) Roster {
 	r := Roster{
-		list: tview.NewList(),
+		items: make(map[string]Item),
+		list:  tview.NewList(),
 	}
 	r.list.SetBorder(true).
 		SetBorderPadding(0, 0, 1, 0)
@@ -146,7 +162,7 @@ func New(opts ...Option) Roster {
 	}
 
 	// Add default status indicator.
-	r.Upsert("", "", r.onStatus)
+	r.Upsert(Item{}, r.onStatus)
 	r.Offline()
 
 	return r
@@ -181,8 +197,8 @@ func (r Roster) setStatus(color, name string) {
 }
 
 // Upsert inserts or updates an item in the roster.
-func (r Roster) Upsert(name, uid string, action func()) {
-	r.list.AddItem(name, uid, 0, action)
+func (r Roster) Upsert(item Item, action func()) {
+	r.list.AddItem(item.Name, item.JID.Bare().String(), 0, action)
 }
 
 // Draw implements tview.Primitive for Roster.
