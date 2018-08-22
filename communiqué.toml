@@ -13,7 +13,7 @@
 # Alternatives might be to install libsecret and use the secret-tool command to
 # get a password from a keyring such as GNOME keyring:
 #
-#     secret-tool store --label='jabber' jabber myjid@example.com
+#     # secret-tool store --label='jabber' jabber myjid@example.com
 #     password_eval="secret-tool lookup jabber myjid@example.com"
 #
 # The default is empty, which will cause communiqué to prompt for a password:
