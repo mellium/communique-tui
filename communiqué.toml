@@ -45,3 +45,31 @@
 
 # The width (in columns) of the roster.
 # width = 25
+
+# The name of a theme to select.
+# theme = ""
+
+# Themes
+#
+# The colors are W3C color names including: black, maroon, green, olive, navy,
+# purple, teal, silver, gray, red, lime, yellow, blue, fuchsia, aqua, and white
+# (among others).
+# You may also enter a hex string using the format, "#ffffff".
+# Multiple themes may exist in a config file and one may be selected by setting
+# "ui.theme" (see the "ui" section above for details).
+#
+# [[theme]]
+#
+# name = ""
+#
+# primitive_background     = "black"
+# contrast_background      = "blue"
+# more_contrast_background = "green"
+# border                   = "white"
+# title                    = "white"
+# graphics                 = "white"
+# primary_text             = "white"
+# secondary_text           = "yellow"
+# tertiary_text            = "green"
+# inverse_text             = "blue"
+# contrast_secondary_text  = "darkcyan"

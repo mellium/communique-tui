@@ -10,6 +10,21 @@ import (
 	"path/filepath"
 )
 
+type theme struct {
+	Name                        string `toml:"name"`
+	PrimitiveBackgroundColor    string `toml:"primitive_background"`
+	ContrastBackgroundColor     string `toml:"contrast_background"`
+	MoreContrastBackgroundColor string `toml:"contrast_background"`
+	BorderColor                 string `toml:"border"`
+	TitleColor                  string `toml:"title"`
+	GraphicsColor               string `toml:"graphics"`
+	PrimaryTextColor            string `toml:"primary_text"`
+	SecondaryTextColor          string `toml:"secondary_text"`
+	TertiaryTextColor           string `toml:"tertiary_text"`
+	InverseTextColor            string `toml:"inverse_text"`
+	ContrastSecondaryTextColor  string `toml:"contrast_secondary_text"`
+}
+
 type config struct {
 	JID     string `toml:"jid"`
 	PassCmd string `toml:"password_eval"`
@@ -21,9 +36,12 @@ type config struct {
 	} `toml:"log"`
 
 	UI struct {
-		HideStatus bool `toml:"hide_status"`
-		Width      int  `toml:"width"`
+		HideStatus bool   `toml:"hide_status"`
+		Theme      string `toml:"theme"`
+		Width      int    `toml:"width"`
 	} `toml:"ui"`
+
+	Theme []theme `toml:"theme"`
 }
 
 // configFile attempts to open the config file for reading.

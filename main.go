@@ -68,6 +68,28 @@ func main() {
 		logger.Printf("error parsing config file: %q", err)
 	}
 
+	// Setup the global tview styles. I hate this.
+	var cfgTheme *theme
+	for _, t := range cfg.Theme {
+		if t.Name == cfg.UI.Theme {
+			cfgTheme = &t
+			break
+		}
+	}
+	if cfgTheme != nil {
+		tview.Styles.PrimitiveBackgroundColor = tcell.GetColor(cfgTheme.PrimitiveBackgroundColor)
+		tview.Styles.ContrastBackgroundColor = tcell.GetColor(cfgTheme.ContrastBackgroundColor)
+		tview.Styles.MoreContrastBackgroundColor = tcell.GetColor(cfgTheme.MoreContrastBackgroundColor)
+		tview.Styles.BorderColor = tcell.GetColor(cfgTheme.BorderColor)
+		tview.Styles.TitleColor = tcell.GetColor(cfgTheme.TitleColor)
+		tview.Styles.GraphicsColor = tcell.GetColor(cfgTheme.GraphicsColor)
+		tview.Styles.PrimaryTextColor = tcell.GetColor(cfgTheme.PrimaryTextColor)
+		tview.Styles.SecondaryTextColor = tcell.GetColor(cfgTheme.SecondaryTextColor)
+		tview.Styles.TertiaryTextColor = tcell.GetColor(cfgTheme.TertiaryTextColor)
+		tview.Styles.InverseTextColor = tcell.GetColor(cfgTheme.InverseTextColor)
+		tview.Styles.ContrastSecondaryTextColor = tcell.GetColor(cfgTheme.ContrastSecondaryTextColor)
+	}
+
 	sigs := make(chan os.Signal, 1)
 	signal.Notify(sigs, os.Interrupt, syscall.SIGQUIT, syscall.SIGTERM)
 
