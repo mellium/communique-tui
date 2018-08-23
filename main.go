@@ -105,6 +105,7 @@ func main() {
 			pages.HidePage("quit")
 		})
 	pane := ui.New(app,
+		ui.Addr(cfg.JID),
 		ui.ShowStatus(!cfg.UI.HideStatus),
 		ui.RosterWidth(cfg.UI.Width),
 		ui.Log(fmt.Sprintf(`%s %s (%s)
@@ -150,12 +151,7 @@ Go %s %s
 		var pass []byte
 		args := strings.Fields(cfg.PassCmd)
 		if len(args) < 1 {
-			// TODO: No command was specified, prompt for a password.
-			return "", fmt.Errorf(`No password command specified, edit %q and add:
-
-	password_eval="password_command"
-
-`, fPath)
+			pass = pane.ShowPasswordPrompt()
 		} else {
 			debug.Printf("Running command: %q", cfg.PassCmd)
 			pass, err = exec.CommandContext(ctx, args[0], args[1:]...).Output()
