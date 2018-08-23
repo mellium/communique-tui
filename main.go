@@ -93,17 +93,7 @@ func main() {
 	sigs := make(chan os.Signal, 1)
 	signal.Notify(sigs, os.Interrupt, syscall.SIGQUIT, syscall.SIGTERM)
 
-	pages := tview.NewPages()
 	app := tview.NewApplication()
-	quitModal := tview.NewModal().
-		SetText("Are you sure you want to quit?").
-		AddButtons([]string{"Quit", "Cancel"}).
-		SetDoneFunc(func(buttonIndex int, buttonLabel string) {
-			if buttonIndex == 0 {
-				app.Stop()
-			}
-			pages.HidePage("quit")
-		})
 	pane := ui.New(app,
 		ui.Addr(cfg.JID),
 		ui.ShowStatus(!cfg.UI.HideStatus),
@@ -112,9 +102,6 @@ func main() {
 Go %s %s
 
 `, string(appName[0]^0x20)+appName[1:], Version, Commit, runtime.Version(), runtime.Compiler)))
-
-	pages.AddPage("ui", pane, true, true)
-	pages.AddPage("quit", quitModal, true, false)
 
 	app.SetInputCapture(func(event *tcell.EventKey) *tcell.EventKey {
 		// The application intercepts Ctrl-C by default and terminates itself. We
@@ -126,8 +113,7 @@ Go %s %s
 		}
 
 		if event.Rune() == 'q' {
-			pages.ShowPage("quit")
-			app.Draw()
+			pane.ShowQuitPrompt()
 			return nil
 		}
 		return event
@@ -148,16 +134,15 @@ Go %s %s
 	}
 
 	getPass := func(ctx context.Context) (string, error) {
-		var pass []byte
 		args := strings.Fields(cfg.PassCmd)
 		if len(args) < 1 {
-			pass = pane.ShowPasswordPrompt()
-		} else {
-			debug.Printf("Running command: %q", cfg.PassCmd)
-			pass, err = exec.CommandContext(ctx, args[0], args[1:]...).Output()
-			if err != nil {
-				return "", err
-			}
+			return pane.ShowPasswordPrompt(), nil
+		}
+
+		debug.Printf("Running command: %q", cfg.PassCmd)
+		pass, err := exec.CommandContext(ctx, args[0], args[1:]...).Output()
+		if err != nil {
+			return "", err
 		}
 		return string(pass), nil
 	}
@@ -192,7 +177,7 @@ Go %s %s
 		debug.Printf("Got signal: %v", s)
 		app.Stop()
 	}()
-	if err := app.SetRoot(pages, true).SetFocus(pane.Roster()).Run(); err != nil {
+	if err := app.SetRoot(pane, true).SetFocus(pane).Run(); err != nil {
 		panic(err)
 	}
 }

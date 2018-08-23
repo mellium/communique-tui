@@ -16,7 +16,9 @@ import (
 )
 
 const (
-	getPasswordPageName = "Get Password"
+	uiPageName          = "ui"
+	quitPageName        = "quit"
+	getPasswordPageName = "get_password"
 	setStatusPageName   = "Set Status"
 	statusPageName      = "Status"
 )
@@ -37,6 +39,7 @@ const (
 type UI struct {
 	app         *tview.Application
 	flex        *tview.Flex
+	pages       *tview.Pages
 	buffers     *tview.Pages
 	statusBar   *tview.TextView
 	roster      roster.Roster
@@ -48,7 +51,7 @@ type UI struct {
 	redraw      func() *tview.Application
 	mainFocus   func()
 	addr        string
-	passPrompt  chan []byte
+	passPrompt  chan string
 }
 
 // Option can be used to configure a new roster widget.
@@ -127,16 +130,15 @@ func New(app *tview.Application, opts ...Option) *UI {
 		SetBorder(false).
 		SetBorderPadding(0, 0, 2, 0)
 	buffers := tview.NewPages()
-
-	mainFocus := func() {
-		app.SetFocus(buffers)
-	}
+	pages := tview.NewPages()
 
 	rosterBox := roster.New(
 		roster.Title("Roster"),
 		roster.OnStatus(func() {
-			mainFocus()
-			buffers.ShowPage(setStatusPageName)
+			pages.ShowPage(setStatusPageName)
+			pages.SendToFront(setStatusPageName)
+			app.SetFocus(pages)
+			app.Draw()
 		}),
 		roster.OnChanged(func(idx int, main string, secondary string, shortcut rune) {
 			if idx == 0 {
@@ -147,20 +149,13 @@ func New(app *tview.Application, opts ...Option) *UI {
 		}),
 	)
 
-	rosterFocus := func(event *tcell.EventKey) *tcell.EventKey {
+	logs := newLogs(app, func(event *tcell.EventKey) *tcell.EventKey {
 		if event.Key() == tcell.KeyESC {
 			app.SetFocus(rosterBox)
 			return nil
 		}
 		return event
-	}
-
-	logs := tview.NewTextView()
-	logs.SetChangedFunc(func() {
-		app.Draw()
 	})
-	logs.SetBorder(true).SetTitle("Logs")
-	logs.SetInputCapture(rosterFocus)
 	buffers.AddPage(statusPageName, logs, true, true)
 	ui := &UI{
 		app:         app,
@@ -171,50 +166,49 @@ func New(app *tview.Application, opts ...Option) *UI {
 		handler:     func(Event) {},
 		redraw:      app.Draw,
 		buffers:     buffers,
-		mainFocus:   mainFocus,
-		passPrompt:  make(chan []byte),
+		pages:       pages,
+		passPrompt:  make(chan string),
 	}
 	for _, o := range opts {
 		o(ui)
 	}
-
-	setStatusPage := tview.NewModal().
-		SetText("Set Status").
-		AddButtons([]string{"Online [green]●", "Away [orange]◓", "Busy [red]◑", "Offline ○"}).
-		SetDoneFunc(func(buttonIndex int, buttonLabel string) {
-			switch buttonIndex {
-			case 0:
-				ui.handler(GoOnline)
-			case 1:
-				ui.handler(GoAway)
-			case 2:
-				ui.handler(GoBusy)
-			case 3:
-				ui.handler(GoOffline)
-			}
-			buffers.SwitchToPage(statusPageName)
-			app.SetFocus(rosterBox)
-		})
-	buffers.AddPage(setStatusPageName, setStatusPage, true, false)
-
-	getPasswordPage := tview.NewForm().
-		AddPasswordField("Password", "", 0, 0, nil)
-	getPasswordPage.AddButton("Login", func() {
-		ui.passPrompt <- []byte(getPasswordPage.GetFormItem(0).(*tview.InputField).GetText())
-		buffers.SwitchToPage(statusPageName)
-		app.SetFocus(rosterBox)
-	})
-	getPasswordPage.SetBorder(true).SetTitle(fmt.Sprintf("Enter password for: %q", ui.addr))
-	buffers.AddPage(getPasswordPageName, getPasswordPage, true, false)
 	logs.SetText(ui.defaultLog)
+
+	setStatusPage := statusModal(func(buttonIndex int, buttonLabel string) {
+		switch buttonIndex {
+		case 0:
+			ui.handler(GoOnline)
+		case 1:
+			ui.handler(GoAway)
+		case 2:
+			ui.handler(GoBusy)
+		case 3:
+			ui.handler(GoOffline)
+		}
+		ui.pages.HidePage(setStatusPageName)
+	})
+
+	getPasswordPage := passwordModal(ui.addr, func(getPasswordPage *tview.Form) {
+		ui.passPrompt <- getPasswordPage.GetFormItem(0).(*tview.InputField).GetText()
+		ui.pages.HidePage(getPasswordPageName)
+	})
 
 	ltrFlex := tview.NewFlex().
 		AddItem(rosterBox, ui.rosterWidth, 1, true).
 		AddItem(buffers, 0, 1, false)
-	flex := tview.NewFlex().SetDirection(tview.FlexRow).
+	ui.flex = tview.NewFlex().SetDirection(tview.FlexRow).
 		AddItem(ltrFlex, 0, 1, true).
 		AddItem(statusBar, 1, 1, false)
-	ui.flex = flex
+
+	ui.pages.AddPage(setStatusPageName, setStatusPage, true, false)
+	ui.pages.AddPage(uiPageName, ui.flex, true, true)
+	ui.pages.AddPage(quitPageName, quitModal(func(buttonIndex int, buttonLabel string) {
+		if buttonIndex == 0 {
+			app.Stop()
+		}
+		ui.pages.HidePage(quitPageName)
+	}), true, false)
+	ui.pages.AddPage(getPasswordPageName, getPasswordPage, true, false)
 
 	return ui
 }
@@ -236,37 +230,37 @@ func (ui *UI) Roster() roster.Roster {
 
 // Draw implements tview.Primitive foui UI.
 func (ui *UI) Draw(screen tcell.Screen) {
-	ui.flex.Draw(screen)
+	ui.pages.Draw(screen)
 }
 
 // GetRect implements tview.Primitive foui UI.
 func (ui *UI) GetRect() (int, int, int, int) {
-	return ui.flex.GetRect()
+	return ui.pages.GetRect()
 }
 
 // SetRect implements tview.Primitive foui UI.
 func (ui *UI) SetRect(x, y, width, height int) {
-	ui.flex.SetRect(x, y, width, height)
+	ui.pages.SetRect(x, y, width, height)
 }
 
 // InputHandler implements tview.Primitive foui UI.
 func (ui *UI) InputHandler() func(event *tcell.EventKey, setFocus func(p tview.Primitive)) {
-	return ui.flex.InputHandler()
+	return ui.pages.InputHandler()
 }
 
 // Focus implements tview.Primitive foui UI.
 func (ui *UI) Focus(delegate func(p tview.Primitive)) {
-	ui.flex.Focus(delegate)
+	ui.pages.Focus(delegate)
 }
 
 // Blur implements tview.Primitive foui UI.
 func (ui *UI) Blur() {
-	ui.flex.Blur()
+	ui.pages.Blur()
 }
 
 // GetFocusable implements tview.Primitive foui UI.
 func (ui *UI) GetFocusable() tview.Focusable {
-	return ui.flex.GetFocusable()
+	return ui.pages.GetFocusable()
 }
 
 // Offline sets the state of the roster to show the user as offline.
@@ -305,8 +299,18 @@ func (ui *UI) Handle(handler func(Event)) {
 
 // ShowPasswordPrompt displays a modal and blocks until the user enters a
 // password and submits it.
-func (ui *UI) ShowPasswordPrompt() []byte {
-	ui.buffers.ShowPage(getPasswordPageName)
-	ui.app.SetFocus(ui.buffers)
+func (ui *UI) ShowPasswordPrompt() string {
+	ui.pages.ShowPage(getPasswordPageName)
+	ui.pages.SendToFront(getPasswordPageName)
+	ui.app.SetFocus(ui.pages)
+	ui.app.Draw()
 	return <-ui.passPrompt
+}
+
+// ShowQuitPrompt asks if the user wants to quit the application.
+func (ui *UI) ShowQuitPrompt() {
+	ui.pages.ShowPage(quitPageName)
+	ui.pages.SendToFront(quitPageName)
+	ui.app.SetFocus(ui.pages)
+	ui.app.Draw()
 }
