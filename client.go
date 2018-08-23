@@ -79,6 +79,7 @@ func newClient(configPath, addr, keylogFile string, pane *ui.UI, xmlIn, xmlOut, 
 		c.wout = logWriter{xmlOut}
 	}
 
+	pane.Offline()
 	return c
 }
 

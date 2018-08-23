@@ -149,7 +149,6 @@ Go %s %s
 
 	c := newClient(fPath, cfg.JID, cfg.KeyLog, pane, xmlInLog, xmlOutLog, logger, debug, getPass)
 	pane.Handle(newUIHandler(c, debug, logger))
-	pane.Offline()
 
 	go func() {
 		ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
