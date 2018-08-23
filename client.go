@@ -65,6 +65,8 @@ func newClient(configPath, addr, keylogFile string, pane *ui.UI, xmlIn, xmlOut, 
 	}
 
 	c := &client{
+		// TODO: read from configuration.
+		timeout: 10 * time.Second,
 		addr:    j,
 		dialer:  dialer,
 		logger:  logger,
@@ -91,6 +93,11 @@ func (c *client) reconnect(ctx context.Context) error {
 	if err != nil {
 		return err
 	}
+
+	var cancel context.CancelFunc
+	ctx, cancel = context.WithTimeout(ctx, c.timeout)
+	defer cancel()
+
 	conn, err := c.dialer.Dial(ctx, "tcp", c.addr)
 	if err != nil {
 		return err
@@ -127,6 +134,7 @@ func (c *client) reconnect(ctx context.Context) error {
 // client represents an XMPP client.
 type client struct {
 	*xmpp.Session
+	timeout time.Duration
 	pane    *ui.UI
 	logger  *log.Logger
 	addr    jid.JID

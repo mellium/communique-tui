@@ -151,7 +151,7 @@ Go %s %s
 	pane.Handle(newUIHandler(c, debug, logger))
 
 	go func() {
-		ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+		ctx, cancel := context.WithTimeout(context.Background(), time.Minute)
 		defer cancel()
 
 		err := c.reconnect(ctx)
