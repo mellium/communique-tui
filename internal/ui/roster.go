@@ -2,8 +2,7 @@
 // Use of this source code is governed by the BSD 2-clause
 // license that can be found in the LICENSE file.
 
-// Package roster contains a tview widget that displays a list of contacts.
-package roster
+package ui
 
 import (
 	"bytes"
@@ -17,25 +16,25 @@ import (
 	"mellium.im/xmpp/roster"
 )
 
-// Item represents a contact in the roster.
-type Item struct {
+// RosterItem represents a contact in the roster.
+type RosterItem struct {
 	roster.Item
 }
 
 // Roster is a tview.Primitive that draws a roster pane.
 type Roster struct {
-	items    map[string]Item
-	list     *tview.List
-	onStatus func()
-	Width    int
+	items map[string]RosterItem
+	list  *tview.List
+	Width int
 }
 
-// New creates a new roster widget with the provided options.
-func New() Roster {
+// NewRoster creates a new roster widget with the provided options.
+func NewRoster(onStatus func()) Roster {
 	r := Roster{
-		items: make(map[string]Item),
+		items: make(map[string]RosterItem),
 		list:  tview.NewList(),
 	}
+	r.list.SetTitle("Roster")
 	r.list.SetBorder(true).
 		SetBorderPadding(0, 0, 1, 0)
 
@@ -125,7 +124,7 @@ func New() Roster {
 	})
 
 	// Add default status indicator.
-	r.Upsert(Item{}, r.onStatus)
+	r.Upsert(RosterItem{}, onStatus)
 	r.Offline()
 
 	return r
@@ -160,7 +159,7 @@ func (r Roster) setStatus(color, name string) {
 }
 
 // Upsert inserts or updates an item in the roster.
-func (r Roster) Upsert(item Item, action func()) {
+func (r Roster) Upsert(item RosterItem, action func()) {
 	r.list.AddItem(item.Name, item.JID.Bare().String(), 0, action)
 }
 
@@ -199,19 +198,9 @@ func (r Roster) GetFocusable() tview.Focusable {
 	return r.list.GetFocusable()
 }
 
-// Title sets the rosters title text.
-func (r *Roster) Title(s string) {
-	r.list.SetTitle(s)
-}
-
 // ShowStatus shows or hides the status line under contacts in the roster.
 func (r *Roster) ShowStatus(show bool) {
 	r.list.ShowSecondaryText(show)
-}
-
-// OnStatus sets a callback for when the status item is selected.
-func (r *Roster) OnStatus(f func()) {
-	r.onStatus = f
 }
 
 // OnChanged sets a callback for when the user navigates to a roster item.

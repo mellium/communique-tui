@@ -11,16 +11,14 @@ import (
 
 	"github.com/gdamore/tcell"
 	"github.com/rivo/tview"
-
-	"mellium.im/communiqué/internal/roster"
 )
 
 const (
 	uiPageName          = "ui"
 	quitPageName        = "quit"
 	getPasswordPageName = "get_password"
-	setStatusPageName   = "Set Status"
-	statusPageName      = "Status"
+	setStatusPageName   = "set_status"
+	statusPageName      = "status"
 )
 
 // Event is any UI event.
@@ -42,7 +40,7 @@ type UI struct {
 	pages       *tview.Pages
 	buffers     *tview.Pages
 	statusBar   *tview.TextView
-	roster      roster.Roster
+	roster      Roster
 	hideJIDs    bool
 	rosterWidth int
 	defaultLog  string
@@ -131,9 +129,7 @@ func New(app *tview.Application, opts ...Option) *UI {
 	buffers := tview.NewPages()
 	pages := tview.NewPages()
 
-	rosterBox := roster.New()
-	rosterBox.Title("Roster")
-	rosterBox.OnStatus(func() {
+	rosterBox := NewRoster(func() {
 		pages.ShowPage(setStatusPageName)
 		pages.SendToFront(setStatusPageName)
 		app.SetFocus(pages)
@@ -212,7 +208,7 @@ func New(app *tview.Application, opts ...Option) *UI {
 }
 
 // AddRoster adds an item to the roster.
-func (ui *UI) AddRoster(item roster.Item) {
+func (ui *UI) AddRoster(item RosterItem) {
 	ui.roster.Upsert(item, ui.mainFocus)
 }
 
@@ -222,7 +218,7 @@ func (ui *UI) Write(p []byte) (n int, err error) {
 }
 
 // Roster returns the underlying roster pane widget.
-func (ui *UI) Roster() roster.Roster {
+func (ui *UI) Roster() Roster {
 	return ui.roster
 }
 

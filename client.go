@@ -13,7 +13,6 @@ import (
 	"os"
 	"time"
 
-	uiRoster "mellium.im/communiqué/internal/roster"
 	"mellium.im/communiqué/internal/ui"
 	"mellium.im/sasl"
 	"mellium.im/xmlstream"
@@ -182,7 +181,7 @@ func (c *client) Roster(ctx context.Context) error {
 		if item.Name == "" {
 			item.Name = item.JID.Domainpart()
 		}
-		c.pane.AddRoster(uiRoster.Item{Item: item})
+		c.pane.AddRoster(ui.RosterItem{Item: item})
 	}
 
 	return nil
