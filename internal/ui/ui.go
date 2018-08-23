@@ -37,7 +37,7 @@ const (
 type UI struct {
 	app         *tview.Application
 	flex        *tview.Flex
-	pages       *tview.Pages
+	buffers     *tview.Pages
 	statusBar   *tview.TextView
 	roster      roster.Roster
 	hideJIDs    bool
@@ -126,17 +126,17 @@ func New(app *tview.Application, opts ...Option) *UI {
 		SetBackgroundColor(tcell.ColorGreen).
 		SetBorder(false).
 		SetBorderPadding(0, 0, 2, 0)
-	pages := tview.NewPages()
+	buffers := tview.NewPages()
 
 	mainFocus := func() {
-		app.SetFocus(pages)
+		app.SetFocus(buffers)
 	}
 
 	rosterBox := roster.New(
 		roster.Title("Roster"),
 		roster.OnStatus(func() {
 			mainFocus()
-			pages.ShowPage(setStatusPageName)
+			buffers.ShowPage(setStatusPageName)
 		}),
 		roster.OnChanged(func(idx int, main string, secondary string, shortcut rune) {
 			if idx == 0 {
@@ -161,7 +161,7 @@ func New(app *tview.Application, opts ...Option) *UI {
 	})
 	logs.SetBorder(true).SetTitle("Logs")
 	logs.SetInputCapture(rosterFocus)
-	pages.AddPage(statusPageName, logs, true, true)
+	buffers.AddPage(statusPageName, logs, true, true)
 	ui := &UI{
 		app:         app,
 		roster:      rosterBox,
@@ -170,7 +170,7 @@ func New(app *tview.Application, opts ...Option) *UI {
 		logWriter:   logs,
 		handler:     func(Event) {},
 		redraw:      app.Draw,
-		pages:       pages,
+		buffers:     buffers,
 		mainFocus:   mainFocus,
 		passPrompt:  make(chan []byte),
 	}
@@ -192,25 +192,25 @@ func New(app *tview.Application, opts ...Option) *UI {
 			case 3:
 				ui.handler(GoOffline)
 			}
-			pages.SwitchToPage(statusPageName)
+			buffers.SwitchToPage(statusPageName)
 			app.SetFocus(rosterBox)
 		})
-	pages.AddPage(setStatusPageName, setStatusPage, true, false)
+	buffers.AddPage(setStatusPageName, setStatusPage, true, false)
 
 	getPasswordPage := tview.NewForm().
 		AddPasswordField("Password", "", 0, 0, nil)
 	getPasswordPage.AddButton("Login", func() {
 		ui.passPrompt <- []byte(getPasswordPage.GetFormItem(0).(*tview.InputField).GetText())
-		pages.SwitchToPage(statusPageName)
+		buffers.SwitchToPage(statusPageName)
 		app.SetFocus(rosterBox)
 	})
 	getPasswordPage.SetBorder(true).SetTitle(fmt.Sprintf("Enter password for: %q", ui.addr))
-	pages.AddPage(getPasswordPageName, getPasswordPage, true, false)
+	buffers.AddPage(getPasswordPageName, getPasswordPage, true, false)
 	logs.SetText(ui.defaultLog)
 
 	ltrFlex := tview.NewFlex().
 		AddItem(rosterBox, ui.rosterWidth, 1, true).
-		AddItem(pages, 0, 1, false)
+		AddItem(buffers, 0, 1, false)
 	flex := tview.NewFlex().SetDirection(tview.FlexRow).
 		AddItem(ltrFlex, 0, 1, true).
 		AddItem(statusBar, 1, 1, false)
@@ -306,7 +306,7 @@ func (ui *UI) Handle(handler func(Event)) {
 // ShowPasswordPrompt displays a modal and blocks until the user enters a
 // password and submits it.
 func (ui *UI) ShowPasswordPrompt() []byte {
-	ui.pages.ShowPage(getPasswordPageName)
-	ui.app.SetFocus(ui.pages)
+	ui.buffers.ShowPage(getPasswordPageName)
+	ui.app.SetFocus(ui.buffers)
 	return <-ui.passPrompt
 }
