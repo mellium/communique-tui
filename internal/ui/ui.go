@@ -60,9 +60,8 @@ type Option func(*UI)
 // ShowStatus returns an option that shows or hides the status line under
 // contacts in the roster.
 func ShowStatus(show bool) Option {
-	s := roster.ShowStatus(show)
 	return func(ui *UI) {
-		s(&ui.roster)
+		ui.roster.ShowStatus(show)
 	}
 }
 
@@ -132,22 +131,21 @@ func New(app *tview.Application, opts ...Option) *UI {
 	buffers := tview.NewPages()
 	pages := tview.NewPages()
 
-	rosterBox := roster.New(
-		roster.Title("Roster"),
-		roster.OnStatus(func() {
-			pages.ShowPage(setStatusPageName)
-			pages.SendToFront(setStatusPageName)
-			app.SetFocus(pages)
-			app.Draw()
-		}),
-		roster.OnChanged(func(idx int, main string, secondary string, shortcut rune) {
-			if idx == 0 {
-				statusBar.SetText("Status: " + main)
-				return
-			}
-			statusBar.SetText(fmt.Sprintf("Chat: %q (%s)", main, secondary))
-		}),
-	)
+	rosterBox := roster.New()
+	rosterBox.Title("Roster")
+	rosterBox.OnStatus(func() {
+		pages.ShowPage(setStatusPageName)
+		pages.SendToFront(setStatusPageName)
+		app.SetFocus(pages)
+		app.Draw()
+	})
+	rosterBox.OnChanged(func(idx int, main string, secondary string, shortcut rune) {
+		if idx == 0 {
+			statusBar.SetText("Status: " + main)
+			return
+		}
+		statusBar.SetText(fmt.Sprintf("Chat: %q (%s)", main, secondary))
+	})
 
 	logs := newLogs(app, func(event *tcell.EventKey) *tcell.EventKey {
 		if event.Key() == tcell.KeyESC {

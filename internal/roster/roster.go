@@ -22,40 +22,6 @@ type Item struct {
 	roster.Item
 }
 
-// Option can be used to configure a new roster widget.
-type Option func(*Roster)
-
-// Title returns an option that sets the rosters title.
-func Title(title string) Option {
-	return func(r *Roster) {
-		r.list.SetTitle(title)
-	}
-}
-
-// ShowStatus returns an option that shows or hides the status line under
-// contacts in the roster.
-func ShowStatus(show bool) Option {
-	return func(r *Roster) {
-		r.list.ShowSecondaryText(show)
-	}
-}
-
-// OnStatus returns an option that sets a callback for when the status item is
-// selected.
-func OnStatus(f func()) Option {
-	return func(r *Roster) {
-		r.onStatus = f
-	}
-}
-
-// OnChanged returns an option that sets a callback for when the user navigates
-// to a roster item.
-func OnChanged(f func(int, string, string, rune)) Option {
-	return func(r *Roster) {
-		r.list.SetChangedFunc(f)
-	}
-}
-
 // Roster is a tview.Primitive that draws a roster pane.
 type Roster struct {
 	items    map[string]Item
@@ -65,7 +31,7 @@ type Roster struct {
 }
 
 // New creates a new roster widget with the provided options.
-func New(opts ...Option) Roster {
+func New() Roster {
 	r := Roster{
 		items: make(map[string]Item),
 		list:  tview.NewList(),
@@ -157,9 +123,6 @@ func New(opts ...Option) Roster {
 
 		return event
 	})
-	for _, o := range opts {
-		o(&r)
-	}
 
 	// Add default status indicator.
 	r.Upsert(Item{}, r.onStatus)
@@ -234,4 +197,24 @@ func (r Roster) Blur() {
 // GetFocusable implements tview.Primitive for Roster.
 func (r Roster) GetFocusable() tview.Focusable {
 	return r.list.GetFocusable()
+}
+
+// Title sets the rosters title text.
+func (r *Roster) Title(s string) {
+	r.list.SetTitle(s)
+}
+
+// ShowStatus shows or hides the status line under contacts in the roster.
+func (r *Roster) ShowStatus(show bool) {
+	r.list.ShowSecondaryText(show)
+}
+
+// OnStatus sets a callback for when the status item is selected.
+func (r *Roster) OnStatus(f func()) {
+	r.onStatus = f
+}
+
+// OnChanged sets a callback for when the user navigates to a roster item.
+func (r *Roster) OnChanged(f func(int, string, string, rune)) {
+	r.list.SetChangedFunc(f)
 }
