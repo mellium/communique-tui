@@ -16,8 +16,9 @@ import (
 )
 
 const (
-	setStatusPageName = "Set Status"
-	statusPageName    = "Status"
+	getPasswordPageName = "Get Password"
+	setStatusPageName   = "Set Status"
+	statusPageName      = "Status"
 )
 
 // Event is any UI event.
@@ -34,6 +35,7 @@ const (
 
 // UI is a widget that combines other widgets to make the main UI.
 type UI struct {
+	app         *tview.Application
 	flex        *tview.Flex
 	pages       *tview.Pages
 	statusBar   *tview.TextView
@@ -45,6 +47,8 @@ type UI struct {
 	handler     func(Event)
 	redraw      func() *tview.Application
 	mainFocus   func()
+	addr        string
+	passPrompt  chan []byte
 }
 
 // Option can be used to configure a new roster widget.
@@ -56,6 +60,14 @@ func ShowStatus(show bool) Option {
 	s := roster.ShowStatus(show)
 	return func(ui *UI) {
 		s(&ui.roster)
+	}
+}
+
+// Addr returns an option that sets the users address anywhere that it is
+// displayed in the UI.
+func Addr(addr string) Option {
+	return func(ui *UI) {
+		ui.addr = addr
 	}
 }
 
@@ -151,6 +163,7 @@ func New(app *tview.Application, opts ...Option) *UI {
 	logs.SetInputCapture(rosterFocus)
 	pages.AddPage(statusPageName, logs, true, true)
 	ui := &UI{
+		app:         app,
 		roster:      rosterBox,
 		rosterWidth: 25,
 		statusBar:   statusBar,
@@ -159,7 +172,12 @@ func New(app *tview.Application, opts ...Option) *UI {
 		redraw:      app.Draw,
 		pages:       pages,
 		mainFocus:   mainFocus,
+		passPrompt:  make(chan []byte),
 	}
+	for _, o := range opts {
+		o(ui)
+	}
+
 	setStatusPage := tview.NewModal().
 		SetText("Set Status").
 		AddButtons([]string{"Online [green]●", "Away [orange]◓", "Busy [red]◑", "Offline ○"}).
@@ -179,9 +197,15 @@ func New(app *tview.Application, opts ...Option) *UI {
 		})
 	pages.AddPage(setStatusPageName, setStatusPage, true, false)
 
-	for _, o := range opts {
-		o(ui)
-	}
+	getPasswordPage := tview.NewForm().
+		AddPasswordField("Password", "", 0, 0, nil)
+	getPasswordPage.AddButton("Login", func() {
+		ui.passPrompt <- []byte(getPasswordPage.GetFormItem(0).(*tview.InputField).GetText())
+		pages.SwitchToPage(statusPageName)
+		app.SetFocus(rosterBox)
+	})
+	getPasswordPage.SetBorder(true).SetTitle(fmt.Sprintf("Enter password for: %q", ui.addr))
+	pages.AddPage(getPasswordPageName, getPasswordPage, true, false)
 	logs.SetText(ui.defaultLog)
 
 	ltrFlex := tview.NewFlex().
@@ -277,4 +301,12 @@ func (ui *UI) Busy() {
 // any intensive work (or launch a new goroutine if you must).
 func (ui *UI) Handle(handler func(Event)) {
 	ui.handler = handler
+}
+
+// ShowPasswordPrompt displays a modal and blocks until the user enters a
+// password and submits it.
+func (ui *UI) ShowPasswordPrompt() []byte {
+	ui.pages.ShowPage(getPasswordPageName)
+	ui.app.SetFocus(ui.pages)
+	return <-ui.passPrompt
 }
