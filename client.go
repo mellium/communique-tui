@@ -118,7 +118,7 @@ func (c *client) reconnect(ctx context.Context) error {
 
 	c.online = true
 	go func() {
-		err := c.Serve(nil)
+		err := c.Serve(newXMPPHandler(c))
 		if err != nil {
 			c.logger.Printf("Error while handling XMPP streams: %q", err)
 		}
@@ -128,6 +128,13 @@ func (c *client) reconnect(ctx context.Context) error {
 			c.logger.Printf("Error closing the connection: %q", err)
 		}
 	}()
+
+	rosterCtx, rosterCancel := context.WithTimeout(context.Background(), 30*time.Second)
+	defer rosterCancel()
+	err = c.Roster(rosterCtx)
+	if err != nil {
+		c.logger.Printf("Error fetching roster: %q", err)
+	}
 	return nil
 }
 

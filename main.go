@@ -154,20 +154,6 @@ Go %s %s
 		ctx, cancel := context.WithTimeout(context.Background(), time.Minute)
 		defer cancel()
 
-		err := c.reconnect(ctx)
-		if err != nil {
-			logger.Println(err)
-			return
-		}
-
-		rosterCtx, rosterCancel := context.WithTimeout(context.Background(), 30*time.Second)
-		defer rosterCancel()
-
-		err = c.Roster(rosterCtx)
-		if err != nil {
-			logger.Printf("Error fetching roster: %q", err)
-		}
-
 		c.Online(ctx)
 	}()
 
