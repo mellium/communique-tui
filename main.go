@@ -54,7 +54,11 @@ func main() {
 	flags := flag.NewFlagSet(appName, flag.ContinueOnError)
 	flags.StringVar(&configPath, "f", configPath, "the config file to load")
 	err := flags.Parse(os.Args[1:])
-	if err != nil {
+	switch err {
+	case flag.ErrHelp:
+		return
+	case nil:
+	default:
 		logger.Printf("error parsing command line flags: %q", err)
 	}
 
