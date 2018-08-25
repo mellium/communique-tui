@@ -3,7 +3,7 @@
 // license that can be found in the LICENSE file.
 
 // Package ui ties together various widgets to create the main Communiqué UI.
-package ui
+package ui // import "mellium.im/communiqué/internal/ui"
 
 import (
 	"fmt"

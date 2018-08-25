@@ -7,7 +7,7 @@
 //
 // Communiqué is compatible with the Jabber network, or with any instant
 // messaging service that speaks the XMPP protocol.
-package main
+package main // import "mellium.im/communiqué"
 
 import (
 	"bytes"
