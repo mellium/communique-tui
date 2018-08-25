@@ -42,6 +42,13 @@ var (
 	Commit  = "unknown commit"
 )
 
+func printHelp(flags *flag.FlagSet, w io.Writer) {
+	flags.SetOutput(w)
+	fmt.Println(`Usage of communiqué:`)
+	flags.PrintDefaults()
+	return
+}
+
 func main() {
 	earlyLogs := &bytes.Buffer{}
 	logger := log.New(io.MultiWriter(os.Stderr, earlyLogs), "", log.LstdFlags)
@@ -50,16 +57,26 @@ func main() {
 
 	var (
 		configPath string
+		h          bool
+		help       bool
 	)
 	flags := flag.NewFlagSet(appName, flag.ContinueOnError)
 	flags.StringVar(&configPath, "f", configPath, "the config file to load")
+	flags.BoolVar(&h, "h", h, "print this help message")
+	flags.BoolVar(&help, "help", help, "print this help message")
+	// Even with ContinueOnError set, it still prints for some reason. Discard the
+	// first defaults so we can write our own.
+	flags.SetOutput(ioutil.Discard)
 	err := flags.Parse(os.Args[1:])
-	switch err {
-	case flag.ErrHelp:
+	if err != nil {
+		logger.Println(err)
+		printHelp(flags, os.Stderr)
+		os.Exit(2)
+	}
+
+	if help || h {
+		printHelp(flags, os.Stdout)
 		return
-	case nil:
-	default:
-		logger.Printf("error parsing command line flags: %q", err)
 	}
 
 	f, fPath, err := configFile(configPath)
