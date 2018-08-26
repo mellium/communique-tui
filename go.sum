@@ -48,3 +48,5 @@ mellium.im/xmpp v0.7.2 h1:581PxK/01AH1W7El3UmaGr4Gr8YwPIrMdZQmvqeWlW8=
 mellium.im/xmpp v0.7.2/go.mod h1:vTaeFaKDcPWGxVJpaVQTVoFr7lIuWaA2Oqz9NPAGaMM=
 mellium.im/xmpp v0.8.0 h1:YwTTkF2tegS2T1IzPo87kyrA/J/C5iUPjvOcza1jqAQ=
 mellium.im/xmpp v0.8.0/go.mod h1:Vs4gsNv+vnF4lYpBD63cjfwLIOqGqmdMJpgMhNwkGro=
+mellium.im/xmpp v0.9.0 h1:xbrIopplkizD+1cyihUc23L0hFk4sQhZhjetK8l1SDw=
+mellium.im/xmpp v0.9.0/go.mod h1:Vs4gsNv+vnF4lYpBD63cjfwLIOqGqmdMJpgMhNwkGro=
