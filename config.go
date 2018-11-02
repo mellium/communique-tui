@@ -6,7 +6,6 @@ package main
 
 import (
 	"os"
-	"os/user"
 	"path/filepath"
 )
 
@@ -70,14 +69,14 @@ func configFile(f string) (*os.File, string, error) {
 		}
 	}
 
-	u, err := user.Current()
-	if err != nil || u.HomeDir == "" {
+	home := os.UserHomeDir()
+	if home == "" {
 		fPath = filepath.Join("/etc", appName)
 		cfgFile, err := os.Open(fPath)
 		return cfgFile, fPath, err
 	}
 
-	fPath = filepath.Join(u.HomeDir, ".config", appName)
+	fPath = filepath.Join(home, ".config", appName)
 	cfgFile, err := os.Open(fPath)
 	return cfgFile, fPath, err
 }

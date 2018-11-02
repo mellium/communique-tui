@@ -1,7 +1,7 @@
 GOFILES != find . -name '*.go'
 VERSION!=git describe --tags --dirty
 COMMIT!=git rev-parse --short HEAD 2>/dev/null
-GO?=go1.11rc2
+GO?=go
 TAGS?=
 
 LDFLAGS =-X main.Commit=$(COMMIT)

@@ -10,7 +10,7 @@ a full client.
 
 ## Building
 
-To build Communiqué you will need Go 1.11 or higher.
+To build Communiqué you will need Go 1.12 or higher.
 If an appropriate version of Go is already installed, try running `bmake` (or
 `make`).
 
