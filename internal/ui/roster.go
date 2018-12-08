@@ -18,6 +18,7 @@ import (
 
 // RosterItem represents a contact in the roster.
 type RosterItem struct {
+	idx int
 	roster.Item
 }
 
@@ -124,7 +125,7 @@ func NewRoster(onStatus func()) Roster {
 	})
 
 	// Add default status indicator.
-	r.Upsert(RosterItem{}, onStatus)
+	r.Upsert(RosterItem{idx: 0}, onStatus)
 	r.Offline()
 
 	return r
@@ -160,7 +161,22 @@ func (r Roster) setStatus(color, name string) {
 
 // Upsert inserts or updates an item in the roster.
 func (r Roster) Upsert(item RosterItem, action func()) {
-	r.list.AddItem(item.Name, item.JID.Bare().String(), 0, action)
+	switch item.Subscription {
+	case "remove":
+		bare := item.JID.Bare().String()
+		var ok bool
+		item, ok = r.items[bare]
+		if !ok {
+			return
+		}
+		r.list.RemoveItem(item.idx)
+		delete(r.items, bare)
+	default:
+		bare := item.JID.Bare().String()
+		r.list.AddItem(item.Name, bare, 0, action)
+		item.idx = r.list.GetItemCount() - 1
+		r.items[bare] = item
+	}
 }
 
 // Draw implements tview.Primitive for Roster.

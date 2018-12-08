@@ -207,8 +207,8 @@ func New(app *tview.Application, opts ...Option) *UI {
 	return ui
 }
 
-// AddRoster adds an item to the roster.
-func (ui *UI) AddRoster(item RosterItem) {
+// UpdateRoster adds an item to the roster.
+func (ui *UI) UpdateRoster(item RosterItem) {
 	ui.roster.Upsert(item, ui.mainFocus)
 }
 
