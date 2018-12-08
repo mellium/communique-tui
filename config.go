@@ -69,7 +69,11 @@ func configFile(f string) (*os.File, string, error) {
 		}
 	}
 
-	home := os.UserHomeDir()
+	home, err := os.UserHomeDir()
+	if err != nil {
+		return nil, "", err
+	}
+
 	if home == "" {
 		fPath = filepath.Join("/etc", appName)
 		cfgFile, err := os.Open(fPath)

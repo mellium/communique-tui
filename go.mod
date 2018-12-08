@@ -1,5 +1,7 @@
 module mellium.im/communiqué
 
+go 1.12
+
 require (
 	github.com/BurntSushi/toml v0.3.1
 	github.com/gdamore/encoding v0.0.0-20151215212835-b23993cbb635 // indirect
