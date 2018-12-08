@@ -1,4 +1,4 @@
-GOFILES != find . -name '*.go'
+GOFILES!=find . -name '*.go'
 VERSION!=git describe --tags --dirty
 COMMIT!=git rev-parse --short HEAD 2>/dev/null
 GO?=go
