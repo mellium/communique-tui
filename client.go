@@ -105,7 +105,7 @@ func (c *client) reconnect(ctx context.Context) error {
 		return fmt.Errorf("error dialing connection: %w", err)
 	}
 
-	c.Session, err = xmpp.NegotiateSession(ctx, c.addr.Domain(), c.addr, conn, xmpp.NewNegotiator(xmpp.StreamConfig{
+	negotiator := xmpp.NewNegotiator(xmpp.StreamConfig{
 		Features: []xmpp.StreamFeature{
 			xmpp.StartTLS(true, c.dialer.TLSConfig),
 			xmpp.SASL("", pass, sasl.ScramSha256Plus, sasl.ScramSha1Plus, sasl.ScramSha256, sasl.ScramSha1),
@@ -113,7 +113,8 @@ func (c *client) reconnect(ctx context.Context) error {
 		},
 		TeeIn:  c.win,
 		TeeOut: c.wout,
-	}))
+	})
+	c.Session, err = xmpp.NegotiateSession(ctx, c.addr.Domain(), c.addr, conn, false, negotiator)
 	if err != nil {
 		return fmt.Errorf("error negotiating session: %w", err)
 	}
