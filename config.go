@@ -28,6 +28,7 @@ type config struct {
 	JID     string `toml:"jid"`
 	PassCmd string `toml:"password_eval"`
 	KeyLog  string `toml:"keylog_file"`
+	Timeout string `toml:"timeout"`
 
 	Log struct {
 		Verbose bool `toml:"verbose"`

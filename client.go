@@ -34,7 +34,7 @@ func (lw logWriter) Write(p []byte) (int, error) {
 
 // newClient creates a new XMPP client but does not attempt to negotiate a
 // session or send an initial presence, etc.
-func newClient(configPath, addr, keylogFile string, pane *ui.UI, xmlIn, xmlOut, logger, debug *log.Logger, getPass func(context.Context) (string, error)) *client {
+func newClient(timeout time.Duration, configPath, addr, keylogFile string, pane *ui.UI, xmlIn, xmlOut, logger, debug *log.Logger, getPass func(context.Context) (string, error)) *client {
 	var j jid.JID
 	var err error
 	if addr == "" {
@@ -66,8 +66,7 @@ func newClient(configPath, addr, keylogFile string, pane *ui.UI, xmlIn, xmlOut, 
 	}
 
 	c := &client{
-		// TODO: read from configuration.
-		timeout: 10 * time.Second,
+		timeout: timeout,
 		addr:    j,
 		dialer:  dialer,
 		logger:  logger,

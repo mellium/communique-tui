@@ -168,7 +168,12 @@ Go %s %s
 		return string(pass), nil
 	}
 
-	c := newClient(fPath, cfg.JID, cfg.KeyLog, pane, xmlInLog, xmlOutLog, logger, debug, getPass)
+	timeout, err := time.ParseDuration(cfg.Timeout)
+	if err != nil {
+		logger.Printf("Error parsing timeout, defaulting to 30s: %q", err)
+		timeout = 30 * time.Second
+	}
+	c := newClient(timeout, fPath, cfg.JID, cfg.KeyLog, pane, xmlInLog, xmlOutLog, logger, debug, getPass)
 	pane.Handle(newUIHandler(c, debug, logger))
 
 	go func() {

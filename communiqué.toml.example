@@ -29,6 +29,12 @@
 #
 # keylog_file=""
 
+# The timeout to use when creating a connection (eg. 1m or 30s).
+# For more information on the format see:
+# https://golang.org/pkg/time/#ParseDuration
+#
+# timeout = "30s"
+
 [log]
 
 # Turns on debug logging.
