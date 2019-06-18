@@ -14,23 +14,35 @@ import (
 	"mellium.im/communiqué/internal/ui"
 )
 
-func newRosterHandler(c *client) func(xmlstream.TokenReadWriter, stanza.IQ, *xml.StartElement) error {
-	return func(t xmlstream.TokenReadWriter, iq stanza.IQ, payload *xml.StartElement) error {
-		// TODO: will the server always have an empty from, or will it ever be the
-		// domain? If it is sometimes a domain JID, can we normalize it to always be
-		// empty?
-		if payload.Name.Local == "query" && payload.Name.Space == roster.NS && iq.From.String() == "" {
-			item := roster.Item{}
-			err := xml.NewTokenDecoder(t).Decode(&item)
-			if err != nil {
-				return err
-			}
-			c.pane.AddRoster(ui.RosterItem{Item: item})
-			iq.Type = stanza.ResultIQ
-			iq.From, iq.To = iq.To, iq.From
-			_, err = xmlstream.Copy(t, roster.IQ{IQ: iq}.TokenReader())
+func rosterPushHandler(t xmlstream.TokenReadWriter, c *client, iq, payload *xml.StartElement) error {
+	if payload.Name.Local == "query" {
+		item := roster.Item{}
+		err := xml.NewTokenDecoder(t).Decode(&item)
+		if err != nil {
 			return err
 		}
+
+		c.pane.UpdateRoster(ui.RosterItem{Item: item})
 		return nil
+
+		//iqVal, err := stanza.NewIQ(iq)
+		//if err != nil {
+		//	return err
+		//}
+		//if iqVal.From.String() != "" {
+		//	return stanza.Error{
+		//		Type:      stanza.Cancel,
+		//		Condition: stanza.Forbidden,
+		//	}
+		//}
+
+		//iqVal = iqVal.Result()
+		//_, err = xmlstream.Copy(t, roster.IQ{IQ: iqVal}.TokenReader())
+		//return err
+	}
+
+	return stanza.Error{
+		Type:      stanza.Cancel,
+		Condition: stanza.FeatureNotImplemented,
 	}
 }
