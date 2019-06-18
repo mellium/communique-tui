@@ -12,5 +12,6 @@ func quitModal(done func(buttonIndex int, buttonLabel string)) *tview.Modal {
 	return tview.NewModal().
 		SetText("Are you sure you want to quit?").
 		AddButtons([]string{"Quit", "Cancel"}).
-		SetDoneFunc(done)
+		SetDoneFunc(done).
+		SetBackgroundColor(tview.Styles.PrimitiveBackgroundColor)
 }
