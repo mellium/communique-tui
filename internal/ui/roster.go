@@ -42,7 +42,7 @@ func NewRoster(onStatus func()) Roster {
 	events := &bytes.Buffer{}
 	m := &sync.Mutex{}
 	r.list.SetInputCapture(func(event *tcell.EventKey) *tcell.EventKey {
-		if event.Key() != tcell.KeyRune {
+		if event == nil || event.Key() != tcell.KeyRune {
 			return event
 		}
 
@@ -222,4 +222,14 @@ func (r *Roster) ShowStatus(show bool) {
 // OnChanged sets a callback for when the user navigates to a roster item.
 func (r *Roster) OnChanged(f func(int, string, string, rune)) {
 	r.list.SetChangedFunc(f)
+}
+
+// SetInputCapture passes calls through to the underlying list view.
+func (r Roster) SetInputCapture(capture func(event *tcell.EventKey) *tcell.EventKey) *tview.Box {
+	return r.list.SetInputCapture(capture)
+}
+
+// GetInputCapture returns the input capture function for the underlying list.
+func (r Roster) GetInputCapture() func(event *tcell.EventKey) *tcell.EventKey {
+	return r.list.GetInputCapture()
 }

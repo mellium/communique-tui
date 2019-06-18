@@ -14,11 +14,11 @@ import (
 )
 
 const (
-	uiPageName          = "ui"
-	quitPageName        = "quit"
 	getPasswordPageName = "get_password"
+	logsPageName        = "logs"
+	quitPageName        = "quit"
 	setStatusPageName   = "set_status"
-	statusPageName      = "status"
+	uiPageName          = "ui"
 )
 
 // Event is any UI event.
@@ -150,7 +150,24 @@ func New(app *tview.Application, opts ...Option) *UI {
 		}
 		return event
 	})
-	buffers.AddPage(statusPageName, logs, true, true)
+	buffers.AddPage(logsPageName, logs, true, true)
+
+	innerCapture := rosterBox.GetInputCapture()
+	rosterBox.SetInputCapture(func(event *tcell.EventKey) *tcell.EventKey {
+		if event.Key() == tcell.KeyTAB {
+			buffers.SwitchToPage(logsPageName)
+			app.SetFocus(buffers)
+			app.Draw()
+			return nil
+		}
+
+		if innerCapture != nil {
+			return innerCapture(event)
+		}
+
+		return event
+	})
+
 	ui := &UI{
 		app:         app,
 		roster:      rosterBox,
@@ -237,7 +254,7 @@ func (ui *UI) SetRect(x, y, width, height int) {
 	ui.pages.SetRect(x, y, width, height)
 }
 
-// InputHandler implements tview.Primitive foui UI.
+// InputHandler implements tview.Primitive for UI.
 func (ui *UI) InputHandler() func(event *tcell.EventKey, setFocus func(p tview.Primitive)) {
 	return ui.pages.InputHandler()
 }
