@@ -71,6 +71,7 @@ func newClient(configPath, addr, keylogFile string, pane *ui.UI, xmlIn, xmlOut, 
 		addr:    j,
 		dialer:  dialer,
 		logger:  logger,
+		debug:   debug,
 		pane:    pane,
 		getPass: getPass,
 	}
@@ -145,6 +146,7 @@ type client struct {
 	timeout time.Duration
 	pane    *ui.UI
 	logger  *log.Logger
+	debug   *log.Logger
 	addr    jid.JID
 	win     io.Writer
 	wout    io.Writer
@@ -154,8 +156,9 @@ type client struct {
 }
 
 // Online sets the status to online.
-// The provided context is only used if the client was previously offline and we
-// have to re-establish the session.
+// The provided context is used if the client was previously offline and we
+// have to re-establish the session, so if it includes a timeout make sure to
+// account for the fact that we might reconnect.
 func (c *client) Online(ctx context.Context) {
 	err := c.reconnect(ctx)
 	if err != nil {
@@ -272,7 +275,7 @@ func (c *client) Offline() {
 
 	err := c.SetCloseDeadline(time.Now().Add(30 * time.Second))
 	if err != nil {
-		c.logger.Printf("Error setting close deadline: %q", err)
+		c.debug.Printf("Error setting close deadline: %q", err)
 		// Don't return; we still want to attempt to close the connection.
 	}
 	err = c.Close()
