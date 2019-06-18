@@ -132,12 +132,16 @@ func (c *client) reconnect(ctx context.Context) error {
 		}
 	}()
 
-	rosterCtx, rosterCancel := context.WithTimeout(context.Background(), 30*time.Second)
-	defer rosterCancel()
-	err = c.Roster(rosterCtx)
-	if err != nil {
-		c.logger.Printf("Error fetching roster: %q", err)
-	}
+	// TODO: should this be synchronous so that when we call reconnect we fail if
+	// the roster isn't fetched?
+	go func() {
+		rosterCtx, rosterCancel := context.WithTimeout(context.Background(), c.timeout)
+		defer rosterCancel()
+		err = c.Roster(rosterCtx)
+		if err != nil {
+			c.logger.Printf("Error fetching roster: %q", err)
+		}
+	}()
 	return nil
 }
 
@@ -167,12 +171,13 @@ func (c *client) Online(ctx context.Context) {
 		return
 	}
 
-	_, err = xmlstream.Copy(c, stanza.WrapPresence(nil, stanza.AvailablePresence, nil))
+	_, err = c.Send(ctx, stanza.WrapPresence(nil, stanza.AvailablePresence, nil))
 	if err != nil {
 		c.logger.Printf("Error sending online presence: %q", err)
 		return
 	}
-	if err = c.Flush(); err != nil {
+	err = c.Flush()
+	if err != nil {
 		c.logger.Printf("Error sending online presence: %q", err)
 		return
 	}
@@ -181,27 +186,26 @@ func (c *client) Online(ctx context.Context) {
 
 // Roster requests the users contact list.
 func (c *client) Roster(ctx context.Context) error {
-	rosterIQ := roster.IQ{}
-	r, err := c.Send(ctx, rosterIQ.TokenReader())
-	if err != nil {
-		return err
-	}
-
-	// TODO: don't parse this all at once, do it incrementally.
-	d := xml.NewTokenDecoder(r)
-	err = d.Decode(&rosterIQ)
-	if err != nil && err != io.EOF {
-		return err
-	}
-
-	for _, item := range rosterIQ.Query.Item {
+	iter := roster.Fetch(ctx, c.Session)
+	defer func() {
+		e := iter.Close()
+		if e != nil {
+			c.debug.Println("Error closing roster stream: %q", e)
+		}
+	}()
+	for iter.Next() {
+		item := iter.Item()
 		if item.Name == "" {
 			item.Name = item.JID.Localpart()
 		}
 		if item.Name == "" {
 			item.Name = item.JID.Domainpart()
 		}
-		c.pane.AddRoster(ui.RosterItem{Item: item})
+		c.pane.UpdateRoster(ui.RosterItem{Item: item})
+	}
+	err := iter.Err()
+	if err != nil && err != io.EOF {
+		return err
 	}
 
 	return nil
@@ -215,8 +219,8 @@ func (c *client) Away(ctx context.Context) {
 		return
 	}
 
-	_, err = xmlstream.Copy(
-		c,
+	_, err = c.Send(
+		ctx,
 		stanza.WrapPresence(
 			nil,
 			stanza.AvailablePresence,
@@ -245,8 +249,8 @@ func (c *client) Busy(ctx context.Context) {
 		return
 	}
 
-	_, err = xmlstream.Copy(
-		c,
+	_, err = c.Send(
+		ctx,
 		stanza.WrapPresence(
 			nil,
 			stanza.AvailablePresence,
