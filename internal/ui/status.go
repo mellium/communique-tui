@@ -12,5 +12,6 @@ func statusModal(done func(buttonIndex int, buttonLabel string)) *tview.Modal {
 	return tview.NewModal().
 		SetText("Set Status").
 		AddButtons([]string{"Online [green]●", "Away [orange]◓", "Busy [red]◑", "Offline ○"}).
-		SetDoneFunc(done)
+		SetDoneFunc(done).
+		SetBackgroundColor(tview.Styles.PrimitiveBackgroundColor)
 }
