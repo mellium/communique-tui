@@ -203,7 +203,7 @@ func (c *client) Roster(ctx context.Context) error {
 		c.pane.UpdateRoster(ui.RosterItem{Item: item})
 	}
 	err := iter.Err()
-	if err != nil && err != io.EOF {
+	if err != io.EOF {
 		return err
 	}
 
