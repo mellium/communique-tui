@@ -239,17 +239,17 @@ func (ui *UI) Roster() Roster {
 	return ui.roster
 }
 
-// Draw implements tview.Primitive foui UI.
+// Draw implements tview.Primitive for UI.
 func (ui *UI) Draw(screen tcell.Screen) {
 	ui.pages.Draw(screen)
 }
 
-// GetRect implements tview.Primitive foui UI.
+// GetRect implements tview.Primitive for UI.
 func (ui *UI) GetRect() (int, int, int, int) {
 	return ui.pages.GetRect()
 }
 
-// SetRect implements tview.Primitive foui UI.
+// SetRect implements tview.Primitive for UI.
 func (ui *UI) SetRect(x, y, width, height int) {
 	ui.pages.SetRect(x, y, width, height)
 }
@@ -259,17 +259,17 @@ func (ui *UI) InputHandler() func(event *tcell.EventKey, setFocus func(p tview.P
 	return ui.pages.InputHandler()
 }
 
-// Focus implements tview.Primitive foui UI.
+// Focus implements tview.Primitive for UI.
 func (ui *UI) Focus(delegate func(p tview.Primitive)) {
 	ui.pages.Focus(delegate)
 }
 
-// Blur implements tview.Primitive foui UI.
+// Blur implements tview.Primitive for UI.
 func (ui *UI) Blur() {
 	ui.pages.Blur()
 }
 
-// GetFocusable implements tview.Primitive foui UI.
+// GetFocusable implements tview.Primitive for UI.
 func (ui *UI) GetFocusable() tview.Focusable {
 	return ui.pages.GetFocusable()
 }
