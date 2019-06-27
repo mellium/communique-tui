@@ -47,7 +47,6 @@ type UI struct {
 	logWriter   io.Writer
 	handler     func(Event)
 	redraw      func() *tview.Application
-	mainFocus   func()
 	addr        string
 	passPrompt  chan string
 }
