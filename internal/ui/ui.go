@@ -16,6 +16,7 @@ import (
 const (
 	getPasswordPageName = "get_password"
 	logsPageName        = "logs"
+	chatPageName        = "chat"
 	quitPageName        = "quit"
 	setStatusPageName   = "set_status"
 	uiPageName          = "ui"
@@ -142,21 +143,31 @@ func New(app *tview.Application, opts ...Option) *UI {
 		statusBar.SetText(fmt.Sprintf("Chat: %q (%s)", main, secondary))
 	})
 
-	logs := newLogs(app, func(event *tcell.EventKey) *tcell.EventKey {
-		if event.Key() == tcell.KeyESC {
-			app.SetFocus(rosterBox)
-			return nil
-		}
-		return event
-	})
-	buffers.AddPage(logsPageName, logs, true, true)
+	ui := &UI{
+		app:         app,
+		roster:      rosterBox,
+		rosterWidth: 25,
+		statusBar:   statusBar,
+		handler:     func(Event) {},
+		redraw:      app.Draw,
+		buffers:     buffers,
+		pages:       pages,
+		passPrompt:  make(chan string),
+	}
+	for _, o := range opts {
+		o(ui)
+	}
 
 	innerCapture := rosterBox.GetInputCapture()
 	rosterBox.SetInputCapture(func(event *tcell.EventKey) *tcell.EventKey {
-		if event.Key() == tcell.KeyTAB {
+		switch {
+		case event.Key() == tcell.KeyTAB:
 			buffers.SwitchToPage(logsPageName)
 			app.SetFocus(buffers)
 			app.Draw()
+			return nil
+		case event.Rune() == 'q':
+			ui.ShowQuitPrompt()
 			return nil
 		}
 
@@ -167,22 +178,21 @@ func New(app *tview.Application, opts ...Option) *UI {
 		return event
 	})
 
-	ui := &UI{
-		app:         app,
-		roster:      rosterBox,
-		rosterWidth: 25,
-		statusBar:   statusBar,
-		logWriter:   logs,
-		handler:     func(Event) {},
-		redraw:      app.Draw,
-		buffers:     buffers,
-		pages:       pages,
-		passPrompt:  make(chan string),
-	}
-	for _, o := range opts {
-		o(ui)
-	}
+	chats := newChats(app, func() {
+		ui.SelectRoster()
+	})
+	buffers.AddPage(chatPageName, chats, true, false)
+
+	logs := newLogs(app, func(event *tcell.EventKey) *tcell.EventKey {
+		if event.Key() == tcell.KeyESC {
+			ui.SelectRoster()
+			return nil
+		}
+		return event
+	})
+	buffers.AddPage(logsPageName, logs, true, true)
 	logs.SetText(ui.defaultLog)
+	ui.logWriter = logs
 
 	setStatusPage := statusModal(func(buttonIndex int, buttonLabel string) {
 		switch buttonIndex {
@@ -225,7 +235,12 @@ func New(app *tview.Application, opts ...Option) *UI {
 
 // UpdateRoster adds an item to the roster.
 func (ui *UI) UpdateRoster(item RosterItem) {
-	ui.roster.Upsert(item, ui.mainFocus)
+	ui.roster.Upsert(item, func() {
+		ui.buffers.ShowPage(chatPageName)
+		ui.buffers.SendToFront(chatPageName)
+		ui.app.SetFocus(ui.buffers)
+		ui.app.Draw()
+	})
 }
 
 // Write writes to the logging text view.
@@ -323,4 +338,11 @@ func (ui *UI) ShowQuitPrompt() {
 	ui.pages.SendToFront(quitPageName)
 	ui.app.SetFocus(ui.pages)
 	ui.app.Draw()
+}
+
+// SelectRoster moves the input selection back to the roster and shows the logs
+// view.
+func (ui *UI) SelectRoster() {
+	ui.buffers.SwitchToPage(logsPageName)
+	ui.app.SetFocus(ui.roster)
 }

@@ -132,11 +132,6 @@ Go %s %s
 		if event.Key() == tcell.KeyCtrlC {
 			return nil
 		}
-
-		if event.Rune() == 'q' {
-			pane.ShowQuitPrompt()
-			return nil
-		}
 		return event
 	})
 
