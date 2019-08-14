@@ -263,17 +263,13 @@ func (c *client) Busy(ctx context.Context) {
 		c.logger.Printf("Error sending busy presence: %q", err)
 		return
 	}
-	if err = c.Flush(); err != nil {
-		c.logger.Printf("Error sending busy presence: %q", err)
-		return
-	}
 	c.pane.Busy()
 }
 
 // Offline logs the client off.
 func (c *client) Offline() {
+	defer c.pane.Offline()
 	if !c.online {
-		c.pane.Offline()
 		return
 	}
 
@@ -285,6 +281,6 @@ func (c *client) Offline() {
 	err = c.Close()
 	if err != nil {
 		c.logger.Printf("Error logging off: %q", err)
-		return
 	}
+	c.online = false
 }
