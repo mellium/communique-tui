@@ -42,7 +42,7 @@ func newXMPPHandler(c *client) xmpp.Handler {
 }
 
 func newIQHandler(c *client) xmpp.HandlerFunc {
-	return func(t xmlstream.TokenReadWriter, iq *xml.StartElement) error {
+	return func(t xmlstream.TokenReadEncoder, iq *xml.StartElement) error {
 		tok, err := t.Token()
 		if err != nil {
 			return err

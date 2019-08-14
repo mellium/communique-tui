@@ -18,6 +18,7 @@ import (
 	"mellium.im/sasl"
 	"mellium.im/xmlstream"
 	"mellium.im/xmpp"
+	"mellium.im/xmpp/dial"
 	"mellium.im/xmpp/jid"
 	"mellium.im/xmpp/roster"
 	"mellium.im/xmpp/stanza"
@@ -58,7 +59,7 @@ func newClient(timeout time.Duration, configPath, addr, keylogFile string, pane 
 			logger.Printf("Error creating keylog file: %q", err)
 		}
 	}
-	dialer := &xmpp.Dialer{
+	dialer := &dial.Dialer{
 		TLSConfig: &tls.Config{
 			ServerName:   j.Domain().String(),
 			KeyLogWriter: keylog,
@@ -154,7 +155,7 @@ type client struct {
 	addr    jid.JID
 	win     io.Writer
 	wout    io.Writer
-	dialer  *xmpp.Dialer
+	dialer  *dial.Dialer
 	getPass func(context.Context) (string, error)
 	online  bool
 }
@@ -170,12 +171,7 @@ func (c *client) Online(ctx context.Context) {
 		return
 	}
 
-	_, err = c.Send(ctx, stanza.WrapPresence(nil, stanza.AvailablePresence, nil))
-	if err != nil {
-		c.logger.Printf("Error sending online presence: %q", err)
-		return
-	}
-	err = c.Flush()
+	err = c.Send(ctx, stanza.WrapPresence(jid.JID{}, stanza.AvailablePresence, nil))
 	if err != nil {
 		c.logger.Printf("Error sending online presence: %q", err)
 		return
@@ -218,10 +214,10 @@ func (c *client) Away(ctx context.Context) {
 		return
 	}
 
-	_, err = c.Send(
+	err = c.Send(
 		ctx,
 		stanza.WrapPresence(
-			nil,
+			jid.JID{},
 			stanza.AvailablePresence,
 			xmlstream.Wrap(
 				xmlstream.ReaderFunc(func() (xml.Token, error) {
@@ -230,10 +226,6 @@ func (c *client) Away(ctx context.Context) {
 				xml.StartElement{Name: xml.Name{Local: "show"}},
 			)))
 	if err != nil {
-		c.logger.Printf("Error sending away presence: %q", err)
-		return
-	}
-	if err = c.Flush(); err != nil {
 		c.logger.Printf("Error sending away presence: %q", err)
 		return
 	}
@@ -248,10 +240,10 @@ func (c *client) Busy(ctx context.Context) {
 		return
 	}
 
-	_, err = c.Send(
+	err = c.Send(
 		ctx,
 		stanza.WrapPresence(
-			nil,
+			jid.JID{},
 			stanza.AvailablePresence,
 			xmlstream.Wrap(
 				xmlstream.ReaderFunc(func() (xml.Token, error) {
