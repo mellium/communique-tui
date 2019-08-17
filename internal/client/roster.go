@@ -2,7 +2,7 @@
 // Use of this source code is governed by the BSD 2-clause
 // license that can be found in the LICENSE file.
 
-package main
+package client
 
 import (
 	"encoding/xml"
@@ -14,7 +14,7 @@ import (
 	"mellium.im/communiqué/internal/ui"
 )
 
-func rosterPushHandler(t xmlstream.TokenReadWriter, c *client, iq, payload *xml.StartElement) error {
+func rosterPushHandler(t xmlstream.TokenReadWriter, c *Client, iq, payload *xml.StartElement) error {
 	if payload.Name.Local == "query" {
 		item := roster.Item{}
 		err := xml.NewTokenDecoder(t).Decode(&item)

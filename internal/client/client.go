@@ -2,7 +2,7 @@
 // Use of this source code is governed by the BSD 2-clause
 // license that can be found in the LICENSE file.
 
-package main
+package client
 
 import (
 	"context"
@@ -33,9 +33,9 @@ func (lw logWriter) Write(p []byte) (int, error) {
 	return len(p), nil
 }
 
-// newClient creates a new XMPP client but does not attempt to negotiate a
-// session or send an initial presence, etc.
-func newClient(timeout time.Duration, configPath, addr, keylogFile string, pane *ui.UI, xmlIn, xmlOut, logger, debug *log.Logger, getPass func(context.Context) (string, error)) *client {
+// New creates a new XMPP client but does not attempt to negotiate a session or
+// send an initial presence, etc.:w
+func New(timeout time.Duration, configPath, addr, keylogFile string, pane *ui.UI, xmlIn, xmlOut, logger, debug *log.Logger, getPass func(context.Context) (string, error)) *Client {
 	var j jid.JID
 	var err error
 	if addr == "" {
@@ -66,7 +66,7 @@ func newClient(timeout time.Duration, configPath, addr, keylogFile string, pane 
 		},
 	}
 
-	c := &client{
+	c := &Client{
 		timeout: timeout,
 		addr:    j,
 		dialer:  dialer,
@@ -86,7 +86,7 @@ func newClient(timeout time.Duration, configPath, addr, keylogFile string, pane 
 	return c
 }
 
-func (c *client) reconnect(ctx context.Context) error {
+func (c *Client) reconnect(ctx context.Context) error {
 	if c.online {
 		return nil
 	}
@@ -145,8 +145,8 @@ func (c *client) reconnect(ctx context.Context) error {
 	return nil
 }
 
-// client represents an XMPP client.
-type client struct {
+// Client represents an XMPP client.
+type Client struct {
 	*xmpp.Session
 	timeout time.Duration
 	pane    *ui.UI
@@ -164,7 +164,7 @@ type client struct {
 // The provided context is used if the client was previously offline and we
 // have to re-establish the session, so if it includes a timeout make sure to
 // account for the fact that we might reconnect.
-func (c *client) Online(ctx context.Context) {
+func (c *Client) Online(ctx context.Context) {
 	err := c.reconnect(ctx)
 	if err != nil {
 		c.logger.Println(err)
@@ -180,7 +180,7 @@ func (c *client) Online(ctx context.Context) {
 }
 
 // Roster requests the users contact list.
-func (c *client) Roster(ctx context.Context) error {
+func (c *Client) Roster(ctx context.Context) error {
 	iter := roster.Fetch(ctx, c.Session)
 	defer func() {
 		e := iter.Close()
@@ -207,7 +207,7 @@ func (c *client) Roster(ctx context.Context) error {
 }
 
 // Away sets the status to away.
-func (c *client) Away(ctx context.Context) {
+func (c *Client) Away(ctx context.Context) {
 	err := c.reconnect(ctx)
 	if err != nil {
 		c.logger.Println(err)
@@ -233,7 +233,7 @@ func (c *client) Away(ctx context.Context) {
 }
 
 // Busy sets the status to busy.
-func (c *client) Busy(ctx context.Context) {
+func (c *Client) Busy(ctx context.Context) {
 	err := c.reconnect(ctx)
 	if err != nil {
 		c.logger.Println(err)
@@ -259,7 +259,7 @@ func (c *client) Busy(ctx context.Context) {
 }
 
 // Offline logs the client off.
-func (c *client) Offline() {
+func (c *Client) Offline() {
 	defer c.pane.Offline()
 	if !c.online {
 		return

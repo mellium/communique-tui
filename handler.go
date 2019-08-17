@@ -6,17 +6,13 @@ package main
 
 import (
 	"context"
-	"encoding/xml"
 	"log"
 
+	"mellium.im/communiqué/internal/client"
 	"mellium.im/communiqué/internal/ui"
-	"mellium.im/xmlstream"
-	"mellium.im/xmpp"
-	"mellium.im/xmpp/mux"
-	"mellium.im/xmpp/roster"
 )
 
-func newUIHandler(c *client, logger, debug *log.Logger) func(ui.Event) {
+func newUIHandler(c *client.Client, logger, debug *log.Logger) func(ui.Event) {
 	return func(e ui.Event) {
 		switch e {
 		case ui.GoAway:
@@ -30,28 +26,5 @@ func newUIHandler(c *client, logger, debug *log.Logger) func(ui.Event) {
 		default:
 			debug.Printf("Unrecognized event: %q", e)
 		}
-	}
-}
-
-func newXMPPHandler(c *client) xmpp.Handler {
-	iqHandler := newIQHandler(c)
-
-	return mux.New(
-		mux.IQ(iqHandler),
-	)
-}
-
-func newIQHandler(c *client) xmpp.HandlerFunc {
-	return func(t xmlstream.TokenReadEncoder, iq *xml.StartElement) error {
-		tok, err := t.Token()
-		if err != nil {
-			return err
-		}
-		payload := tok.(xml.StartElement)
-		switch payload.Name.Space {
-		case roster.NS:
-			return rosterPushHandler(t, c, iq, &payload)
-		}
-		return nil
 	}
 }

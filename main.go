@@ -29,6 +29,7 @@ import (
 	"github.com/gdamore/tcell"
 	"github.com/rivo/tview"
 
+	"mellium.im/communiqué/internal/client"
 	"mellium.im/communiqué/internal/ui"
 )
 
@@ -168,7 +169,7 @@ Go %s %s
 		logger.Printf("Error parsing timeout, defaulting to 30s: %q", err)
 		timeout = 30 * time.Second
 	}
-	c := newClient(timeout, fPath, cfg.JID, cfg.KeyLog, pane, xmlInLog, xmlOutLog, logger, debug, getPass)
+	c := client.New(timeout, fPath, cfg.JID, cfg.KeyLog, pane, xmlInLog, xmlOutLog, logger, debug, getPass)
 	pane.Handle(newUIHandler(c, debug, logger))
 
 	go func() {
