@@ -14,6 +14,7 @@ import (
 	"os"
 	"time"
 
+	"mellium.im/communiqué/internal/logwriter"
 	"mellium.im/communiqué/internal/ui"
 	"mellium.im/sasl"
 	"mellium.im/xmlstream"
@@ -23,15 +24,6 @@ import (
 	"mellium.im/xmpp/roster"
 	"mellium.im/xmpp/stanza"
 )
-
-type logWriter struct {
-	*log.Logger
-}
-
-func (lw logWriter) Write(p []byte) (int, error) {
-	lw.Println(string(p))
-	return len(p), nil
-}
 
 // New creates a new XMPP client but does not attempt to negotiate a session or
 // send an initial presence, etc.:w
@@ -76,10 +68,10 @@ func New(timeout time.Duration, configPath, addr, keylogFile string, pane *ui.UI
 		getPass: getPass,
 	}
 	if xmlIn != nil {
-		c.win = logWriter{xmlIn}
+		c.win = logwriter.New(xmlIn)
 	}
 	if xmlOut != nil {
-		c.wout = logWriter{xmlOut}
+		c.wout = logwriter.New(xmlOut)
 	}
 
 	pane.Offline()
