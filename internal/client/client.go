@@ -26,7 +26,7 @@ import (
 )
 
 // New creates a new XMPP client but does not attempt to negotiate a session or
-// send an initial presence, etc.:w
+// send an initial presence, etc.
 func New(timeout time.Duration, configPath, addr, keylogFile string, pane *ui.UI, xmlIn, xmlOut, logger, debug *log.Logger, getPass func(context.Context) (string, error)) *Client {
 	var j jid.JID
 	var err error
