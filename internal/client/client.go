@@ -177,7 +177,7 @@ func (c *Client) Roster(ctx context.Context) error {
 	defer func() {
 		e := iter.Close()
 		if e != nil {
-			c.debug.Println("Error closing roster stream: %q", e)
+			c.debug.Printf("Error closing roster stream: %q", e)
 		}
 	}()
 	for iter.Next() {
