@@ -12,6 +12,7 @@ package main // import "mellium.im/communiqué"
 import (
 	"bytes"
 	"context"
+	"crypto/tls"
 	"flag"
 	"fmt"
 	"io"
@@ -30,7 +31,10 @@ import (
 	"github.com/rivo/tview"
 
 	"mellium.im/communiqué/internal/client"
+	"mellium.im/communiqué/internal/logwriter"
 	"mellium.im/communiqué/internal/ui"
+	"mellium.im/xmpp/dial"
+	"mellium.im/xmpp/jid"
 )
 
 const (
@@ -80,7 +84,7 @@ func main() {
 		return
 	}
 
-	f, fPath, err := configFile(configPath)
+	f, fpath, err := configFile(configPath)
 	if err != nil {
 		logger.Println(err)
 	}
@@ -164,12 +168,46 @@ Go %s %s
 		return string(pass), nil
 	}
 
+	var j jid.JID
+	if cfg.JID == "" {
+		logger.Printf(`No user address specified, edit %q and add:
+
+	jid="me@example.com"
+
+`, fpath)
+	} else {
+		logger.Printf("User address: %q", cfg.JID)
+		j, err = jid.Parse(cfg.JID)
+		if err != nil {
+			logger.Printf("Error parsing user address: %q", err)
+		}
+	}
 	timeout, err := time.ParseDuration(cfg.Timeout)
 	if err != nil {
 		logger.Printf("Error parsing timeout, defaulting to 30s: %q", err)
 		timeout = 30 * time.Second
 	}
-	c := client.New(timeout, fPath, cfg.JID, cfg.KeyLog, pane, xmlInLog, xmlOutLog, logger, debug, getPass)
+	// cfg.KeyLog
+	var keylog io.Writer
+	if cfg.KeyLog != "" {
+		keylog, err = os.OpenFile(cfg.KeyLog, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, 0400)
+		if err != nil {
+			logger.Printf("Error creating keylog file: %q", err)
+		}
+	}
+	dialer := &dial.Dialer{
+		TLSConfig: &tls.Config{
+			ServerName:   j.Domain().String(),
+			KeyLogWriter: keylog,
+		},
+	}
+	c := client.New(
+		j, pane, logger, debug,
+		client.Timeout(timeout),
+		client.Dialer(dialer),
+		client.Tee(logwriter.New(xmlInLog), logwriter.New(xmlOutLog)),
+		client.Password(getPass),
+	)
 	pane.Handle(newUIHandler(c, debug, logger))
 
 	go func() {

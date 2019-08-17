@@ -11,10 +11,8 @@ import (
 	"fmt"
 	"io"
 	"log"
-	"os"
 	"time"
 
-	"mellium.im/communiqué/internal/logwriter"
 	"mellium.im/communiqué/internal/ui"
 	"mellium.im/sasl"
 	"mellium.im/xmlstream"
@@ -27,51 +25,25 @@ import (
 
 // New creates a new XMPP client but does not attempt to negotiate a session or
 // send an initial presence, etc.
-func New(timeout time.Duration, configPath, addr, keylogFile string, pane *ui.UI, xmlIn, xmlOut, logger, debug *log.Logger, getPass func(context.Context) (string, error)) *Client {
-	var j jid.JID
-	var err error
-	if addr == "" {
-		logger.Printf(`No user address specified, edit %q and add:
-
-	jid="me@example.com"
-
-`, configPath)
-	} else {
-		logger.Printf("User address: %q", addr)
-		j, err = jid.Parse(addr)
-		if err != nil {
-			logger.Printf("Error parsing user address: %q", err)
-		}
-	}
-
-	var keylog io.Writer
-	if keylogFile != "" {
-		keylog, err = os.OpenFile(keylogFile, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, 0400)
-		if err != nil {
-			logger.Printf("Error creating keylog file: %q", err)
-		}
-	}
-	dialer := &dial.Dialer{
-		TLSConfig: &tls.Config{
-			ServerName:   j.Domain().String(),
-			KeyLogWriter: keylog,
+func New(j jid.JID, pane *ui.UI, logger, debug *log.Logger, opts ...Option) *Client {
+	c := &Client{
+		timeout: 30 * time.Second,
+		addr:    j,
+		dialer: &dial.Dialer{
+			TLSConfig: &tls.Config{
+				ServerName: j.Domain().String(),
+			},
+		},
+		logger: logger,
+		debug:  debug,
+		pane:   pane,
+		getPass: func(context.Context) (string, error) {
+			return "", nil
 		},
 	}
 
-	c := &Client{
-		timeout: timeout,
-		addr:    j,
-		dialer:  dialer,
-		logger:  logger,
-		debug:   debug,
-		pane:    pane,
-		getPass: getPass,
-	}
-	if xmlIn != nil {
-		c.win = logwriter.New(xmlIn)
-	}
-	if xmlOut != nil {
-		c.wout = logwriter.New(xmlOut)
+	for _, opt := range opts {
+		opt(c)
 	}
 
 	pane.Offline()
