@@ -11,6 +11,8 @@ import (
 
 	"github.com/gdamore/tcell"
 	"github.com/rivo/tview"
+
+	"mellium.im/communiqué/internal/client/event"
 )
 
 const (
@@ -20,18 +22,6 @@ const (
 	quitPageName        = "quit"
 	setStatusPageName   = "set_status"
 	uiPageName          = "ui"
-)
-
-// Event is any UI event.
-type Event string
-
-// A list of events.
-const (
-	// The user has indicated that they want to change their status.
-	GoOnline  Event = "go-online"
-	GoOffline Event = "go-offline"
-	GoAway    Event = "go-away"
-	GoBusy    Event = "go-busy"
 )
 
 // UI is a widget that combines other widgets to make the main UI.
@@ -46,7 +36,7 @@ type UI struct {
 	rosterWidth int
 	defaultLog  string
 	logWriter   io.Writer
-	handler     func(Event)
+	handler     func(interface{})
 	redraw      func() *tview.Application
 	addr        string
 	passPrompt  chan string
@@ -71,13 +61,13 @@ func Addr(addr string) Option {
 	}
 }
 
-// Handle returns an option that configures an event handler which will be called
-// when the user performs certain actions in the UI.
-// Only one event handler can be registered, and subsequent calls to Event will
+// Handle returns an option that configures an event handler which will be
+// called when the user performs certain actions in the UI.
+// Only one event handler can be registered, and subsequent calls to Handle will
 // replace the handler.
 // The function will be called synchronously on the UI goroutine, so don't do
-// any intensive work (or launch a new goroutine if you must).
-func Handle(handler func(Event)) Option {
+// any intensive work (or, if you must, launch a new goroutine).
+func Handle(handler func(event interface{})) Option {
 	return func(ui *UI) {
 		ui.handler = handler
 	}
@@ -148,7 +138,7 @@ func New(app *tview.Application, opts ...Option) *UI {
 		roster:      rosterBox,
 		rosterWidth: 25,
 		statusBar:   statusBar,
-		handler:     func(Event) {},
+		handler:     func(interface{}) {},
 		redraw:      app.Draw,
 		buffers:     buffers,
 		pages:       pages,
@@ -197,13 +187,13 @@ func New(app *tview.Application, opts ...Option) *UI {
 	setStatusPage := statusModal(func(buttonIndex int, buttonLabel string) {
 		switch buttonIndex {
 		case 0:
-			ui.handler(GoOnline)
+			ui.handler(event.StatusOnline{})
 		case 1:
-			ui.handler(GoAway)
+			ui.handler(event.StatusAway{})
 		case 2:
-			ui.handler(GoBusy)
+			ui.handler(event.StatusBusy{})
 		case 3:
-			ui.handler(GoOffline)
+			ui.handler(event.StatusOffline{})
 		}
 		ui.pages.HidePage(setStatusPageName)
 	})
@@ -314,11 +304,11 @@ func (ui *UI) Busy() {
 
 // Handle configures an event handler which will be called when the user
 // performs certain actions in the UI.
-// Only one event handler can be registered, and subsequent calls to Event will
+// Only one event handler can be registered, and subsequent calls to Handle will
 // replace the handler.
 // The function will be called synchronously on the UI goroutine, so don't do
 // any intensive work (or launch a new goroutine if you must).
-func (ui *UI) Handle(handler func(Event)) {
+func (ui *UI) Handle(handler func(interface{})) {
 	ui.handler = handler
 }
 

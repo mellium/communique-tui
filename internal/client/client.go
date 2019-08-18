@@ -13,7 +13,7 @@ import (
 	"log"
 	"time"
 
-	"mellium.im/communiqué/internal/ui"
+	"mellium.im/communiqué/internal/client/event"
 	"mellium.im/sasl"
 	"mellium.im/xmlstream"
 	"mellium.im/xmpp"
@@ -25,7 +25,7 @@ import (
 
 // New creates a new XMPP client but does not attempt to negotiate a session or
 // send an initial presence, etc.
-func New(j jid.JID, pane *ui.UI, logger, debug *log.Logger, opts ...Option) *Client {
+func New(j jid.JID, logger, debug *log.Logger, opts ...Option) *Client {
 	c := &Client{
 		timeout: 30 * time.Second,
 		addr:    j,
@@ -34,19 +34,16 @@ func New(j jid.JID, pane *ui.UI, logger, debug *log.Logger, opts ...Option) *Cli
 				ServerName: j.Domain().String(),
 			},
 		},
-		logger: logger,
-		debug:  debug,
-		pane:   pane,
-		getPass: func(context.Context) (string, error) {
-			return "", nil
-		},
+		logger:  logger,
+		debug:   debug,
+		getPass: emptyPass,
+		handler: emptyHandler,
 	}
 
 	for _, opt := range opts {
 		opt(c)
 	}
 
-	pane.Offline()
 	return c
 }
 
@@ -89,8 +86,10 @@ func (c *Client) reconnect(ctx context.Context) error {
 		if err != nil {
 			c.logger.Printf("Error while handling XMPP streams: %q", err)
 		}
-		c.online = false
-		c.pane.Offline()
+		err = c.Offline()
+		if err != nil {
+			c.logger.Printf("Error going offline: %q", err)
+		}
 		if err = conn.Close(); err != nil {
 			c.logger.Printf("Error closing the connection: %q", err)
 		}
@@ -113,7 +112,6 @@ func (c *Client) reconnect(ctx context.Context) error {
 type Client struct {
 	*xmpp.Session
 	timeout time.Duration
-	pane    *ui.UI
 	logger  *log.Logger
 	debug   *log.Logger
 	addr    jid.JID
@@ -122,25 +120,24 @@ type Client struct {
 	dialer  *dial.Dialer
 	getPass func(context.Context) (string, error)
 	online  bool
+	handler func(*Client, interface{})
 }
 
 // Online sets the status to online.
 // The provided context is used if the client was previously offline and we
 // have to re-establish the session, so if it includes a timeout make sure to
 // account for the fact that we might reconnect.
-func (c *Client) Online(ctx context.Context) {
+func (c *Client) Online(ctx context.Context) error {
 	err := c.reconnect(ctx)
 	if err != nil {
-		c.logger.Println(err)
-		return
+		return err
 	}
 
 	err = c.Send(ctx, stanza.WrapPresence(jid.JID{}, stanza.AvailablePresence, nil))
 	if err != nil {
-		c.logger.Printf("Error sending online presence: %q", err)
-		return
+		return err
 	}
-	c.pane.Online()
+	return nil
 }
 
 // Roster requests the users contact list.
@@ -160,7 +157,7 @@ func (c *Client) Roster(ctx context.Context) error {
 		if item.Name == "" {
 			item.Name = item.JID.Domainpart()
 		}
-		c.pane.UpdateRoster(ui.RosterItem{Item: item})
+		c.handler(c, event.UpdateRoster(item))
 	}
 	err := iter.Err()
 	if err != io.EOF {
@@ -171,11 +168,10 @@ func (c *Client) Roster(ctx context.Context) error {
 }
 
 // Away sets the status to away.
-func (c *Client) Away(ctx context.Context) {
+func (c *Client) Away(ctx context.Context) error {
 	err := c.reconnect(ctx)
 	if err != nil {
-		c.logger.Println(err)
-		return
+		return err
 	}
 
 	err = c.Send(
@@ -190,18 +186,16 @@ func (c *Client) Away(ctx context.Context) {
 				xml.StartElement{Name: xml.Name{Local: "show"}},
 			)))
 	if err != nil {
-		c.logger.Printf("Error sending away presence: %q", err)
-		return
+		return err
 	}
-	c.pane.Away()
+	return nil
 }
 
 // Busy sets the status to busy.
-func (c *Client) Busy(ctx context.Context) {
+func (c *Client) Busy(ctx context.Context) error {
 	err := c.reconnect(ctx)
 	if err != nil {
-		c.logger.Println(err)
-		return
+		return err
 	}
 
 	err = c.Send(
@@ -216,27 +210,33 @@ func (c *Client) Busy(ctx context.Context) {
 				xml.StartElement{Name: xml.Name{Local: "show"}},
 			)))
 	if err != nil {
-		c.logger.Printf("Error sending busy presence: %q", err)
-		return
+		return err
 	}
-	c.pane.Busy()
+	return nil
 }
 
 // Offline logs the client off.
-func (c *Client) Offline() {
-	defer c.pane.Offline()
+func (c *Client) Offline() error {
 	if !c.online {
-		return
+		return nil
 	}
+	defer func() {
+		c.online = false
+	}()
 
-	err := c.SetCloseDeadline(time.Now().Add(30 * time.Second))
+	/* #nosec */
+	_ = c.SetCloseDeadline(time.Now().Add(2 * c.timeout))
+	// Don't handle the error when setting the close deadline; we still want to
+	// attempt to close the connection.
+
+	err := c.Close()
 	if err != nil {
-		c.debug.Printf("Error setting close deadline: %q", err)
-		// Don't return; we still want to attempt to close the connection.
+		return err
 	}
-	err = c.Close()
-	if err != nil {
-		c.logger.Printf("Error logging off: %q", err)
-	}
-	c.online = false
+	return nil
+}
+
+// Timeout is the read/write timeout used by the client.
+func (c *Client) Timeout() time.Duration {
+	return c.timeout
 }

@@ -11,7 +11,7 @@ import (
 	"mellium.im/xmpp/roster"
 	"mellium.im/xmpp/stanza"
 
-	"mellium.im/communiqué/internal/ui"
+	"mellium.im/communiqué/internal/client/event"
 )
 
 func rosterPushHandler(t xmlstream.TokenReadWriter, c *Client, iq, payload *xml.StartElement) error {
@@ -22,7 +22,7 @@ func rosterPushHandler(t xmlstream.TokenReadWriter, c *Client, iq, payload *xml.
 			return err
 		}
 
-		c.pane.UpdateRoster(ui.RosterItem{Item: item})
+		c.handler(c, event.UpdateRoster(item))
 		return nil
 
 		//iqVal, err := stanza.NewIQ(iq)

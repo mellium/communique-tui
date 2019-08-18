@@ -202,13 +202,14 @@ Go %s %s
 		},
 	}
 	c := client.New(
-		j, pane, logger, debug,
+		j, logger, debug,
 		client.Timeout(timeout),
 		client.Dialer(dialer),
 		client.Tee(logwriter.New(xmlInLog), logwriter.New(xmlOutLog)),
 		client.Password(getPass),
+		client.Handler(newClientHandler(pane, logger, debug)),
 	)
-	pane.Handle(newUIHandler(c, debug, logger))
+	pane.Handle(newUIHandler(pane, c, debug, logger))
 
 	go func() {
 		ctx, cancel := context.WithTimeout(context.Background(), time.Minute)
