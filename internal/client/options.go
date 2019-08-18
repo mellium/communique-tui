@@ -71,14 +71,14 @@ func Password(getPass func(context.Context) (string, error)) Option {
 	}
 }
 
-func emptyHandler(*Client, interface{}) {}
+func emptyHandler(interface{}) {}
 
 // Handler configures a handler function to be used for events emitted by the
 // client.
 //
 // For a list of events that any handler function may handle, see the event
 // package.
-func Handler(h func(*Client, interface{})) Option {
+func Handler(h func(interface{})) Option {
 	return func(c *Client) {
 		if h == nil {
 			h = emptyHandler

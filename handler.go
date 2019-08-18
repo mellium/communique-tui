@@ -34,27 +34,21 @@ func newUIHandler(pane *ui.UI, c *client.Client, logger, debug *log.Logger) func
 				ctx, cancel := context.WithTimeout(context.Background(), c.Timeout())
 				defer cancel()
 				logErr("Error setting away status", c.Away(ctx))
-				pane.Away()
 			}()
 		case event.StatusOnline:
 			go func() {
 				ctx, cancel := context.WithTimeout(context.Background(), c.Timeout())
 				defer cancel()
 				logErr("Error setting online status", c.Online(ctx))
-				pane.Online()
 			}()
 		case event.StatusBusy:
 			go func() {
 				ctx, cancel := context.WithTimeout(context.Background(), c.Timeout())
 				defer cancel()
 				logErr("Error setting busy status", c.Busy(ctx))
-				pane.Busy()
 			}()
 		case event.StatusOffline:
-			go func() {
-				logErr("Error going offline", c.Offline())
-				pane.Offline()
-			}()
+			go logErr("Error going offline", c.Offline())
 		case event.UpdateRoster:
 			panic("event.UpdateRoster: not yet implemented")
 		default:
@@ -65,15 +59,17 @@ func newUIHandler(pane *ui.UI, c *client.Client, logger, debug *log.Logger) func
 
 // newClientHandler returns a handler for events that are emitted by the client
 // that need to modify the UI.
-func newClientHandler(pane *ui.UI, logger, debug *log.Logger) func(*client.Client, interface{}) {
-	return func(c *client.Client, ev interface{}) {
+func newClientHandler(pane *ui.UI, logger, debug *log.Logger) func(interface{}) {
+	return func(ev interface{}) {
 		switch e := ev.(type) {
 		case event.StatusAway:
-			panic("not yet implemented")
+			pane.Away()
 		case event.StatusBusy:
-			panic("not yet implemented")
+			pane.Busy()
+		case event.StatusOnline:
+			pane.Online()
 		case event.StatusOffline:
-			panic("not yet implemented")
+			pane.Offline()
 		case event.UpdateRoster:
 			pane.UpdateRoster(ui.RosterItem{Item: roster.Item(e)})
 		default:

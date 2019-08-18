@@ -86,6 +86,8 @@ func (c *Client) reconnect(ctx context.Context) error {
 		if err != nil {
 			c.logger.Printf("Error while handling XMPP streams: %q", err)
 		}
+
+		c.handler(event.StatusOffline{})
 		err = c.Offline()
 		if err != nil {
 			c.logger.Printf("Error going offline: %q", err)
@@ -120,7 +122,7 @@ type Client struct {
 	dialer  *dial.Dialer
 	getPass func(context.Context) (string, error)
 	online  bool
-	handler func(*Client, interface{})
+	handler func(interface{})
 }
 
 // Online sets the status to online.
@@ -157,7 +159,7 @@ func (c *Client) Roster(ctx context.Context) error {
 		if item.Name == "" {
 			item.Name = item.JID.Domainpart()
 		}
-		c.handler(c, event.UpdateRoster(item))
+		c.handler(event.UpdateRoster(item))
 	}
 	err := iter.Err()
 	if err != io.EOF {

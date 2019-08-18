@@ -22,7 +22,7 @@ func rosterPushHandler(t xmlstream.TokenReadWriter, c *Client, iq, payload *xml.
 			return err
 		}
 
-		c.handler(c, event.UpdateRoster(item))
+		c.handler(event.UpdateRoster(item))
 		return nil
 
 		//iqVal, err := stanza.NewIQ(iq)
