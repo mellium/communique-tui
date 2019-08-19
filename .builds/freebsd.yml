@@ -2,7 +2,7 @@ image: freebsd/latest
 packages:
   - go
 sources:
-  - git@github.com:mellium/communique-tui.git
+  - https://github.com/mellium/communique-tui.git
 tasks:
   - setup: |
       go version
