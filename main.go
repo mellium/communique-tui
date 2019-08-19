@@ -214,7 +214,19 @@ Go %s %s
 	pane.Handle(newUIHandler(configPath, pane, c, debug, logger))
 
 	go func() {
-		ctx, cancel := context.WithTimeout(context.Background(), time.Minute)
+		// Hopefully nothing ever panics, but in case it does ensure that we exit
+		// TUI mode so that we don't hose the users terminal.
+		defer func() {
+			// TODO: this isn't great because we lose the stack trace. Once Go 1.13 is
+			// out, update the error handling so that we can attempt to recover a
+			// trace from the error.
+			if r := recover(); r != nil {
+				app.Stop()
+				panic(r)
+			}
+		}()
+
+		ctx, cancel := context.WithTimeout(context.Background(), 3*timeout)
 		defer cancel()
 
 		c.Online(ctx)
@@ -225,6 +237,10 @@ Go %s %s
 		debug.Printf("Got signal: %v", s)
 		app.Stop()
 	}()
+
+	// Hopefully nothing ever panics, but in case it does ensure that we exit TUI
+	// mode so that we don't hose the users terminal.
+	defer app.Stop()
 	if err := app.SetRoot(pane, true).SetFocus(pane).Run(); err != nil {
 		panic(err)
 	}
