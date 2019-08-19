@@ -7,35 +7,55 @@ package ui
 import (
 	"github.com/gdamore/tcell"
 	"github.com/rivo/tview"
+
+	"mellium.im/communiqué/internal/client/event"
+	"mellium.im/xmpp/jid"
+	"mellium.im/xmpp/stanza"
 )
 
-func newChats(app *tview.Application, onEsc func()) *tview.Flex {
+func newChats(ui *UI) *tview.Flex {
 	chats := tview.NewFlex().
 		SetDirection(tview.FlexRow)
 
-	const nyi = "TODO: Not yet implemented."
-	history := tview.NewTextView().SetText(nyi)
+	history := tview.NewTextView().SetText("TODO: Not yet implemented.")
 	history.SetBorder(true).SetTitle("Conversation")
-	inputField := tview.NewInputField().SetText(nyi)
+	inputField := tview.NewInputField()
 	inputField.SetBorder(true)
 	chats.AddItem(history, 0, 100, false)
 	chats.AddItem(inputField, 3, 1, false)
 
 	history.SetChangedFunc(func() {
-		app.Draw()
+		ui.app.Draw()
 	})
 	chats.SetBorder(false)
-	chats.SetInputCapture(func(event *tcell.EventKey) *tcell.EventKey {
+	chats.SetInputCapture(func(ev *tcell.EventKey) *tcell.EventKey {
 		// If escape is pressed, call the escape handler.
-		if event.Key() == tcell.KeyESC {
-			onEsc()
+		switch ev.Key() {
+		case tcell.KeyESC:
+			ui.SelectRoster()
+			return nil
+		case tcell.KeyEnter:
+			body := inputField.GetText()
+			if body == "" {
+				return nil
+			}
+			ui.handler(event.ChatMessage{
+				Message: stanza.Message{
+					To: ui.roster.GetSelected(),
+					// TODO: shouldn't this be automatically set by the library?
+					From: jid.MustParse(ui.addr),
+					Type: stanza.ChatMessage,
+				},
+				Body: body,
+			})
+			inputField.SetText("")
 			return nil
 		}
 
 		// If anythig but Esc is pressed, pass input to the text box.
 		capt := inputField.InputHandler()
 		if capt != nil {
-			capt(event, nil)
+			capt(ev, nil)
 		}
 		return nil
 	})

@@ -13,6 +13,7 @@ import (
 
 	"github.com/gdamore/tcell"
 	"github.com/rivo/tview"
+	"mellium.im/xmpp/jid"
 	"mellium.im/xmpp/roster"
 )
 
@@ -232,4 +233,10 @@ func (r Roster) SetInputCapture(capture func(event *tcell.EventKey) *tcell.Event
 // GetInputCapture returns the input capture function for the underlying list.
 func (r Roster) GetInputCapture() func(event *tcell.EventKey) *tcell.EventKey {
 	return r.list.GetInputCapture()
+}
+
+// GetSelected returns the currently selected roster item.
+func (r Roster) GetSelected() jid.JID {
+	_, j := r.list.GetItemText(r.list.GetCurrentItem())
+	return jid.MustParse(j)
 }

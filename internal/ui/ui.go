@@ -168,9 +168,7 @@ func New(app *tview.Application, opts ...Option) *UI {
 		return event
 	})
 
-	chats := newChats(app, func() {
-		ui.SelectRoster()
-	})
+	chats := newChats(ui)
 	buffers.AddPage(chatPageName, chats, true, false)
 
 	logs := newLogs(app, func(event *tcell.EventKey) *tcell.EventKey {
