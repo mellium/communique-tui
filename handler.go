@@ -59,7 +59,7 @@ func newUIHandler(pane *ui.UI, c *client.Client, logger, debug *log.Logger) func
 
 // newClientHandler returns a handler for events that are emitted by the client
 // that need to modify the UI.
-func newClientHandler(pane *ui.UI, logger, debug *log.Logger) func(interface{}) {
+func newClientHandler(configPath string, pane *ui.UI, logger, debug *log.Logger) func(interface{}) {
 	return func(ev interface{}) {
 		switch e := ev.(type) {
 		case event.StatusAway:
@@ -72,6 +72,11 @@ func newClientHandler(pane *ui.UI, logger, debug *log.Logger) func(interface{}) 
 			pane.Offline()
 		case event.UpdateRoster:
 			pane.UpdateRoster(ui.RosterItem{Item: roster.Item(e)})
+		case event.ChatMessage:
+			err := writeMessage(configPath, e)
+			if err != nil {
+				logger.Println(err)
+			}
 		default:
 			debug.Printf("Unrecognized client event: %q", e)
 		}

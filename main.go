@@ -21,6 +21,7 @@ import (
 	"os"
 	"os/exec"
 	"os/signal"
+	"path"
 	"runtime"
 	"strings"
 	"syscall"
@@ -207,7 +208,7 @@ Go %s %s
 		client.Dialer(dialer),
 		client.Tee(logwriter.New(xmlInLog), logwriter.New(xmlOutLog)),
 		client.Password(getPass),
-		client.Handler(newClientHandler(pane, logger, debug)),
+		client.Handler(newClientHandler(path.Dir(fpath), pane, logger, debug)),
 	)
 	pane.Handle(newUIHandler(pane, c, debug, logger))
 
