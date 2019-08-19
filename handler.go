@@ -27,7 +27,6 @@ func errLogger(logger *log.Logger) func(string, error) {
 func newUIHandler(configPath string, pane *ui.UI, c *client.Client, logger, debug *log.Logger) func(interface{}) {
 	logErr := errLogger(logger)
 
-	ctx, cancel := context.WithCancel(context.Background())
 	return func(ev interface{}) {
 		switch e := ev.(type) {
 		case event.StatusAway:
@@ -55,10 +54,9 @@ func newUIHandler(configPath string, pane *ui.UI, c *client.Client, logger, debu
 		case event.ChatMessage:
 			go logErr("Error sending message", c.Encode(e))
 		case event.OpenChat:
-			go loadBuffer(ctx, pane, configPath, e)
+			go loadBuffer(pane, configPath, e)
 		case event.CloseChat:
-			cancel()
-			ctx, cancel = context.WithCancel(context.Background())
+			// TODO: implement last read markers
 		default:
 			debug.Printf("Unrecognized ui event: %q", e)
 		}
@@ -81,7 +79,7 @@ func newClientHandler(configPath string, pane *ui.UI, logger, debug *log.Logger)
 		case event.UpdateRoster:
 			pane.UpdateRoster(ui.RosterItem{Item: roster.Item(e)})
 		case event.ChatMessage:
-			err := writeMessage(configPath, e)
+			err := writeMessage(pane, configPath, e)
 			if err != nil {
 				logger.Println(err)
 			}

@@ -4,7 +4,6 @@ go 1.13
 
 require (
 	github.com/BurntSushi/toml v0.3.1
-	github.com/fsnotify/fsnotify v1.4.7
 	github.com/gdamore/tcell v1.2.0
 	github.com/rivo/tview v0.0.0-20190721135419-23dc8a0944e4
 	github.com/rivo/uniseg v0.1.0 // indirect
