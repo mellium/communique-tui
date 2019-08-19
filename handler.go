@@ -51,6 +51,8 @@ func newUIHandler(pane *ui.UI, c *client.Client, logger, debug *log.Logger) func
 			go logErr("Error going offline", c.Offline())
 		case event.UpdateRoster:
 			panic("event.UpdateRoster: not yet implemented")
+		case event.ChatMessage:
+			go logErr("Error sending message", c.Encode(e))
 		default:
 			debug.Printf("Unrecognized ui event: %q", e)
 		}
