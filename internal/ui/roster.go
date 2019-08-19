@@ -13,7 +13,6 @@ import (
 
 	"github.com/gdamore/tcell"
 	"github.com/rivo/tview"
-	"mellium.im/xmpp/jid"
 	"mellium.im/xmpp/roster"
 )
 
@@ -30,8 +29,8 @@ type Roster struct {
 	Width int
 }
 
-// NewRoster creates a new roster widget with the provided options.
-func NewRoster(onStatus func()) Roster {
+// newRoster creates a new roster widget with the provided options.
+func newRoster(onStatus func()) Roster {
 	r := Roster{
 		items: make(map[string]RosterItem),
 		list:  tview.NewList(),
@@ -236,7 +235,8 @@ func (r Roster) GetInputCapture() func(event *tcell.EventKey) *tcell.EventKey {
 }
 
 // GetSelected returns the currently selected roster item.
-func (r Roster) GetSelected() jid.JID {
+func (r Roster) GetSelected() (RosterItem, bool) {
 	_, j := r.list.GetItemText(r.list.GetCurrentItem())
-	return jid.MustParse(j)
+	item, ok := r.items[j]
+	return item, ok
 }

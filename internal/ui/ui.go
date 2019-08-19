@@ -30,6 +30,7 @@ type UI struct {
 	flex        *tview.Flex
 	pages       *tview.Pages
 	buffers     *tview.Pages
+	history     *tview.TextView
 	statusBar   *tview.TextView
 	roster      Roster
 	hideJIDs    bool
@@ -119,7 +120,7 @@ func New(app *tview.Application, opts ...Option) *UI {
 	buffers := tview.NewPages()
 	pages := tview.NewPages()
 
-	rosterBox := NewRoster(func() {
+	rosterBox := newRoster(func() {
 		pages.ShowPage(setStatusPageName)
 		pages.SendToFront(setStatusPageName)
 		app.SetFocus(pages)
@@ -168,7 +169,8 @@ func New(app *tview.Application, opts ...Option) *UI {
 		return event
 	})
 
-	chats := newChats(ui)
+	chats, history := newChats(ui)
+	ui.history = history
 	buffers.AddPage(chatPageName, chats, true, false)
 
 	logs := newLogs(app, func(event *tcell.EventKey) *tcell.EventKey {
@@ -226,6 +228,10 @@ func (ui *UI) UpdateRoster(item RosterItem) {
 	ui.roster.Upsert(item, func() {
 		ui.buffers.ShowPage(chatPageName)
 		ui.buffers.SendToFront(chatPageName)
+		item, ok := ui.roster.GetSelected()
+		if ok {
+			ui.handler(event.OpenChat(item.Item))
+		}
 		ui.app.SetFocus(ui.buffers)
 		ui.app.Draw()
 	})
@@ -331,6 +337,12 @@ func (ui *UI) ShowQuitPrompt() {
 // SelectRoster moves the input selection back to the roster and shows the logs
 // view.
 func (ui *UI) SelectRoster() {
+	ui.handler(event.CloseChat{})
 	ui.buffers.SwitchToPage(logsPageName)
 	ui.app.SetFocus(ui.roster)
+}
+
+// History returns the chat history view.
+func (ui *UI) History() *tview.TextView {
+	return ui.history
 }

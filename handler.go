@@ -24,9 +24,10 @@ func errLogger(logger *log.Logger) func(string, error) {
 
 // newUIHandler returns a handler for events that are emitted by the UI that
 // need to modify the client state.
-func newUIHandler(pane *ui.UI, c *client.Client, logger, debug *log.Logger) func(interface{}) {
+func newUIHandler(configPath string, pane *ui.UI, c *client.Client, logger, debug *log.Logger) func(interface{}) {
 	logErr := errLogger(logger)
 
+	ctx, cancel := context.WithCancel(context.Background())
 	return func(ev interface{}) {
 		switch e := ev.(type) {
 		case event.StatusAway:
@@ -53,6 +54,11 @@ func newUIHandler(pane *ui.UI, c *client.Client, logger, debug *log.Logger) func
 			panic("event.UpdateRoster: not yet implemented")
 		case event.ChatMessage:
 			go logErr("Error sending message", c.Encode(e))
+		case event.OpenChat:
+			go loadBuffer(ctx, pane, configPath, e)
+		case event.CloseChat:
+			cancel()
+			ctx, cancel = context.WithCancel(context.Background())
 		default:
 			debug.Printf("Unrecognized ui event: %q", e)
 		}

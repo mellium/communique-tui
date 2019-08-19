@@ -27,10 +27,17 @@ type (
 	// roster fetch or a roster push).
 	UpdateRoster roster.Item
 
-	// ChatMessage includes messages of type "chat" and type "normal".
+	// ChatMessage is sent when messages of type "chat" or "normal" are received
+	// or sent.
 	ChatMessage struct {
 		stanza.Message
 
 		Body string `xml:"body,omitempty"`
 	}
+
+	// OpenChat is sent when a roster item is selected.
+	OpenChat roster.Item
+
+	// CloseChat is sent when the chat view is closed.
+	CloseChat struct{}
 )

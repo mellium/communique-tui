@@ -13,11 +13,11 @@ import (
 	"mellium.im/xmpp/stanza"
 )
 
-func newChats(ui *UI) *tview.Flex {
+func newChats(ui *UI) (*tview.Flex, *tview.TextView) {
 	chats := tview.NewFlex().
 		SetDirection(tview.FlexRow)
 
-	history := tview.NewTextView().SetText("TODO: Not yet implemented.")
+	history := tview.NewTextView()
 	history.SetBorder(true).SetTitle("Conversation")
 	inputField := tview.NewInputField()
 	inputField.SetBorder(true)
@@ -39,9 +39,13 @@ func newChats(ui *UI) *tview.Flex {
 			if body == "" {
 				return nil
 			}
+			item, ok := ui.roster.GetSelected()
+			if !ok {
+				return nil
+			}
 			ui.handler(event.ChatMessage{
 				Message: stanza.Message{
-					To: ui.roster.GetSelected(),
+					To: item.Item.JID,
 					// TODO: shouldn't this be automatically set by the library?
 					From: jid.MustParse(ui.addr),
 					Type: stanza.ChatMessage,
@@ -60,5 +64,5 @@ func newChats(ui *UI) *tview.Flex {
 		return nil
 	})
 
-	return chats
+	return chats, history
 }

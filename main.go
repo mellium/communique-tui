@@ -202,15 +202,16 @@ Go %s %s
 			KeyLogWriter: keylog,
 		},
 	}
+	configPath = path.Dir(fpath)
 	c := client.New(
 		j, logger, debug,
 		client.Timeout(timeout),
 		client.Dialer(dialer),
 		client.Tee(logwriter.New(xmlInLog), logwriter.New(xmlOutLog)),
 		client.Password(getPass),
-		client.Handler(newClientHandler(path.Dir(fpath), pane, logger, debug)),
+		client.Handler(newClientHandler(configPath, pane, logger, debug)),
 	)
-	pane.Handle(newUIHandler(pane, c, debug, logger))
+	pane.Handle(newUIHandler(configPath, pane, c, debug, logger))
 
 	go func() {
 		ctx, cancel := context.WithTimeout(context.Background(), time.Minute)
