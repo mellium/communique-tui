@@ -59,7 +59,8 @@ func main() {
 	earlyLogs := &bytes.Buffer{}
 	logger := log.New(io.MultiWriter(os.Stderr, earlyLogs), "", log.LstdFlags)
 	debug := log.New(ioutil.Discard, "DEBUG ", log.LstdFlags)
-	var xmlInLog, xmlOutLog *log.Logger
+	xmlInLog := log.New(ioutil.Discard, "RECV ", log.LstdFlags)
+	xmlOutLog := log.New(ioutil.Discard, "SENT ", log.LstdFlags)
 
 	var (
 		configPath string
@@ -142,8 +143,8 @@ Go %s %s
 	})
 
 	if cfg.Log.XML {
-		xmlInLog = log.New(pane, "RECV ", log.LstdFlags)
-		xmlOutLog = log.New(pane, "SENT ", log.LstdFlags)
+		xmlInLog.SetOutput(pane)
+		xmlOutLog.SetOutput(pane)
 	}
 
 	_, err = io.Copy(pane, earlyLogs)
