@@ -14,15 +14,18 @@ import (
 	"mellium.im/xmpp/jid"
 	"mellium.im/xmpp/mux"
 	"mellium.im/xmpp/roster"
+	"mellium.im/xmpp/stanza"
 )
 
 func newXMPPHandler(c *Client) xmpp.Handler {
 	iqHandler := newIQHandler(c)
 	presenceHandler := newPresenceHandler(c)
+	messageHandler := newMessageHandler(c)
 
 	return mux.New(
 		mux.IQ(iqHandler),
 		mux.Presence(presenceHandler),
+		mux.Message(messageHandler),
 	)
 }
 
@@ -102,6 +105,48 @@ func newPresenceHandler(c *Client) xmpp.HandlerFunc {
 			c.handler(event.StatusOnline{})
 		case "dnd":
 			c.handler(event.StatusBusy{})
+		}
+		return nil
+	}
+}
+
+type deferEOF struct {
+	r xml.TokenReader
+}
+
+func (r *deferEOF) Token() (xml.Token, error) {
+	if r == nil {
+		return nil, io.EOF
+	}
+
+	tok, err := r.r.Token()
+	if err != nil {
+		if err == io.EOF && tok != nil {
+			r.r = nil
+			return tok, nil
+		}
+	}
+	return tok, err
+}
+
+func newMessageHandler(c *Client) xmpp.HandlerFunc {
+	return func(t xmlstream.TokenReadEncoder, start *xml.StartElement) error {
+		msg := event.ChatMessage{}
+
+		// TODO: Remove this workaround when https://golang.org/cl/130556 is
+		// released.
+		d := xml.NewTokenDecoder(&deferEOF{r: xmlstream.MultiReader(
+			xmlstream.Token(start.Copy()),
+			xmlstream.Inner(t),
+			xmlstream.Token(start.End()),
+		)})
+		err := d.Decode(&msg)
+		if err != nil {
+			return err
+		}
+		switch msg.Type {
+		case stanza.NormalMessage, stanza.ChatMessage:
+			c.handler(msg)
 		}
 		return nil
 	}

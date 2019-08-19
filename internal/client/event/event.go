@@ -7,6 +7,7 @@ package event
 
 import (
 	"mellium.im/xmpp/roster"
+	"mellium.im/xmpp/stanza"
 )
 
 type (
@@ -25,4 +26,11 @@ type (
 	// UpdateRoster is sent when a roster item should be updated (eg. after a
 	// roster fetch or a roster push).
 	UpdateRoster roster.Item
+
+	// ChatMessage includes messages of type "chat" and type "normal".
+	ChatMessage struct {
+		stanza.Message
+
+		Body string `xml:"body,omitempty"`
+	}
 )
