@@ -229,8 +229,9 @@ Go %s %s
 
 		ctx, cancel := context.WithTimeout(context.Background(), 3*timeout)
 		defer cancel()
-
-		c.Online(ctx)
+		if err := c.Online(ctx); err != nil {
+			logger.Printf("Initial login failed: %v", err)
+		}
 	}()
 
 	go func() {
