@@ -48,6 +48,7 @@ func newRoster(onStatus func()) Roster {
 
 		m.Lock()
 		defer m.Unlock()
+		/* #nosec */
 		events.WriteRune(event.Rune())
 
 		// TODO: this is not going to be very maintainable. Figure out a better way

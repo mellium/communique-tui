@@ -18,6 +18,7 @@ import (
 
 func getHistoryPath(configPath string, j jid.JID) (string, error) {
 	historyDir := path.Join(configPath, "history")
+	/* #nosec */
 	err := os.MkdirAll(historyDir, 0755)
 	if err != nil {
 		return "", err
@@ -30,7 +31,7 @@ func writeMessage(pane *ui.UI, configPath string, msg event.ChatMessage) error {
 	if err != nil {
 		return err
 	}
-	f, err := os.OpenFile(historyPath, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
+	f, err := os.OpenFile(historyPath, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0600)
 	if err != nil {
 		return err
 	}
@@ -57,6 +58,7 @@ func loadBuffer(pane *ui.UI, configPath string, ev event.OpenChat) error {
 		return err
 	}
 
+	/* #nosec */
 	file, err := os.Open(configPath)
 	if err != nil {
 		return err

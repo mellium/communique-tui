@@ -163,6 +163,7 @@ Go %s %s
 		}
 
 		debug.Printf("Running command: %q", cfg.PassCmd)
+		/* #nosec */
 		pass, err := exec.CommandContext(ctx, args[0], args[1:]...).Output()
 		if err != nil {
 			return "", err

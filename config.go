@@ -55,11 +55,13 @@ const configFileName = "config.toml"
 // $HOME/.config/communiqué/config.toml, /etc/communiqué/config.toml
 func configFile(f string) (*os.File, string, error) {
 	if f != "" {
+		/* #nosec */
 		cfgFile, err := os.Open(f)
 		return cfgFile, f, err
 	}
 
 	fPath := filepath.Join(".", appName+".toml")
+	/* #nosec */
 	if cfgFile, err := os.Open(fPath); err == nil {
 		return cfgFile, fPath, err
 	}
@@ -67,6 +69,7 @@ func configFile(f string) (*os.File, string, error) {
 	cfgDir := os.Getenv("XDG_CONFIG_HOME")
 	if cfgDir != "" {
 		fPath = filepath.Join(cfgDir, appName, configFileName)
+		/* #nosec */
 		if cfgFile, err := os.Open(fPath); err == nil {
 			return cfgFile, fPath, nil
 		}
@@ -79,6 +82,7 @@ func configFile(f string) (*os.File, string, error) {
 
 	if home != "" {
 		fPath = filepath.Join(home, ".config", appName, configFileName)
+		/* #nosec */
 		cfgFile, err := os.Open(fPath)
 		if err == nil {
 			return cfgFile, fPath, err
@@ -86,6 +90,7 @@ func configFile(f string) (*os.File, string, error) {
 	}
 
 	fPath = filepath.Join("/etc", appName, configFileName)
+	/* #nosec */
 	cfgFile, err := os.Open(fPath)
 	return cfgFile, fPath, err
 }
