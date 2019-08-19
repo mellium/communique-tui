@@ -97,6 +97,12 @@ func (c *Client) reconnect(ctx context.Context) error {
 		}
 	}()
 
+	// Put a special case in the roster so we can send notes to ourselves easily.
+	c.handler(event.UpdateRoster(roster.Item{
+		JID:  c.addr.Bare(),
+		Name: "Me",
+	}))
+
 	// TODO: should this be synchronous so that when we call reconnect we fail if
 	// the roster isn't fetched?
 	go func() {
