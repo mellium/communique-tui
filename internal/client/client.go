@@ -63,7 +63,7 @@ func (c *Client) reconnect(ctx context.Context) error {
 
 	conn, err := c.dialer.Dial(ctx, "tcp", c.addr)
 	if err != nil {
-		return fmt.Errorf("error dialing connection: %w", err)
+		return fmt.Errorf("error dialing connection: %v", err)
 	}
 
 	negotiator := xmpp.NewNegotiator(xmpp.StreamConfig{
@@ -77,7 +77,7 @@ func (c *Client) reconnect(ctx context.Context) error {
 	})
 	c.Session, err = xmpp.NegotiateSession(ctx, c.addr.Domain(), c.addr, conn, false, negotiator)
 	if err != nil {
-		return fmt.Errorf("error negotiating session: %w", err)
+		return fmt.Errorf("error negotiating session: %v", err)
 	}
 
 	c.online = true
