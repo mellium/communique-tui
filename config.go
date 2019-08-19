@@ -44,6 +44,8 @@ type config struct {
 	Theme []theme `toml:"theme"`
 }
 
+const configFileName = "config.toml"
+
 // configFile attempts to open the config file for reading.
 // If a file is provided, only that file is checked, otherwise it attempts to
 // open the following (falling back if the file does not exist or cannot be
@@ -64,7 +66,7 @@ func configFile(f string) (*os.File, string, error) {
 
 	cfgDir := os.Getenv("XDG_CONFIG_HOME")
 	if cfgDir != "" {
-		fPath = filepath.Join(cfgDir, appName)
+		fPath = filepath.Join(cfgDir, appName, configFileName)
 		if cfgFile, err := os.Open(fPath); err == nil {
 			return cfgFile, fPath, nil
 		}
@@ -75,13 +77,15 @@ func configFile(f string) (*os.File, string, error) {
 		return nil, "", err
 	}
 
-	if home == "" {
-		fPath = filepath.Join("/etc", appName)
+	if home != "" {
+		fPath = filepath.Join(home, ".config", appName, configFileName)
 		cfgFile, err := os.Open(fPath)
-		return cfgFile, fPath, err
+		if err == nil {
+			return cfgFile, fPath, err
+		}
 	}
 
-	fPath = filepath.Join(home, ".config", appName)
+	fPath = filepath.Join("/etc", appName, configFileName)
 	cfgFile, err := os.Open(fPath)
 	return cfgFile, fPath, err
 }
