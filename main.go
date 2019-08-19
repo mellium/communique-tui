@@ -50,7 +50,8 @@ var (
 
 func printHelp(flags *flag.FlagSet, w io.Writer) {
 	flags.SetOutput(w)
-	fmt.Println(`Usage of communiqué:`)
+	fmt.Fprintln(w, `Usage of communiqué:
+`)
 	flags.PrintDefaults()
 	return
 }
