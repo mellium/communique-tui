@@ -14,6 +14,7 @@ import (
 	"mellium.im/communiqué/internal/client/event"
 	"mellium.im/communiqué/internal/ui"
 	"mellium.im/xmpp/jid"
+	"mellium.im/xmpp/roster"
 )
 
 func getHistoryPath(configPath string, j jid.JID) (string, error) {
@@ -26,8 +27,14 @@ func getHistoryPath(configPath string, j jid.JID) (string, error) {
 	return path.Join(historyDir, j.Bare().String()), nil
 }
 
-func writeMessage(pane *ui.UI, configPath string, msg event.ChatMessage) error {
-	historyPath, err := getHistoryPath(configPath, msg.From)
+func writeMessage(sent bool, pane *ui.UI, configPath string, msg event.ChatMessage) error {
+	historyAddr := msg.From
+	arrow := "←"
+	if sent {
+		historyAddr = msg.To
+		arrow = "→"
+	}
+	historyPath, err := getHistoryPath(configPath, historyAddr)
 	if err != nil {
 		return err
 	}
@@ -38,15 +45,35 @@ func writeMessage(pane *ui.UI, configPath string, msg event.ChatMessage) error {
 	/* #nosec */
 	defer f.Close()
 
-	historyLine := fmt.Sprintf("%s %s\n", time.Now().UTC().Format(time.RFC3339), msg.Body)
+	historyLine := fmt.Sprintf("%s %s %s\n", time.Now().UTC().Format(time.RFC3339), arrow, msg.Body)
 
 	_, err = io.WriteString(f, historyLine)
 	if err != nil {
 		return err
 	}
-	if item, ok := pane.Roster().GetSelected(); ok && item.Item.JID.Equal(msg.From.Bare()) {
+
+	j := historyAddr.Bare()
+	if item, ok := pane.Roster().GetSelected(); ok && item.Item.JID.Equal(j) {
+		// If the message JID is selected, write it to the history window.
 		_, err = io.WriteString(pane.History(), historyLine)
 		return err
+	} else {
+		// If it's not selected, mark the item as unread in the roster
+		ok := pane.Roster().MarkUnread(j.String())
+		if !ok {
+			// If the item did not exist, create it then try to mark it as unread
+			// again.
+			pane.UpdateRoster(ui.RosterItem{
+				Item: roster.Item{
+					JID: j,
+					// TODO: get the preferred nickname.
+					Name:         j.Localpart(),
+					Subscription: "none",
+				},
+			})
+			pane.Roster().MarkUnread(j.String())
+		}
+		pane.Redraw()
 	}
 	return nil
 }

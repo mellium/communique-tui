@@ -338,7 +338,10 @@ func (ui *UI) ShowQuitPrompt() {
 // SelectRoster moves the input selection back to the roster and shows the logs
 // view.
 func (ui *UI) SelectRoster() {
-	ui.handler(event.CloseChat{})
+	item, ok := ui.roster.GetSelected()
+	if ok {
+		ui.handler(event.CloseChat(item.Item))
+	}
 	ui.buffers.SwitchToPage(logsPageName)
 	ui.app.SetFocus(ui.roster)
 }
@@ -346,4 +349,9 @@ func (ui *UI) SelectRoster() {
 // History returns the chat history view.
 func (ui *UI) History() *tview.TextView {
 	return ui.history
+}
+
+// Redraw redraws the UI.
+func (ui *UI) Redraw() {
+	ui.redraw()
 }

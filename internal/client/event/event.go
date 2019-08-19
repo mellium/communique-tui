@@ -39,5 +39,5 @@ type (
 	OpenChat roster.Item
 
 	// CloseChat is sent when the chat view is closed.
-	CloseChat struct{}
+	CloseChat roster.Item
 )

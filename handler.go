@@ -52,11 +52,15 @@ func newUIHandler(configPath string, pane *ui.UI, c *client.Client, logger, debu
 		case event.UpdateRoster:
 			panic("event.UpdateRoster: not yet implemented")
 		case event.ChatMessage:
-			go logErr("Error sending message", c.Encode(e))
+			go func() {
+				logErr("Error sending message", c.Encode(e))
+				logErr("Error saving sent message to history", writeMessage(true, pane, configPath, e))
+			}()
 		case event.OpenChat:
 			go loadBuffer(pane, configPath, e)
 		case event.CloseChat:
-			// TODO: implement last read markers
+			pane.History().SetText("")
+			pane.Roster().MarkRead(e.JID.Bare().String())
 		default:
 			debug.Printf("Unrecognized ui event: %q", e)
 		}
@@ -66,6 +70,8 @@ func newUIHandler(configPath string, pane *ui.UI, c *client.Client, logger, debu
 // newClientHandler returns a handler for events that are emitted by the client
 // that need to modify the UI.
 func newClientHandler(configPath string, pane *ui.UI, logger, debug *log.Logger) func(interface{}) {
+	logErr := errLogger(logger)
+
 	return func(ev interface{}) {
 		switch e := ev.(type) {
 		case event.StatusAway:
@@ -79,10 +85,7 @@ func newClientHandler(configPath string, pane *ui.UI, logger, debug *log.Logger)
 		case event.UpdateRoster:
 			pane.UpdateRoster(ui.RosterItem{Item: roster.Item(e)})
 		case event.ChatMessage:
-			err := writeMessage(pane, configPath, e)
-			if err != nil {
-				logger.Println(err)
-			}
+			logErr("Error writing received message to history", writeMessage(false, pane, configPath, e))
 		default:
 			debug.Printf("Unrecognized client event: %q", e)
 		}

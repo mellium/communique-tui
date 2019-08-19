@@ -238,6 +238,38 @@ func (r Roster) GetInputCapture() func(event *tcell.EventKey) *tcell.EventKey {
 // GetSelected returns the currently selected roster item.
 func (r Roster) GetSelected() (RosterItem, bool) {
 	_, j := r.list.GetItemText(r.list.GetCurrentItem())
+	return r.GetItem(j)
+}
+
+// GetItem returns the item for the given JID.
+func (r Roster) GetItem(j string) (RosterItem, bool) {
 	item, ok := r.items[j]
 	return item, ok
+}
+
+var highlightTag = fmt.Sprintf("[#%06x::b]", tview.Styles.ContrastSecondaryTextColor.Hex())
+
+// MarkUnread sets the given jid to bold.
+func (r Roster) MarkUnread(j string) bool {
+	item, ok := r.items[j]
+	if !ok {
+		return false
+	}
+	primary, secondary := r.list.GetItemText(item.idx)
+	// If it already has the highlighted prefix, do nothing.
+	if strings.HasPrefix(primary, highlightTag) {
+		return true
+	}
+	r.list.SetItemText(item.idx, highlightTag+tview.Escape(primary), secondary)
+	return true
+}
+
+// MarkRead sets the given jid back to the normal font.
+func (r Roster) MarkRead(j string) {
+	item, ok := r.items[j]
+	if !ok {
+		return
+	}
+	primary, secondary := r.list.GetItemText(item.idx)
+	r.list.SetItemText(item.idx, strings.TrimPrefix(primary, highlightTag), secondary)
 }
