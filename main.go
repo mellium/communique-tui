@@ -67,11 +67,13 @@ func main() {
 		configPath string
 		h          bool
 		help       bool
+		genConfig  bool
 	)
 	flags := flag.NewFlagSet(appName, flag.ContinueOnError)
 	flags.StringVar(&configPath, "f", configPath, "the config file to load")
 	flags.BoolVar(&h, "h", h, "print this help message")
 	flags.BoolVar(&help, "help", help, "print this help message")
+	flags.BoolVar(&genConfig, "config", genConfig, "print a default config file to stdout")
 	// Even with ContinueOnError set, it still prints for some reason. Discard the
 	// first defaults so we can write our own.
 	flags.SetOutput(ioutil.Discard)
@@ -87,14 +89,27 @@ func main() {
 		return
 	}
 
+	if genConfig {
+		err = printConfig(os.Stdout)
+		if err != nil {
+			logger.Fatalf("Error encoding default config as TOML: %v", err)
+		}
+		return
+	}
+
 	f, fpath, err := configFile(configPath)
 	if err != nil {
-		logger.Println(err)
+		logger.Fatalf(`%v
+
+Try running '%s -config' to generate a default config file.`, err, os.Args[0])
 	}
 	cfg := config{}
 	_, err = toml.DecodeReader(f, &cfg)
 	if err != nil {
-		logger.Printf("error parsing config file: %q", err)
+		logger.Printf("error parsing config file: %v", err)
+	}
+	if err = f.Close(); err != nil {
+		logger.Printf("error closing config file: %v", err)
 	}
 
 	// Setup the global tview styles. I hate this.

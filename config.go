@@ -5,9 +5,56 @@
 package main
 
 import (
+	"fmt"
+	"io"
 	"os"
 	"path/filepath"
+
+	"github.com/BurntSushi/toml"
+	"github.com/rivo/tview"
 )
+
+func printConfig(w io.Writer) error {
+	e := toml.NewEncoder(w)
+	e.Indent = "\t"
+	defConfig := config{
+		JID:     "me@example.net",
+		PassCmd: "gpg --decrypt passwordfile.asc",
+		Timeout: "30s",
+		Theme: []theme{{
+			Name:                        "example",
+			PrimitiveBackgroundColor:    fmt.Sprintf("#%06x", tview.Styles.PrimitiveBackgroundColor.Hex()),
+			ContrastBackgroundColor:     fmt.Sprintf("#%06x", tview.Styles.ContrastBackgroundColor.Hex()),
+			MoreContrastBackgroundColor: fmt.Sprintf("#%06x", tview.Styles.MoreContrastBackgroundColor.Hex()),
+			BorderColor:                 fmt.Sprintf("#%06x", tview.Styles.BorderColor.Hex()),
+			TitleColor:                  fmt.Sprintf("#%06x", tview.Styles.TitleColor.Hex()),
+			GraphicsColor:               fmt.Sprintf("#%06x", tview.Styles.GraphicsColor.Hex()),
+			PrimaryTextColor:            fmt.Sprintf("#%06x", tview.Styles.PrimaryTextColor.Hex()),
+			SecondaryTextColor:          fmt.Sprintf("#%06x", tview.Styles.SecondaryTextColor.Hex()),
+			TertiaryTextColor:           fmt.Sprintf("#%06x", tview.Styles.TertiaryTextColor.Hex()),
+			InverseTextColor:            fmt.Sprintf("#%06x", tview.Styles.InverseTextColor.Hex()),
+			ContrastSecondaryTextColor:  fmt.Sprintf("#%06x", tview.Styles.ContrastSecondaryTextColor.Hex()),
+		}},
+	}
+	defConfig.UI.Theme = "example"
+	_, err := fmt.Fprintf(w, `# This is an example config file for Communiqué.
+# If the -f option is not provided, Communiqué will search for a config file in:
+#
+#   - ./communiqué.toml
+#   - $XDG_CONFIG_HOME/communiqué/config.toml
+#   - $HOME/.config/communiqué/config.toml
+#   - /etc/communiqué/config.toml
+#
+# The only required field is "jid". The "password_eval" field should be set to a
+# command that writes the password to standard out. Normally this should decrypt
+# an encrypted file containing the password. If it is not specified, the user
+# will be prompted to enter a password.
+`)
+	if err != nil {
+		return err
+	}
+	return e.Encode(defConfig)
+}
 
 type theme struct {
 	Name                        string `toml:"name"`
