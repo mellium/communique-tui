@@ -76,6 +76,7 @@ type config struct {
 	PassCmd string `toml:"password_eval"`
 	KeyLog  string `toml:"keylog_file"`
 	Timeout string `toml:"timeout"`
+	NoSRV   bool   `toml:"disable_srv"`
 
 	Log struct {
 		Verbose bool `toml:"verbose"`

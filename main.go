@@ -219,6 +219,7 @@ Go %s %s
 			ServerName:   j.Domain().String(),
 			KeyLogWriter: keylog,
 		},
+		NoLookup: cfg.NoSRV,
 	}
 	configPath = path.Dir(fpath)
 	c := client.New(
