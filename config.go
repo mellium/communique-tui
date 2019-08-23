@@ -60,7 +60,7 @@ type theme struct {
 	Name                        string `toml:"name"`
 	PrimitiveBackgroundColor    string `toml:"primitive_background"`
 	ContrastBackgroundColor     string `toml:"contrast_background"`
-	MoreContrastBackgroundColor string `toml:"contrast_background"`
+	MoreContrastBackgroundColor string `toml:"more_contrast_background"`
 	BorderColor                 string `toml:"border"`
 	TitleColor                  string `toml:"title"`
 	GraphicsColor               string `toml:"graphics"`
