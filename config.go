@@ -19,10 +19,10 @@ func printConfig(w io.Writer) error {
 	e.Indent = "\t"
 	defConfig := config{
 		JID:     "me@example.net",
-		PassCmd: "gpg --decrypt passwordfile.asc",
+		PassCmd: "",
 		Timeout: "30s",
 		Theme: []theme{{
-			Name:                        "example",
+			Name:                        "default",
 			PrimitiveBackgroundColor:    fmt.Sprintf("#%06x", tview.Styles.PrimitiveBackgroundColor.Hex()),
 			ContrastBackgroundColor:     fmt.Sprintf("#%06x", tview.Styles.ContrastBackgroundColor.Hex()),
 			MoreContrastBackgroundColor: fmt.Sprintf("#%06x", tview.Styles.MoreContrastBackgroundColor.Hex()),
@@ -36,8 +36,8 @@ func printConfig(w io.Writer) error {
 			ContrastSecondaryTextColor:  fmt.Sprintf("#%06x", tview.Styles.ContrastSecondaryTextColor.Hex()),
 		}},
 	}
-	defConfig.UI.Theme = "example"
-	_, err := fmt.Fprintf(w, `# This is an example config file for Communiqué.
+	defConfig.UI.Theme = "default"
+	_, err := fmt.Fprintf(w, `# This is a config file for Communiqué.
 # If the -f option is not provided, Communiqué will search for a config file in:
 #
 #   - ./communiqué.toml
