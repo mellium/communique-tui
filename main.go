@@ -179,19 +179,25 @@ Go %s %s
 		debug.Printf("Error copying early log data to output buffer: %q", err)
 	}
 
-	getPass := func(ctx context.Context) (string, error) {
+	pass := &bytes.Buffer{}
+	if len(cfg.PassCmd) > 0 {
 		args := strings.Fields(cfg.PassCmd)
-		if len(args) < 1 {
-			return pane.ShowPasswordPrompt(), nil
-		}
-
 		debug.Printf("Running command: %q", cfg.PassCmd)
+		cmd := exec.Command(args[0], args[1:]...)
+		cmd.Stdin = os.Stdin
+		cmd.Stderr = io.MultiWriter(os.Stderr, pane)
+		cmd.Stdout = pass
 		/* #nosec */
-		pass, err := exec.CommandContext(ctx, args[0], args[1:]...).Output()
+		err := cmd.Run()
 		if err != nil {
-			return "", err
+			debug.Printf("Error running password command, falling back to prompt: %v", err)
 		}
-		return string(pass), nil
+	}
+	getPass := func(ctx context.Context) (string, error) {
+		if p := pass.String(); p != "" {
+			return p, nil
+		}
+		return pane.ShowPasswordPrompt(), nil
 	}
 
 	var j jid.JID
