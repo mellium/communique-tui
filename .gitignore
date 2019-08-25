@@ -1,8 +1,9 @@
-*.sw[op]
-*.svg
-*.xml
-*.out
-vendor/
 communiqué
 communiqué.test
 communiqué.toml
+coverage.html
+*.out
+*.svg
+*.sw[op]
+vendor/
+*.xml
