@@ -273,3 +273,16 @@ func (r Roster) MarkRead(j string) {
 	primary, secondary := r.list.GetItemText(item.idx)
 	r.list.SetItemText(item.idx, strings.TrimPrefix(primary, highlightTag), secondary)
 }
+
+// Unread returns whether the roster item is currently marked as having unread
+// messages.
+// If no such roster item exists, it returns false.
+func (r Roster) Unread(j string) bool {
+	item, ok := r.items[j]
+	if !ok {
+		// If it doesn't exist, it's not unread.
+		return false
+	}
+	primary, _ := r.list.GetItemText(item.idx)
+	return strings.HasPrefix(primary, highlightTag)
+}
