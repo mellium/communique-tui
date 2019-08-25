@@ -58,8 +58,12 @@ func newUIHandler(configPath string, pane *ui.UI, c *client.Client, logger, debu
 			}()
 		case event.OpenChat:
 			go func() {
+				if err := loadBuffer(pane, configPath, e); err != nil {
+					logErr("Error loading chat", err)
+					return
+				}
+				pane.History().ScrollToEnd()
 				pane.Roster().MarkRead(e.JID.Bare().String())
-				loadBuffer(pane, configPath, e)
 			}()
 		case event.CloseChat:
 			pane.History().SetText("")
