@@ -184,6 +184,9 @@ Go %s %s
 	if len(cfg.PassCmd) > 0 {
 		args := strings.Fields(cfg.PassCmd)
 		debug.Printf("Running command: %q", cfg.PassCmd)
+		// The config file is considered a safe source since it is never written
+		// except by the user, so consider this use of exec to be safe.
+		/* #nosec */
 		cmd := exec.Command(args[0], args[1:]...)
 		cmd.Stdin = os.Stdin
 		cmd.Stderr = io.MultiWriter(os.Stderr, pane)
