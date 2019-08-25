@@ -19,7 +19,7 @@ func newChats(ui *UI) (*tview.Flex, *tview.TextView) {
 
 	history := tview.NewTextView()
 	history.SetBorder(true).SetTitle("Conversation")
-	inputField := tview.NewInputField()
+	inputField := tview.NewInputField().SetFieldBackgroundColor(tcell.ColorDefault)
 	inputField.SetBorder(true)
 	chats.AddItem(history, 0, 100, false)
 	chats.AddItem(inputField, 3, 1, false)

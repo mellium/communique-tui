@@ -114,7 +114,7 @@ func New(app *tview.Application, opts ...Option) *UI {
 	})
 	statusBar.
 		SetTextColor(tview.Styles.PrimaryTextColor).
-		SetBackgroundColor(tview.Styles.ContrastBackgroundColor).
+		SetBackgroundColor(tview.Styles.MoreContrastBackgroundColor).
 		SetBorder(false).
 		SetBorderPadding(0, 0, 2, 0)
 	buffers := tview.NewPages()
