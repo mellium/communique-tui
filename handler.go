@@ -57,10 +57,12 @@ func newUIHandler(configPath string, pane *ui.UI, c *client.Client, logger, debu
 				logErr("Error saving sent message to history", writeMessage(true, pane, configPath, e))
 			}()
 		case event.OpenChat:
-			go loadBuffer(pane, configPath, e)
+			go func() {
+				pane.Roster().MarkRead(e.JID.Bare().String())
+				loadBuffer(pane, configPath, e)
+			}()
 		case event.CloseChat:
 			pane.History().SetText("")
-			pane.Roster().MarkRead(e.JID.Bare().String())
 		default:
 			debug.Printf("Unrecognized ui event: %q", e)
 		}
