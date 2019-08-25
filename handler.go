@@ -62,11 +62,15 @@ func newUIHandler(configPath string, pane *ui.UI, c *client.Client, logger, debu
 					logErr("Error loading chat", err)
 					return
 				}
-				pane.History().ScrollToEnd()
+				history := pane.History()
+				defer history.Close()
+				history.ScrollToEnd()
 				pane.Roster().MarkRead(e.JID.Bare().String())
 			}()
 		case event.CloseChat:
-			pane.History().SetText("")
+			history := pane.History()
+			defer history.Close()
+			history.SetText("")
 		default:
 			debug.Printf("Unrecognized ui event: %q", e)
 		}

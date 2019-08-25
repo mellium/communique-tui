@@ -17,7 +17,7 @@ func newChats(ui *UI) (*tview.Flex, *tview.TextView) {
 	chats := tview.NewFlex().
 		SetDirection(tview.FlexRow)
 
-	history := tview.NewTextView()
+	history := tview.NewTextView().SetDynamicColors(true)
 	history.SetBorder(true).SetTitle("Conversation")
 	inputField := tview.NewInputField().SetFieldBackgroundColor(tcell.ColorDefault)
 	inputField.SetBorder(true)

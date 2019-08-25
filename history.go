@@ -52,34 +52,39 @@ func writeMessage(sent bool, pane *ui.UI, configPath string, msg event.ChatMessa
 		return err
 	}
 
+	history := pane.History()
+	defer history.Close()
+
 	j := historyAddr.Bare()
 	if item, ok := pane.Roster().GetSelected(); ok && item.Item.JID.Equal(j) {
 		// If the message JID is selected, write it to the history window.
-		_, err = io.WriteString(pane.History(), historyLine)
+		_, err = io.WriteString(history, historyLine)
 		return err
-	} else {
-		// If it's not selected, mark the item as unread in the roster
-		ok := pane.Roster().MarkUnread(j.String())
-		if !ok {
-			// If the item did not exist, create it then try to mark it as unread
-			// again.
-			pane.UpdateRoster(ui.RosterItem{
-				Item: roster.Item{
-					JID: j,
-					// TODO: get the preferred nickname.
-					Name:         j.Localpart(),
-					Subscription: "none",
-				},
-			})
-			pane.Roster().MarkUnread(j.String())
-		}
-		pane.Redraw()
 	}
+	// If it's not selected, mark the item as unread in the roster
+	ok := pane.Roster().MarkUnread(j.String())
+	if !ok {
+		// If the item did not exist, create it then try to mark it as unread
+		// again.
+		pane.UpdateRoster(ui.RosterItem{
+			Item: roster.Item{
+				JID: j,
+				// TODO: get the preferred nickname.
+				Name:         j.Localpart(),
+				Subscription: "none",
+			},
+		})
+		pane.Roster().MarkUnread(j.String())
+	}
+	pane.Redraw()
 	return nil
 }
 
 func loadBuffer(pane *ui.UI, configPath string, ev event.OpenChat) error {
-	pane.History().SetText("")
+	history := pane.History()
+	history.SetText("")
+	defer history.Close()
+
 	configPath, err := getHistoryPath(configPath, ev.JID)
 	if err != nil {
 		return err
@@ -92,9 +97,9 @@ func loadBuffer(pane *ui.UI, configPath string, ev event.OpenChat) error {
 	}
 	/* #nosec */
 	defer file.Close()
-	_, err = io.Copy(pane.History(), file)
+	_, err = io.Copy(history, file)
 	if err != nil {
-		pane.History().SetText(fmt.Sprintf("Error copying history: %v", err))
+		history.SetText(fmt.Sprintf("Error copying history: %v", err))
 	}
 	return nil
 }
