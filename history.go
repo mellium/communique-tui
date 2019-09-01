@@ -9,9 +9,13 @@ import (
 	"io"
 	"os"
 	"path"
+	"strings"
 	"time"
 
+	"golang.org/x/text/transform"
+
 	"mellium.im/communiqué/internal/client/event"
+	"mellium.im/communiqué/internal/escape"
 	"mellium.im/communiqué/internal/ui"
 	"mellium.im/xmpp/jid"
 	"mellium.im/xmpp/roster"
@@ -45,6 +49,12 @@ func writeMessage(sent bool, pane *ui.UI, configPath string, msg event.ChatMessa
 	/* #nosec */
 	defer f.Close()
 
+	finfo, err := f.Stat()
+	if err != nil {
+		return err
+	}
+	unreadSize := finfo.Size()
+
 	historyLine := fmt.Sprintf("%s %s %s\n", time.Now().UTC().Format(time.RFC3339), arrow, msg.Body)
 
 	_, err = io.WriteString(f, historyLine)
@@ -53,7 +63,6 @@ func writeMessage(sent bool, pane *ui.UI, configPath string, msg event.ChatMessa
 	}
 
 	history := pane.History()
-	defer history.Close()
 
 	j := historyAddr.Bare()
 	if item, ok := pane.Roster().GetSelected(); ok && item.Item.JID.Equal(j) {
@@ -61,8 +70,9 @@ func writeMessage(sent bool, pane *ui.UI, configPath string, msg event.ChatMessa
 		_, err = io.WriteString(history, historyLine)
 		return err
 	}
+
 	// If it's not selected, mark the item as unread in the roster
-	ok := pane.Roster().MarkUnread(j.String())
+	ok := pane.Roster().MarkUnread(j.String(), unreadSize)
 	if !ok {
 		// If the item did not exist, create it then try to mark it as unread
 		// again.
@@ -74,16 +84,15 @@ func writeMessage(sent bool, pane *ui.UI, configPath string, msg event.ChatMessa
 				Subscription: "none",
 			},
 		})
-		pane.Roster().MarkUnread(j.String())
+		pane.Roster().MarkUnread(j.String(), unreadSize)
 	}
 	pane.Redraw()
 	return nil
 }
 
-func loadBuffer(pane *ui.UI, configPath string, ev event.OpenChat) error {
+func loadBuffer(pane *ui.UI, configPath string, ev event.OpenChat, unreadSize int64) error {
 	history := pane.History()
 	history.SetText("")
-	defer history.Close()
 
 	configPath, err := getHistoryPath(configPath, ev.JID)
 	if err != nil {
@@ -97,9 +106,23 @@ func loadBuffer(pane *ui.UI, configPath string, ev event.OpenChat) error {
 	}
 	/* #nosec */
 	defer file.Close()
-	_, err = io.Copy(history, file)
+	// TODO: color customization
+	// TODO: figure out length of buffer at current time.
+	_, err = io.Copy(history, unreadMarkReader(file, "red", 30, unreadSize))
 	if err != nil {
 		history.SetText(fmt.Sprintf("Error copying history: %v", err))
 	}
 	return nil
+}
+
+// unreadMarkReader wraps an io.Reader in a new reader that will insert an
+// unread marker at the given offset.
+func unreadMarkReader(r io.Reader, color string, width int, offset int64) io.Reader {
+	t := escape.Transformer()
+
+	return io.MultiReader(
+		transform.NewReader(io.LimitReader(r, offset), t),
+		strings.NewReader(fmt.Sprintf("[%s]%s\n", color, strings.Repeat("─", width))),
+		transform.NewReader(r, t),
+	)
 }
