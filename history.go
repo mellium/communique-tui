@@ -12,6 +12,8 @@ import (
 	"strings"
 	"time"
 
+	"github.com/gdamore/tcell"
+	"github.com/rivo/tview"
 	"golang.org/x/text/transform"
 
 	"mellium.im/communiqué/internal/client/event"
@@ -106,9 +108,9 @@ func loadBuffer(pane *ui.UI, configPath string, ev event.OpenChat, unreadSize in
 	}
 	/* #nosec */
 	defer file.Close()
-	// TODO: color customization
-	// TODO: figure out length of buffer at current time.
-	_, err = io.Copy(history, unreadMarkReader(file, "red", 30, unreadSize))
+	// TODO: figure out how to make the unread line full width without wrapping if
+	// the terminal is resized.
+	_, err = io.Copy(history, unreadMarkReader(file, tview.Styles.ContrastSecondaryTextColor, 30, unreadSize))
 	if err != nil {
 		history.SetText(fmt.Sprintf("Error copying history: %v", err))
 	}
@@ -117,12 +119,12 @@ func loadBuffer(pane *ui.UI, configPath string, ev event.OpenChat, unreadSize in
 
 // unreadMarkReader wraps an io.Reader in a new reader that will insert an
 // unread marker at the given offset.
-func unreadMarkReader(r io.Reader, color string, width int, offset int64) io.Reader {
+func unreadMarkReader(r io.Reader, color tcell.Color, width int, offset int64) io.Reader {
 	t := escape.Transformer()
 
 	return io.MultiReader(
 		transform.NewReader(io.LimitReader(r, offset), t),
-		strings.NewReader(fmt.Sprintf("[%s]%s\n", color, strings.Repeat("─", width))),
+		strings.NewReader(fmt.Sprintf("[#%06x::]%s\n", color.Hex(), strings.Repeat("─", width))),
 		transform.NewReader(r, t),
 	)
 }
