@@ -11,10 +11,8 @@ import (
 
 	"github.com/gdamore/tcell"
 	"github.com/rivo/tview"
-	"golang.org/x/text/transform"
 
 	"mellium.im/communiqué/internal/client/event"
-	"mellium.im/communiqué/internal/escape"
 )
 
 const (
@@ -348,34 +346,11 @@ func (ui *UI) SelectRoster() {
 	ui.app.SetFocus(ui.roster)
 }
 
-// History is the text buffer that chats are displayed in.
-type History interface {
-	io.WriteCloser
-
-	SetText(string)
-	ScrollToEnd()
-}
-
-type historyAdapter struct {
-	io.WriteCloser
-	view *tview.TextView
-}
-
-func (h historyAdapter) SetText(s string) {
-	h.view.SetText(s)
-}
-
-func (h historyAdapter) ScrollToEnd() {
-	h.view.ScrollToEnd()
-}
-
 // History returns the chat history view.
 // To flush any remaining data to the buffer, the writer must be closed after
 // use.
-func (ui *UI) History() History {
-	t := escape.Transformer()
-	w := transform.NewWriter(ui.history, t)
-	return historyAdapter{WriteCloser: w, view: ui.history}
+func (ui *UI) History() *tview.TextView {
+	return ui.history
 }
 
 // Redraw redraws the UI.

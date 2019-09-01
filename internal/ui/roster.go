@@ -18,22 +18,31 @@ import (
 
 // RosterItem represents a contact in the roster.
 type RosterItem struct {
-	idx int
 	roster.Item
+	idx        int
+	unreadSize int64
+}
+
+// UnreadSize returns the size of the buffer at which an unread marker should be
+// shown.
+func (r RosterItem) UnreadSize() int64 {
+	return r.unreadSize
 }
 
 // Roster is a tview.Primitive that draws a roster pane.
 type Roster struct {
-	items map[string]RosterItem
-	list  *tview.List
-	Width int
+	items    map[string]RosterItem
+	itemLock *sync.Mutex
+	list     *tview.List
+	Width    int
 }
 
 // newRoster creates a new roster widget with the provided options.
 func newRoster(onStatus func()) Roster {
 	r := Roster{
-		items: make(map[string]RosterItem),
-		list:  tview.NewList(),
+		items:    make(map[string]RosterItem),
+		itemLock: &sync.Mutex{},
+		list:     tview.NewList(),
 	}
 	r.list.SetTitle("Roster")
 	r.list.SetBorder(true).
@@ -162,6 +171,9 @@ func (r Roster) setStatus(color, name string) {
 
 // Upsert inserts or updates an item in the roster.
 func (r Roster) Upsert(item RosterItem, action func()) {
+	r.itemLock.Lock()
+	defer r.itemLock.Unlock()
+
 	switch item.Subscription {
 	case "remove":
 		bare := item.JID.Bare().String()
@@ -243,18 +255,33 @@ func (r Roster) GetSelected() (RosterItem, bool) {
 
 // GetItem returns the item for the given JID.
 func (r Roster) GetItem(j string) (RosterItem, bool) {
+	r.itemLock.Lock()
+	defer r.itemLock.Unlock()
+
 	item, ok := r.items[j]
 	return item, ok
 }
 
 var highlightTag = fmt.Sprintf("[#%06x::b]", tview.Styles.ContrastSecondaryTextColor.Hex())
 
-// MarkUnread sets the given jid to bold.
-func (r Roster) MarkUnread(j string) bool {
+// MarkUnread sets the given jid to bold and sets the offset for the unread
+// marker.
+func (r Roster) MarkUnread(j string, unreadSize int64) bool {
+	r.itemLock.Lock()
+	defer r.itemLock.Unlock()
+
 	item, ok := r.items[j]
 	if !ok {
 		return false
 	}
+
+	// The unread size is the moment at which the item first became unread, so if
+	// it's already set don't chagne it.
+	if item.unreadSize <= 0 {
+		item.unreadSize = unreadSize
+		r.items[j] = item
+	}
+
 	primary, secondary := r.list.GetItemText(item.idx)
 	// If it already has the highlighted prefix, do nothing.
 	if strings.HasPrefix(primary, highlightTag) {
@@ -266,10 +293,16 @@ func (r Roster) MarkUnread(j string) bool {
 
 // MarkRead sets the given jid back to the normal font.
 func (r Roster) MarkRead(j string) {
+	r.itemLock.Lock()
+	defer r.itemLock.Unlock()
+
 	item, ok := r.items[j]
 	if !ok {
 		return
 	}
+	item.unreadSize = 0
+	r.items[j] = item
+
 	primary, secondary := r.list.GetItemText(item.idx)
 	r.list.SetItemText(item.idx, strings.TrimPrefix(primary, highlightTag), secondary)
 }
@@ -278,6 +311,9 @@ func (r Roster) MarkRead(j string) {
 // messages.
 // If no such roster item exists, it returns false.
 func (r Roster) Unread(j string) bool {
+	r.itemLock.Lock()
+	defer r.itemLock.Unlock()
+
 	item, ok := r.items[j]
 	if !ok {
 		// If it doesn't exist, it's not unread.
