@@ -13,15 +13,65 @@ import (
 	"mellium.im/xmpp/stanza"
 )
 
-func newChats(ui *UI) (*tview.Flex, *tview.TextView) {
+// UnreadRegion is a tview region tag that will draw an unread marker.
+const UnreadRegion = "unreadMarker"
+
+// unreadTextView wraps a text view and draws a line (that respects screen
+// resizes) at the provided offset in the text to indicate unread messages.
+type unreadTextView struct {
+	*tview.TextView
+}
+
+func (t unreadTextView) Draw(screen tcell.Screen) {
+	t.TextView.Draw(screen)
+
+	t.TextView.Lock()
+	defer t.TextView.Unlock()
+
+	x, y, width, height := t.GetInnerRect()
+	top := y + height
+
+	var found bool
+	for y < top {
+		mainc, combc, _, width := screen.GetContent(x, y)
+		if mainc == '─' && len(combc) == 0 && width == 1 {
+			found = true
+			break
+		}
+		y++
+	}
+
+	if !found {
+		return
+	}
+
+	// TODO: set the style to something other than bold.
+	screen.SetContent(x, y, ' ', nil, tcell.StyleDefault)
+	screen.SetContent(x+1, y, ' ', nil, tcell.StyleDefault)
+	for i := x + 2; i < x+width-2; i++ {
+		screen.SetContent(i, y, '─', nil,
+			tcell.StyleDefault.
+				Bold(true).
+				Foreground(tview.Styles.ContrastSecondaryTextColor),
+		)
+	}
+}
+
+func newChats(ui *UI) (*tview.Flex, unreadTextView) {
 	chats := tview.NewFlex().
 		SetDirection(tview.FlexRow)
 
-	history := tview.NewTextView().SetDynamicColors(true)
+	history := tview.NewTextView().
+		SetDynamicColors(true).
+		SetRegions(true).
+		Highlight(UnreadRegion)
 	history.SetBorder(true).SetTitle("Conversation")
 	inputField := tview.NewInputField().SetFieldBackgroundColor(tcell.ColorDefault)
 	inputField.SetBorder(true)
-	chats.AddItem(history, 0, 100, false)
+	unreadHistory := unreadTextView{
+		TextView: history,
+	}
+	chats.AddItem(unreadHistory, 0, 100, false)
 	chats.AddItem(inputField, 3, 1, false)
 
 	history.SetChangedFunc(func() {
@@ -64,5 +114,5 @@ func newChats(ui *UI) (*tview.Flex, *tview.TextView) {
 		return nil
 	})
 
-	return chats, history
+	return chats, unreadHistory
 }

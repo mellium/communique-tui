@@ -31,7 +31,7 @@ type UI struct {
 	flex        *tview.Flex
 	pages       *tview.Pages
 	buffers     *tview.Pages
-	history     *tview.TextView
+	history     unreadTextView
 	statusBar   *tview.TextView
 	roster      Roster
 	hideJIDs    bool
@@ -352,7 +352,7 @@ func (ui *UI) SelectRoster() {
 // To flush any remaining data to the buffer, the writer must be closed after
 // use.
 func (ui *UI) History() *tview.TextView {
-	return ui.history
+	return ui.history.TextView
 }
 
 // Redraw redraws the UI.
