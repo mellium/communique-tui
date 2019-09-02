@@ -67,13 +67,17 @@ func writeMessage(sent bool, pane *ui.UI, configPath string, msg event.ChatMessa
 	history := pane.History()
 
 	j := historyAddr.Bare()
-	if item, ok := pane.Roster().GetSelected(); ok && item.Item.JID.Equal(j) {
-		// If the message JID is selected, write it to the history window.
-		_, err = io.WriteString(history, historyLine)
-		return err
+	if pane.ChatsOpen() {
+		if item, ok := pane.Roster().GetSelected(); ok && item.Item.JID.Equal(j) {
+			// If the message JID is selected and the window is open, write it to the
+			// history window.
+			_, err = io.WriteString(history, historyLine)
+			return err
+		}
 	}
 
-	// If it's not selected, mark the item as unread in the roster
+	// If it's not selected (or the message window is not open), mark the item as
+	// unread in the roster
 	ok := pane.Roster().MarkUnread(j.String(), unreadSize)
 	if !ok {
 		// If the item did not exist, create it then try to mark it as unread
