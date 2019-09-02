@@ -8,6 +8,7 @@ package ui // import "mellium.im/communiqué/internal/ui"
 import (
 	"fmt"
 	"io"
+	"strings"
 
 	"github.com/gdamore/tcell"
 	"github.com/rivo/tview"
@@ -131,6 +132,7 @@ func New(app *tview.Application, opts ...Option) *UI {
 			statusBar.SetText("Status: " + main)
 			return
 		}
+		main = strings.TrimPrefix(main, highlightTag)
 		statusBar.SetText(fmt.Sprintf("Chat: %q (%s)", main, secondary))
 	})
 
