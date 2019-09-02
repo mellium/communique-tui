@@ -9,6 +9,7 @@ import (
 	"fmt"
 	"io"
 	"strings"
+	"sync"
 
 	"github.com/gdamore/tcell"
 	"github.com/rivo/tview"
@@ -24,6 +25,23 @@ const (
 	setStatusPageName   = "set_status"
 	uiPageName          = "ui"
 )
+
+type syncBool struct {
+	b bool
+	m sync.Mutex
+}
+
+func (b *syncBool) Set(v bool) {
+	b.m.Lock()
+	defer b.m.Unlock()
+	b.b = v
+}
+
+func (b *syncBool) Get() bool {
+	b.m.Lock()
+	defer b.m.Unlock()
+	return b.b
+}
 
 // UI is a widget that combines other widgets to make the main UI.
 type UI struct {
@@ -42,6 +60,7 @@ type UI struct {
 	redraw      func() *tview.Application
 	addr        string
 	passPrompt  chan string
+	chatsOpen   *syncBool
 }
 
 // Option can be used to configure a new roster widget.
@@ -146,6 +165,7 @@ func New(app *tview.Application, opts ...Option) *UI {
 		buffers:     buffers,
 		pages:       pages,
 		passPrompt:  make(chan string),
+		chatsOpen:   &syncBool{},
 	}
 	for _, o := range opts {
 		o(ui)
@@ -177,6 +197,7 @@ func New(app *tview.Application, opts ...Option) *UI {
 
 	logs := newLogs(app, func(event *tcell.EventKey) *tcell.EventKey {
 		if event.Key() == tcell.KeyESC {
+			ui.chatsOpen.Set(false)
 			ui.SelectRoster()
 			return nil
 		}
@@ -230,6 +251,7 @@ func (ui *UI) UpdateRoster(item RosterItem) {
 	ui.roster.Upsert(item, func() {
 		ui.buffers.ShowPage(chatPageName)
 		ui.buffers.SendToFront(chatPageName)
+		ui.chatsOpen.Set(true)
 		item, ok := ui.roster.GetSelected()
 		if ok {
 			ui.handler(event.OpenChat(item.Item))
@@ -248,6 +270,11 @@ func (ui *UI) Write(p []byte) (n int, err error) {
 // Roster returns the underlying roster pane widget.
 func (ui *UI) Roster() Roster {
 	return ui.roster
+}
+
+// ChatsOpen returns true if the chat pane is open.
+func (ui *UI) ChatsOpen() bool {
+	return ui.chatsOpen.Get()
 }
 
 // Draw implements tview.Primitive for UI.
