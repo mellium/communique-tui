@@ -16,8 +16,8 @@ import (
 // UnreadRegion is a tview region tag that will draw an unread marker.
 const UnreadRegion = "unreadMarker"
 
-// unreadTextView wraps a text view and draws a line (that respects screen
-// resizes) at the provided offset in the text to indicate unread messages.
+// unreadTextView wraps a text view and draws the unread marker on any line that
+// starts with a '─'.
 type unreadTextView struct {
 	*tview.TextView
 }
@@ -34,6 +34,8 @@ func (t unreadTextView) Draw(screen tcell.Screen) {
 	var found bool
 	for y < top {
 		mainc, combc, _, width := screen.GetContent(x, y)
+		// Scan for a line that starts with ─, and then draw the unread marker on
+		// that line.
 		if mainc == '─' && len(combc) == 0 && width == 1 {
 			found = true
 			break

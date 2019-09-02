@@ -124,6 +124,7 @@ func unreadMarkReader(r io.Reader, color tcell.Color, offset int64) io.Reader {
 
 	return io.MultiReader(
 		transform.NewReader(io.LimitReader(r, offset), t),
+		// This marker is used by the text view UI to draw the unread marker
 		strings.NewReader("─\n"),
 		transform.NewReader(r, t),
 	)
