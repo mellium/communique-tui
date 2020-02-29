@@ -12,5 +12,5 @@ require (
 	golang.org/x/text v0.3.2
 	mellium.im/sasl v0.2.1
 	mellium.im/xmlstream v0.14.0
-	mellium.im/xmpp v0.14.0
+	mellium.im/xmpp v0.15.0
 )

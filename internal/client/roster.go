@@ -8,14 +8,15 @@ import (
 	"encoding/xml"
 
 	"mellium.im/xmlstream"
+	"mellium.im/xmpp/mux"
 	"mellium.im/xmpp/roster"
 	"mellium.im/xmpp/stanza"
 
 	"mellium.im/communiqué/internal/client/event"
 )
 
-func rosterPushHandler(t xmlstream.TokenReadWriter, c *Client, iq, payload *xml.StartElement) error {
-	if payload.Name.Local == "query" {
+func rosterPushHandler(c *Client) mux.IQHandlerFunc {
+	return func(iq stanza.IQ, t xmlstream.TokenReadEncoder, start *xml.StartElement) error {
 		item := roster.Item{}
 		err := xml.NewTokenDecoder(t).Decode(&item)
 		if err != nil {
@@ -39,10 +40,5 @@ func rosterPushHandler(t xmlstream.TokenReadWriter, c *Client, iq, payload *xml.
 		//iqVal = iqVal.Result()
 		//_, err = xmlstream.Copy(t, roster.IQ{IQ: iqVal}.TokenReader())
 		//return err
-	}
-
-	return stanza.Error{
-		Type:      stanza.Cancel,
-		Condition: stanza.FeatureNotImplemented,
 	}
 }

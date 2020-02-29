@@ -141,7 +141,7 @@ func (c *Client) Online(ctx context.Context) error {
 		return err
 	}
 
-	err = c.Send(ctx, stanza.WrapPresence(jid.JID{}, stanza.AvailablePresence, nil))
+	err = c.Send(ctx, stanza.Presence{Type: stanza.AvailablePresence}.Wrap(nil))
 	if err != nil {
 		return err
 	}
@@ -184,9 +184,7 @@ func (c *Client) Away(ctx context.Context) error {
 
 	err = c.Send(
 		ctx,
-		stanza.WrapPresence(
-			jid.JID{},
-			stanza.AvailablePresence,
+		stanza.Presence{Type: stanza.AvailablePresence}.Wrap(
 			xmlstream.Wrap(
 				xmlstream.ReaderFunc(func() (xml.Token, error) {
 					return xml.CharData("away"), io.EOF
@@ -208,9 +206,7 @@ func (c *Client) Busy(ctx context.Context) error {
 
 	err = c.Send(
 		ctx,
-		stanza.WrapPresence(
-			jid.JID{},
-			stanza.AvailablePresence,
+		stanza.Presence{Type: stanza.AvailablePresence}.Wrap(
 			xmlstream.Wrap(
 				xmlstream.ReaderFunc(func() (xml.Token, error) {
 					return xml.CharData("dnd"), io.EOF
