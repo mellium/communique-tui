@@ -1,0 +1,30 @@
+image: freebsd/latest
+packages:
+  - go
+sources:
+  - https://github.com/mellium/communique-tui
+tasks:
+  - setup: |
+      go version
+      go env
+
+      go get -u golang.org/x/lint/golint
+      go get -u github.com/securego/gosec/cmd/gosec
+      go get -u git.sr.ht/~samwhited/checkdoc
+
+      echo 'export PATH=$(go env GOPATH)/bin:$PATH' >> ~/.buildenv
+  - stable: |
+      cd communique-tui/
+      go test -v -cover ./...
+  - lint: |
+      cd communique-tui/
+      go vet ./...
+      gofmt -s -l . && [ -z "$(gofmt -s -l .)" ]
+
+      golint -set_exit_status ./...
+      gosec ./...
+      checkdoc ./...
+  - validate: |
+      cd communique-tui/
+      go mod tidy
+      git diff --exit-code -- go.mod go.sum
