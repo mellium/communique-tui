@@ -113,13 +113,6 @@ Try running '%s -config' to generate a default config file.`, err, os.Args[0])
 		logger.Printf("error closing config file: %v", err)
 	}
 
-	// Invert a few default tview styles so that the default theme is light.
-	tview.Styles.PrimitiveBackgroundColor = tcell.ColorWhite
-	tview.Styles.BorderColor = tcell.ColorBlack
-	tview.Styles.TitleColor = tcell.ColorBlack
-	tview.Styles.GraphicsColor = tcell.ColorBlack
-	tview.Styles.PrimaryTextColor = tcell.ColorBlack
-
 	// Setup the global tview styles. I hate this.
 	var cfgTheme *theme
 	for _, t := range cfg.Theme {
