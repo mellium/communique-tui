@@ -76,9 +76,6 @@ func newChats(ui *UI) (*tview.Flex, unreadTextView) {
 	chats.AddItem(unreadHistory, 0, 100, false)
 	chats.AddItem(inputField, 3, 1, false)
 
-	history.SetChangedFunc(func() {
-		ui.app.Draw()
-	})
 	chats.SetBorder(false)
 	chats.SetInputCapture(func(ev *tcell.EventKey) *tcell.EventKey {
 		// If escape is pressed, call the escape handler.

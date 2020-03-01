@@ -154,7 +154,6 @@ func New(opts ...Option) *UI {
 		pages.ShowPage(setStatusPageName)
 		pages.SendToFront(setStatusPageName)
 		app.SetFocus(pages)
-		app.Draw()
 	})
 	rosterBox.OnChanged(func(idx int, main string, secondary string, shortcut rune) {
 		if idx == 0 {
@@ -265,7 +264,6 @@ func (ui *UI) UpdateRoster(item RosterItem) {
 			ui.handler(event.OpenChat(item.Item))
 		}
 		ui.app.SetFocus(ui.buffers)
-		ui.app.Draw()
 	})
 	ui.redraw()
 }
@@ -325,7 +323,6 @@ func (ui *UI) ShowPasswordPrompt() string {
 	ui.pages.ShowPage(getPasswordPageName)
 	ui.pages.SendToFront(getPasswordPageName)
 	ui.app.SetFocus(ui.pages)
-	ui.app.Draw()
 	return <-ui.passPrompt
 }
 
