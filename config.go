@@ -15,6 +15,13 @@ import (
 	"github.com/rivo/tview"
 )
 
+func getColor(name string) tcell.Color {
+	if name == "default" || name == "" {
+		return tcell.ColorDefault
+	}
+	return tcell.GetColor(name)
+}
+
 func colorName(color tcell.Color) string {
 	for name, c := range tcell.ColorNames {
 		if color == c {

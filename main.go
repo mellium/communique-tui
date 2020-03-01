@@ -122,17 +122,17 @@ Try running '%s -config' to generate a default config file.`, err, os.Args[0])
 		}
 	}
 	if cfgTheme != nil {
-		tview.Styles.PrimitiveBackgroundColor = tcell.GetColor(cfgTheme.PrimitiveBackgroundColor)
-		tview.Styles.ContrastBackgroundColor = tcell.GetColor(cfgTheme.ContrastBackgroundColor)
-		tview.Styles.MoreContrastBackgroundColor = tcell.GetColor(cfgTheme.MoreContrastBackgroundColor)
-		tview.Styles.BorderColor = tcell.GetColor(cfgTheme.BorderColor)
-		tview.Styles.TitleColor = tcell.GetColor(cfgTheme.TitleColor)
-		tview.Styles.GraphicsColor = tcell.GetColor(cfgTheme.GraphicsColor)
-		tview.Styles.PrimaryTextColor = tcell.GetColor(cfgTheme.PrimaryTextColor)
-		tview.Styles.SecondaryTextColor = tcell.GetColor(cfgTheme.SecondaryTextColor)
-		tview.Styles.TertiaryTextColor = tcell.GetColor(cfgTheme.TertiaryTextColor)
-		tview.Styles.InverseTextColor = tcell.GetColor(cfgTheme.InverseTextColor)
-		tview.Styles.ContrastSecondaryTextColor = tcell.GetColor(cfgTheme.ContrastSecondaryTextColor)
+		tview.Styles.PrimitiveBackgroundColor = getColor(cfgTheme.PrimitiveBackgroundColor)
+		tview.Styles.ContrastBackgroundColor = getColor(cfgTheme.ContrastBackgroundColor)
+		tview.Styles.MoreContrastBackgroundColor = getColor(cfgTheme.MoreContrastBackgroundColor)
+		tview.Styles.BorderColor = getColor(cfgTheme.BorderColor)
+		tview.Styles.TitleColor = getColor(cfgTheme.TitleColor)
+		tview.Styles.GraphicsColor = getColor(cfgTheme.GraphicsColor)
+		tview.Styles.PrimaryTextColor = getColor(cfgTheme.PrimaryTextColor)
+		tview.Styles.SecondaryTextColor = getColor(cfgTheme.SecondaryTextColor)
+		tview.Styles.TertiaryTextColor = getColor(cfgTheme.TertiaryTextColor)
+		tview.Styles.InverseTextColor = getColor(cfgTheme.InverseTextColor)
+		tview.Styles.ContrastSecondaryTextColor = getColor(cfgTheme.ContrastSecondaryTextColor)
 	}
 
 	sigs := make(chan os.Signal, 1)
