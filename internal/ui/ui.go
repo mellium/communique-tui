@@ -142,9 +142,6 @@ func RosterWidth(width int) Option {
 func New(opts ...Option) *UI {
 	app := tview.NewApplication()
 	statusBar := tview.NewTextView()
-	statusBar.SetChangedFunc(func() {
-		app.Draw()
-	})
 	statusBar.
 		SetTextColor(tview.Styles.PrimaryTextColor).
 		SetBackgroundColor(tview.Styles.MoreContrastBackgroundColor).
@@ -205,7 +202,6 @@ func New(opts ...Option) *UI {
 		case event.Key() == tcell.KeyTAB:
 			buffers.SwitchToPage(logsPageName)
 			app.SetFocus(buffers)
-			app.Draw()
 			return nil
 		case event.Rune() == 'q':
 			ui.ShowQuitPrompt()
@@ -338,7 +334,6 @@ func (ui *UI) ShowQuitPrompt() {
 	ui.pages.ShowPage(quitPageName)
 	ui.pages.SendToFront(quitPageName)
 	ui.app.SetFocus(ui.pages)
-	ui.app.Draw()
 }
 
 // SelectRoster moves the input selection back to the roster and shows the logs
