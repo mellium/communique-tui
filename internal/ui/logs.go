@@ -11,9 +11,7 @@ import (
 
 func newLogs(app *tview.Application, input func(event *tcell.EventKey) *tcell.EventKey) *tview.TextView {
 	logs := tview.NewTextView()
-	logs.SetChangedFunc(func() {
-		app.Draw()
-	})
+	logs.SetText("")
 	logs.SetBorder(true).SetTitle("Logs")
 	logs.SetInputCapture(input)
 

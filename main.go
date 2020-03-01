@@ -145,30 +145,33 @@ Try running '%s -config' to generate a default config file.`, err, os.Args[0])
 	sigs := make(chan os.Signal, 1)
 	signal.Notify(sigs, os.Interrupt, syscall.SIGQUIT, syscall.SIGTERM)
 
-	app := tview.NewApplication()
-	pane := ui.New(app,
+	pane := ui.New(
 		ui.Addr(cfg.JID),
 		ui.ShowStatus(!cfg.UI.HideStatus),
 		ui.RosterWidth(cfg.UI.Width),
-		ui.Log(fmt.Sprintf(`%s %s (%s)
-Go %s %s
+		ui.InputCapture(func(event *tcell.EventKey) *tcell.EventKey {
+			// The application intercepts Ctrl-C by default and terminates itself. We
+			// don't want Ctrl-C to stop the application, so disable this behavior by
+			// default. Manually sending a SIGINT will still work (see the signal
+			// handling goroutine in this file).
 
-`, string(appName[0]^0x20)+appName[1:], Version, Commit, runtime.Version(), runtime.Compiler)))
-
-	app.SetInputCapture(func(event *tcell.EventKey) *tcell.EventKey {
-		// The application intercepts Ctrl-C by default and terminates itself. We
-		// don't want Ctrl-C to stop the application, so disable this behavior by
-		// default. Manually sending a SIGINT will still work (see the signal
-		// handling goroutine in this file).
-		if event.Key() == tcell.KeyCtrlC {
-			return nil
-		}
-		return event
-	})
+			if event.Key() == tcell.KeyCtrlC {
+				return nil
+			}
+			return event
+		}))
 
 	if cfg.Log.XML {
 		xmlInLog.SetOutput(pane)
 		xmlOutLog.SetOutput(pane)
+	}
+
+	_, err = fmt.Fprintf(pane, `%s %s (%s)
+Go %s %s
+
+`, string(appName[0]^0x20)+appName[1:], Version, Commit, runtime.Version(), runtime.Compiler)
+	if err != nil {
+		debug.Printf("Error logging to pane: %v", err)
 	}
 
 	_, err = io.Copy(pane, earlyLogs)
@@ -253,11 +256,11 @@ Go %s %s
 		// Hopefully nothing ever panics, but in case it does ensure that we exit
 		// TUI mode so that we don't hose the users terminal.
 		defer func() {
-			// TODO: this isn't great because we lose the stack trace. Once Go 1.13 is
-			// out, update the error handling so that we can attempt to recover a
-			// trace from the error.
+			// TODO: this isn't great because we lose the stack trace. Update the
+			// error handling so that we can attempt to recover a trace from the
+			// error.
 			if r := recover(); r != nil {
-				app.Stop()
+				pane.Stop()
 				panic(r)
 			}
 		}()
@@ -272,13 +275,13 @@ Go %s %s
 	go func() {
 		s := <-sigs
 		debug.Printf("Got signal: %v", s)
-		app.Stop()
+		pane.Stop()
 	}()
 
 	// Hopefully nothing ever panics, but in case it does ensure that we exit TUI
 	// mode so that we don't hose the users terminal.
-	defer app.Stop()
-	if err := app.SetRoot(pane, true).SetFocus(pane).Run(); err != nil {
+	defer pane.Stop()
+	if err := pane.Run(); err != nil {
 		panic(err)
 	}
 }

@@ -7,7 +7,6 @@ package ui // import "mellium.im/communiqué/internal/ui"
 
 import (
 	"fmt"
-	"io"
 	"strings"
 	"sync"
 
@@ -54,13 +53,26 @@ type UI struct {
 	roster      Roster
 	hideJIDs    bool
 	rosterWidth int
-	defaultLog  string
-	logWriter   io.Writer
+	logWriter   *tview.TextView
 	handler     func(interface{})
 	redraw      func() *tview.Application
 	addr        string
 	passPrompt  chan string
 	chatsOpen   *syncBool
+}
+
+// Run starts the application event loop.
+func (ui *UI) Run() error {
+	ui.logWriter.SetChangedFunc(func() {
+		ui.app.Draw()
+	})
+
+	return ui.app.SetRoot(ui.pages, true).SetFocus(ui.pages).Run()
+}
+
+// Stop stops the application, causing Run() to return.
+func (ui *UI) Stop() {
+	ui.app.Stop()
 }
 
 // Option can be used to configure a new roster widget.
@@ -71,6 +83,14 @@ type Option func(*UI)
 func ShowStatus(show bool) Option {
 	return func(ui *UI) {
 		ui.roster.ShowStatus(show)
+	}
+}
+
+// InputCapture returns an option that overrides the default input handler for
+// the application.
+func InputCapture(capture func(event *tcell.EventKey) *tcell.EventKey) Option {
+	return func(ui *UI) {
+		ui.app.SetInputCapture(capture)
 	}
 }
 
@@ -118,16 +138,9 @@ func RosterWidth(width int) Option {
 	}
 }
 
-// Log returns an option that sets the default string to show in the log window
-// on startup.
-func Log(s string) Option {
-	return func(ui *UI) {
-		ui.defaultLog = s
-	}
-}
-
 // New constructs a new UI.
-func New(app *tview.Application, opts ...Option) *UI {
+func New(opts ...Option) *UI {
+	app := tview.NewApplication()
 	statusBar := tview.NewTextView()
 	statusBar.SetChangedFunc(func() {
 		app.Draw()
@@ -171,6 +184,21 @@ func New(app *tview.Application, opts ...Option) *UI {
 		o(ui)
 	}
 
+	chats, history := newChats(ui)
+	ui.history = history
+	buffers.AddPage(chatPageName, chats, true, false)
+
+	logs := newLogs(app, func(event *tcell.EventKey) *tcell.EventKey {
+		if event.Key() == tcell.KeyESC {
+			ui.chatsOpen.Set(false)
+			ui.SelectRoster()
+			return nil
+		}
+		return event
+	})
+	buffers.AddPage(logsPageName, logs, true, true)
+	ui.logWriter = logs
+
 	innerCapture := rosterBox.GetInputCapture()
 	rosterBox.SetInputCapture(func(event *tcell.EventKey) *tcell.EventKey {
 		switch {
@@ -190,22 +218,6 @@ func New(app *tview.Application, opts ...Option) *UI {
 
 		return event
 	})
-
-	chats, history := newChats(ui)
-	ui.history = history
-	buffers.AddPage(chatPageName, chats, true, false)
-
-	logs := newLogs(app, func(event *tcell.EventKey) *tcell.EventKey {
-		if event.Key() == tcell.KeyESC {
-			ui.chatsOpen.Set(false)
-			ui.SelectRoster()
-			return nil
-		}
-		return event
-	})
-	buffers.AddPage(logsPageName, logs, true, true)
-	logs.SetText(ui.defaultLog)
-	ui.logWriter = logs
 
 	setStatusPage := statusModal(func(buttonIndex int, buttonLabel string) {
 		switch buttonIndex {
@@ -275,41 +287,6 @@ func (ui *UI) Roster() Roster {
 // ChatsOpen returns true if the chat pane is open.
 func (ui *UI) ChatsOpen() bool {
 	return ui.chatsOpen.Get()
-}
-
-// Draw implements tview.Primitive for UI.
-func (ui *UI) Draw(screen tcell.Screen) {
-	ui.pages.Draw(screen)
-}
-
-// GetRect implements tview.Primitive for UI.
-func (ui *UI) GetRect() (int, int, int, int) {
-	return ui.pages.GetRect()
-}
-
-// SetRect implements tview.Primitive for UI.
-func (ui *UI) SetRect(x, y, width, height int) {
-	ui.pages.SetRect(x, y, width, height)
-}
-
-// InputHandler implements tview.Primitive for UI.
-func (ui *UI) InputHandler() func(event *tcell.EventKey, setFocus func(p tview.Primitive)) {
-	return ui.pages.InputHandler()
-}
-
-// Focus implements tview.Primitive for UI.
-func (ui *UI) Focus(delegate func(p tview.Primitive)) {
-	ui.pages.Focus(delegate)
-}
-
-// Blur implements tview.Primitive for UI.
-func (ui *UI) Blur() {
-	ui.pages.Blur()
-}
-
-// GetFocusable implements tview.Primitive for UI.
-func (ui *UI) GetFocusable() tview.Focusable {
-	return ui.pages.GetFocusable()
 }
 
 // Offline sets the state of the roster to show the user as offline.
