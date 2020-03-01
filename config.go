@@ -11,8 +11,18 @@ import (
 	"path/filepath"
 
 	"github.com/BurntSushi/toml"
+	"github.com/gdamore/tcell"
 	"github.com/rivo/tview"
 )
+
+func colorName(color tcell.Color) string {
+	for name, c := range tcell.ColorNames {
+		if color == c {
+			return name
+		}
+	}
+	return fmt.Sprintf("#%06x", color.Hex())
+}
 
 func printConfig(w io.Writer) error {
 	e := toml.NewEncoder(w)
@@ -23,17 +33,17 @@ func printConfig(w io.Writer) error {
 		Timeout: "30s",
 		Theme: []theme{{
 			Name:                        "default",
-			PrimitiveBackgroundColor:    fmt.Sprintf("#%06x", tview.Styles.PrimitiveBackgroundColor.Hex()),
-			ContrastBackgroundColor:     fmt.Sprintf("#%06x", tview.Styles.ContrastBackgroundColor.Hex()),
-			MoreContrastBackgroundColor: fmt.Sprintf("#%06x", tview.Styles.MoreContrastBackgroundColor.Hex()),
-			BorderColor:                 fmt.Sprintf("#%06x", tview.Styles.BorderColor.Hex()),
-			TitleColor:                  fmt.Sprintf("#%06x", tview.Styles.TitleColor.Hex()),
-			GraphicsColor:               fmt.Sprintf("#%06x", tview.Styles.GraphicsColor.Hex()),
-			PrimaryTextColor:            fmt.Sprintf("#%06x", tview.Styles.PrimaryTextColor.Hex()),
-			SecondaryTextColor:          fmt.Sprintf("#%06x", tview.Styles.SecondaryTextColor.Hex()),
-			TertiaryTextColor:           fmt.Sprintf("#%06x", tview.Styles.TertiaryTextColor.Hex()),
-			InverseTextColor:            fmt.Sprintf("#%06x", tview.Styles.InverseTextColor.Hex()),
-			ContrastSecondaryTextColor:  fmt.Sprintf("#%06x", tview.Styles.ContrastSecondaryTextColor.Hex()),
+			PrimitiveBackgroundColor:    colorName(tview.Styles.PrimitiveBackgroundColor),
+			ContrastBackgroundColor:     colorName(tview.Styles.ContrastBackgroundColor),
+			MoreContrastBackgroundColor: colorName(tview.Styles.MoreContrastBackgroundColor),
+			BorderColor:                 colorName(tview.Styles.BorderColor),
+			TitleColor:                  colorName(tview.Styles.TitleColor),
+			GraphicsColor:               colorName(tview.Styles.GraphicsColor),
+			PrimaryTextColor:            colorName(tview.Styles.PrimaryTextColor),
+			SecondaryTextColor:          colorName(tview.Styles.SecondaryTextColor),
+			TertiaryTextColor:           colorName(tview.Styles.TertiaryTextColor),
+			InverseTextColor:            colorName(tview.Styles.InverseTextColor),
+			ContrastSecondaryTextColor:  colorName(tview.Styles.ContrastSecondaryTextColor),
 		}},
 	}
 	defConfig.UI.Theme = "default"
