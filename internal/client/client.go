@@ -168,11 +168,11 @@ func (c *Client) Roster(ctx context.Context) error {
 		c.handler(event.UpdateRoster(item))
 	}
 	err := iter.Err()
-	if err != io.EOF {
-		return err
+	if err == io.EOF {
+		err = nil
 	}
 
-	return nil
+	return err
 }
 
 // Away sets the status to away.

@@ -19,10 +19,15 @@ import (
 func newXMPPHandler(c *Client) xmpp.Handler {
 	msgHandler := newMessageHandler(c)
 	return mux.New(
-		mux.IQFunc(stanza.SetIQ, xml.Name{Space: roster.NS, Local: "query"}, rosterPushHandler(c)),
+		roster.Handle(roster.Handler{
+			Push: func(item roster.Item) error {
+				c.handler(event.UpdateRoster(item))
+				return nil
+			},
+		}),
 		mux.Presence("", xml.Name{}, newPresenceHandler(c)),
-		mux.Message(stanza.NormalMessage, xml.Name{}, msgHandler),
-		mux.Message(stanza.ChatMessage, xml.Name{}, msgHandler),
+		mux.Message(stanza.NormalMessage, xml.Name{Local: "body"}, msgHandler),
+		mux.Message(stanza.ChatMessage, xml.Name{Local: "body"}, msgHandler),
 	)
 }
 
