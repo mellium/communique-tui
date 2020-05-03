@@ -6,7 +6,7 @@ sources:
 tasks:
   - dco: |
       git version
-      cd xmpp/
+      cd communique-tui/
       function on_err {
         cat <<EOF
       Failed to sign the Developer Certificate of Origin (DCO)!
