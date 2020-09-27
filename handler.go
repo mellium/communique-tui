@@ -6,55 +6,69 @@ package main
 
 import (
 	"context"
+	"encoding/xml"
 	"log"
+	"time"
 
 	"mellium.im/communique/internal/client"
 	"mellium.im/communique/internal/client/event"
 	"mellium.im/communique/internal/ui"
+	"mellium.im/xmlstream"
 	"mellium.im/xmpp/roster"
 )
-
-func errLogger(logger *log.Logger) func(string, error) {
-	return func(msg string, err error) {
-		if err != nil {
-			logger.Printf("%s: %q", msg, err)
-		}
-	}
-}
 
 // newUIHandler returns a handler for events that are emitted by the UI that
 // need to modify the client state.
 func newUIHandler(configPath string, pane *ui.UI, c *client.Client, logger, debug *log.Logger) func(interface{}) {
-	logErr := errLogger(logger)
-
 	return func(ev interface{}) {
 		switch e := ev.(type) {
 		case event.StatusAway:
 			go func() {
 				ctx, cancel := context.WithTimeout(context.Background(), c.Timeout())
 				defer cancel()
-				logErr("Error setting away status", c.Away(ctx))
+				if err := c.Away(ctx); err != nil {
+					logger.Printf("Error setting away status: %v", err)
+				}
 			}()
 		case event.StatusOnline:
 			go func() {
 				ctx, cancel := context.WithTimeout(context.Background(), c.Timeout())
 				defer cancel()
-				logErr("Error setting online status", c.Online(ctx))
+				if err := c.Online(ctx); err != nil {
+					logger.Printf("Error setting online status: %v", err)
+				}
 			}()
 		case event.StatusBusy:
 			go func() {
 				ctx, cancel := context.WithTimeout(context.Background(), c.Timeout())
 				defer cancel()
-				logErr("Error setting busy status", c.Busy(ctx))
+				if err := c.Busy(ctx); err != nil {
+					logger.Printf("Error setting busy status: %v", err)
+				}
 			}()
 		case event.StatusOffline:
-			go logErr("Error going offline", c.Offline())
+			go func() {
+				if err := c.Offline(); err != nil {
+					logger.Printf("Error going offline: %v", err)
+				}
+			}()
 		case event.UpdateRoster:
 			panic("event.UpdateRoster: not yet implemented")
 		case event.ChatMessage:
 			go func() {
-				logErr("Error sending message", c.Encode(e))
-				logErr("Error saving sent message to history", writeMessage(true, pane, configPath, e))
+				ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+				defer cancel()
+
+				err := c.SendMessage(ctx, e.Message, xmlstream.Wrap(
+					xmlstream.Token(xml.CharData(e.Body)),
+					xml.StartElement{Name: xml.Name{Local: "body"}},
+				))
+				if err != nil {
+					logger.Printf("Error sending message: %v", err)
+				}
+				if err := writeMessage(true, pane, configPath, e); err != nil {
+					logger.Printf("Error saving sent message to history: %v", err)
+				}
 			}()
 		case event.OpenChat:
 			go func() {
@@ -64,7 +78,7 @@ func newUIHandler(configPath string, pane *ui.UI, c *client.Client, logger, debu
 					unreadSize = item.UnreadSize()
 				}
 				if err := loadBuffer(pane, configPath, e, unreadSize); err != nil {
-					logErr("Error loading chat", err)
+					logger.Printf("Error loading chat: %v", err)
 					return
 				}
 				history := pane.History()
@@ -83,8 +97,6 @@ func newUIHandler(configPath string, pane *ui.UI, c *client.Client, logger, debu
 // newClientHandler returns a handler for events that are emitted by the client
 // that need to modify the UI.
 func newClientHandler(configPath string, pane *ui.UI, logger, debug *log.Logger) func(interface{}) {
-	logErr := errLogger(logger)
-
 	return func(ev interface{}) {
 		switch e := ev.(type) {
 		case event.StatusAway:
@@ -98,7 +110,9 @@ func newClientHandler(configPath string, pane *ui.UI, logger, debug *log.Logger)
 		case event.UpdateRoster:
 			pane.UpdateRoster(ui.RosterItem{Item: roster.Item(e)})
 		case event.ChatMessage:
-			logErr("Error writing received message to history", writeMessage(false, pane, configPath, e))
+			if err := writeMessage(false, pane, configPath, e); err != nil {
+				logger.Printf("Error writing received message to history: %v", err)
+			}
 		default:
 			debug.Printf("Unrecognized client event: %q", e)
 		}
