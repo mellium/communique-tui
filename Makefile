@@ -7,6 +7,7 @@ TAGS=
 
 communiqué: go.mod go.sum $(GOFILES)
 	$(GO) build \
+		-trimpath \
 		-tags "$(TAGS)" \
 		-o $@ \
 		-ldflags "$(LDFLAGS)"
