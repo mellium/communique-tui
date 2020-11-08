@@ -1,7 +1,9 @@
+communique
 communiqué
 communiqué.test
 communiqué.toml
 coverage.html
+history/
 *.out
 *.svg
 *.sw[op]
