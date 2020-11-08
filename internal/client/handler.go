@@ -8,7 +8,7 @@ import (
 	"encoding/xml"
 	"io"
 
-	"mellium.im/communiqué/internal/client/event"
+	"mellium.im/communique/internal/client/event"
 	"mellium.im/xmlstream"
 	"mellium.im/xmpp"
 	"mellium.im/xmpp/mux"

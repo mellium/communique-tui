@@ -13,7 +13,7 @@ import (
 	"log"
 	"time"
 
-	"mellium.im/communiqué/internal/client/event"
+	"mellium.im/communique/internal/client/event"
 	"mellium.im/sasl"
 	"mellium.im/xmlstream"
 	"mellium.im/xmpp"

@@ -8,7 +8,7 @@ import (
 	"github.com/gdamore/tcell"
 	"github.com/rivo/tview"
 
-	"mellium.im/communiqué/internal/client/event"
+	"mellium.im/communique/internal/client/event"
 	"mellium.im/xmpp/jid"
 	"mellium.im/xmpp/stanza"
 )

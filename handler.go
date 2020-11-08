@@ -8,9 +8,9 @@ import (
 	"context"
 	"log"
 
-	"mellium.im/communiqué/internal/client"
-	"mellium.im/communiqué/internal/client/event"
-	"mellium.im/communiqué/internal/ui"
+	"mellium.im/communique/internal/client"
+	"mellium.im/communique/internal/client/event"
+	"mellium.im/communique/internal/ui"
 	"mellium.im/xmpp/roster"
 )
 

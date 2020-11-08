@@ -16,9 +16,9 @@ import (
 	"github.com/rivo/tview"
 	"golang.org/x/text/transform"
 
-	"mellium.im/communiqué/internal/client/event"
-	"mellium.im/communiqué/internal/escape"
-	"mellium.im/communiqué/internal/ui"
+	"mellium.im/communique/internal/client/event"
+	"mellium.im/communique/internal/escape"
+	"mellium.im/communique/internal/ui"
 	"mellium.im/xmpp/jid"
 	"mellium.im/xmpp/roster"
 )
