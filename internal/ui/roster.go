@@ -11,7 +11,7 @@ import (
 	"strings"
 	"sync"
 
-	"github.com/gdamore/tcell"
+	"github.com/gdamore/tcell/v2"
 	"github.com/rivo/tview"
 	"mellium.im/xmpp/roster"
 )
@@ -225,6 +225,10 @@ func (r Roster) Blur() {
 // GetFocusable implements tview.Primitive for Roster.
 func (r Roster) GetFocusable() tview.Focusable {
 	return r.list.GetFocusable()
+}
+
+func (r Roster) MouseHandler() func(tview.MouseAction, *tcell.EventMouse, func(tview.Primitive)) (bool, tview.Primitive) {
+	return r.list.MouseHandler()
 }
 
 // ShowStatus shows or hides the status line under contacts in the roster.
