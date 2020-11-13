@@ -256,8 +256,7 @@ func New(opts ...Option) *UI {
 // UpdateRoster adds an item to the roster.
 func (ui *UI) UpdateRoster(item RosterItem) {
 	ui.roster.Upsert(item, func() {
-		ui.buffers.ShowPage(chatPageName)
-		ui.buffers.SendToFront(chatPageName)
+		ui.buffers.SwitchToPage(chatPageName)
 		ui.chatsOpen.Set(true)
 		item, ok := ui.roster.GetSelected()
 		if ok {
