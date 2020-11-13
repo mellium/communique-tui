@@ -186,6 +186,15 @@ func (r Roster) Upsert(item RosterItem, action func()) {
 		delete(r.items, bare)
 	default:
 		bare := item.JID.Bare().String()
+		existing, ok := r.items[bare]
+		if ok {
+			// Update the existing roster item.
+			r.list.SetItemText(existing.idx, item.Name, bare)
+			item.idx = existing.idx
+			item.unreadSize = existing.unreadSize
+			r.items[bare] = item
+			return
+		}
 		r.list.AddItem(item.Name, bare, 0, action)
 		item.idx = r.list.GetItemCount() - 1
 		r.items[bare] = item
