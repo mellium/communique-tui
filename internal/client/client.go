@@ -68,7 +68,7 @@ func (c *Client) reconnect(ctx context.Context) error {
 
 	negotiator := xmpp.NewNegotiator(xmpp.StreamConfig{
 		Features: []xmpp.StreamFeature{
-			xmpp.StartTLS(true, c.dialer.TLSConfig),
+			xmpp.StartTLS(c.dialer.TLSConfig),
 			xmpp.SASL("", pass, sasl.ScramSha256Plus, sasl.ScramSha1Plus, sasl.ScramSha256, sasl.ScramSha1),
 			xmpp.BindResource(),
 		},
