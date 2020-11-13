@@ -74,7 +74,7 @@ func newChats(ui *UI) (*tview.Flex, unreadTextView) {
 		TextView: history,
 	}
 	chats.AddItem(unreadHistory, 0, 100, false)
-	chats.AddItem(inputField, 3, 1, false)
+	chats.AddItem(inputField, 3, 1, true)
 
 	chats.SetBorder(false)
 	chats.SetInputCapture(func(ev *tcell.EventKey) *tcell.EventKey {
