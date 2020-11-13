@@ -68,6 +68,9 @@ func newChats(ui *UI) (*tview.Flex, unreadTextView) {
 		SetRegions(true).
 		Highlight(UnreadRegion)
 	history.SetBorder(true).SetTitle("Conversation")
+	history.SetChangedFunc(func() {
+		ui.app.Draw()
+	})
 	inputField := tview.NewInputField().SetFieldBackgroundColor(tcell.ColorDefault)
 	inputField.SetBorder(true)
 	unreadHistory := unreadTextView{
