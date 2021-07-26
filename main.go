@@ -54,7 +54,6 @@ func printHelp(flags *flag.FlagSet, w io.Writer) {
 
 `)
 	flags.PrintDefaults()
-	return
 }
 
 func main() {

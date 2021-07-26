@@ -51,7 +51,6 @@ type UI struct {
 	history     unreadTextView
 	statusBar   *tview.TextView
 	roster      Roster
-	hideJIDs    bool
 	rosterWidth int
 	logWriter   *tview.TextView
 	handler     func(interface{})

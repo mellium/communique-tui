@@ -33,15 +33,6 @@ func newXMPPHandler(c *Client) xmpp.Handler {
 	)
 }
 
-func getAttr(attr []xml.Attr, local string) string {
-	for _, a := range attr {
-		if a.Name.Local == local {
-			return a.Value
-		}
-	}
-	return ""
-}
-
 func newPresenceHandler(c *Client) mux.PresenceHandlerFunc {
 	return func(p stanza.Presence, t xmlstream.TokenReadEncoder) error {
 		if !p.From.Equal(c.LocalAddr()) {
