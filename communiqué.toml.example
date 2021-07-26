@@ -11,6 +11,10 @@
 #     # secret-tool store --label='jabber' jabber myjid@example.com
 #     password_eval="secret-tool lookup jabber myjid@example.com"
 #
+# Or to pull your password from a KeePassXC database:
+#
+#     password_eval="keepassxc-cli show -a Password secrets.kdbx Communication/xmpp.example.com"
+#
 # The default is empty, which will cause communiqué to prompt for a password:
 #
 #     password_eval=""

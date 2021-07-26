@@ -195,7 +195,7 @@ Go %s %s
 	}
 	getPass := func(ctx context.Context) (string, error) {
 		if p := pass.String(); p != "" {
-			return p, nil
+			return strings.TrimSuffix(p, "\n"), nil
 		}
 		return pane.ShowPasswordPrompt(), nil
 	}
