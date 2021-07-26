@@ -247,6 +247,16 @@ Go %s %s
 	)
 	pane.Handle(newUIHandler(configPath, pane, c, debug, logger))
 
+	defer func() {
+		// TODO: this isn't great because we lose the stack trace. Update the
+		// error handling so that we can attempt to recover a trace from the
+		// error.
+		if r := recover(); r != nil {
+			pane.Stop()
+			panic(r)
+		}
+	}()
+
 	go func() {
 		// Hopefully nothing ever panics, but in case it does ensure that we exit
 		// TUI mode so that we don't hose the users terminal.
