@@ -236,6 +236,7 @@ func (r Roster) GetFocusable() tview.Focusable {
 	return r.list.GetFocusable()
 }
 
+// MouseHandler implements tview.Primitive for Roster.
 func (r Roster) MouseHandler() func(tview.MouseAction, *tcell.EventMouse, func(tview.Primitive)) (bool, tview.Primitive) {
 	return r.list.MouseHandler()
 }
