@@ -214,10 +214,12 @@ Go %s %s
 			logger.Printf("Error parsing user address: %q", err)
 		}
 	}
-	timeout, err := time.ParseDuration(cfg.Timeout)
-	if err != nil {
-		logger.Printf("Error parsing timeout, defaulting to 30s: %q", err)
-		timeout = 30 * time.Second
+	timeout := 30 * time.Second
+	if cfg.Timeout != "" {
+		timeout, err = time.ParseDuration(cfg.Timeout)
+		if err != nil {
+			logger.Printf("Error parsing timeout, defaulting to 30s: %q", err)
+		}
 	}
 	// cfg.KeyLog
 	var keylog io.Writer
