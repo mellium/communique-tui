@@ -1,5 +1,9 @@
+// Copyright 2021 The Mellium Contributors.
+// Use of this source code is governed by the BSD 2-clause
+// license that can be found in the LICENSE file.
+
 // Package escape contains a transformer that escapes tview IDs.
-package escape
+package escape // import "mellium.im/communique/internal/escape"
 
 import (
 	"strings"

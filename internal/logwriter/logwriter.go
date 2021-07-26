@@ -3,7 +3,7 @@
 // license that can be found in the LICENSE file.
 
 // Package logwriter implements writing to log.Logger's.
-package logwriter
+package logwriter // import "mellium.im/communique/internal/logwriter"
 
 import (
 	"io"

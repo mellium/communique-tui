@@ -3,4 +3,4 @@
 // license that can be found in the LICENSE file.
 
 // Package client is a high-level XMPP client implementation.
-package client
+package client // import "mellium.im/communique/internal/client"

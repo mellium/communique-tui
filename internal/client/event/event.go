@@ -3,7 +3,7 @@
 // license that can be found in the LICENSE file.
 
 // Package event contains events that may be emited by the client.
-package event
+package event // import "mellium.im/communique/internal/client/event"
 
 import (
 	"mellium.im/xmpp/roster"
