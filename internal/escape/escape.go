@@ -1,7 +1,4 @@
 // Package escape contains a transformer that escapes tview IDs.
-//
-// This package is being donated to tview and will be removed if
-// https://github.com/rivo/tview/pull/339 ends up being merged.
 package escape
 
 import (

@@ -6,6 +6,8 @@ import (
 
 	"github.com/rivo/tview"
 	"golang.org/x/text/transform"
+
+	"mellium.im/communique/internal/escape"
 )
 
 var escapeTests = [...]struct {
@@ -21,7 +23,7 @@ var escapeTests = [...]struct {
 func TestEscape(t *testing.T) {
 	for i, tc := range escapeTests {
 		t.Run(strconv.Itoa(i), func(t *testing.T) {
-			et := tview.EscapeTransformer()
+			et := escape.Transformer()
 			out, _, err := transform.String(et, tc.in)
 			if err != nil {
 				t.Errorf("Unexpected error: %v", err)
@@ -42,7 +44,7 @@ func BenchmarkEscape(b *testing.B) {
 }
 
 func BenchmarkTransform(b *testing.B) {
-	t := tview.EscapeTransformer()
+	t := escape.Transformer()
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
 		_, _, _ = transform.String(t, benchEscape)
