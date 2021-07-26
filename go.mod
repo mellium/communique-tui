@@ -7,11 +7,12 @@ require (
 	github.com/gdamore/tcell/v2 v2.0.1-0.20201017141208-acf90d56d591
 	github.com/mpvl/textutil v0.1.0
 	github.com/rivo/tview v0.0.0-20201018122409-d551c850a743
-	golang.org/x/crypto v0.0.0-20201112155050-0c6587e931a9 // indirect
-	golang.org/x/net v0.0.0-20201110031124-69a78807bb2b // indirect
-	golang.org/x/sys v0.0.0-20201107080550-4d91cf3a1aaf // indirect
-	golang.org/x/text v0.3.4
+	golang.org/x/crypto v0.0.0-20210711020723-a769d52b0f97 // indirect
+	golang.org/x/net v0.0.0-20210716203947-853a461950ff // indirect
+	golang.org/x/sys v0.0.0-20210630005230-0f9fa26af87c // indirect
+	golang.org/x/text v0.3.6
+	golang.org/x/tools v0.1.5 // indirect
 	mellium.im/sasl v0.2.1
-	mellium.im/xmlstream v0.15.0
-	mellium.im/xmpp v0.17.0
+	mellium.im/xmlstream v0.15.3-0.20210221202126-7cc1407dad4c
+	mellium.im/xmpp v0.19.1-0.20210725114558-e4937bea2450
 )

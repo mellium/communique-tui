@@ -19,6 +19,7 @@ import (
 	"mellium.im/xmpp"
 	"mellium.im/xmpp/dial"
 	"mellium.im/xmpp/jid"
+	"mellium.im/xmpp/receipts"
 	"mellium.im/xmpp/roster"
 	"mellium.im/xmpp/stanza"
 )
@@ -34,10 +35,11 @@ func New(j jid.JID, logger, debug *log.Logger, opts ...Option) *Client {
 				ServerName: j.Domain().String(),
 			},
 		},
-		logger:  logger,
-		debug:   debug,
-		getPass: emptyPass,
-		handler: emptyHandler,
+		logger:          logger,
+		debug:           debug,
+		getPass:         emptyPass,
+		handler:         emptyHandler,
+		receiptsHandler: &receipts.Handler{},
 	}
 
 	for _, opt := range opts {
@@ -67,15 +69,22 @@ func (c *Client) reconnect(ctx context.Context) error {
 	}
 
 	negotiator := xmpp.NewNegotiator(xmpp.StreamConfig{
-		Features: []xmpp.StreamFeature{
-			xmpp.StartTLS(c.dialer.TLSConfig),
-			xmpp.SASL("", pass, sasl.ScramSha256Plus, sasl.ScramSha1Plus, sasl.ScramSha256, sasl.ScramSha1),
-			xmpp.BindResource(),
+		Features: func(*xmpp.Session, ...xmpp.StreamFeature) []xmpp.StreamFeature {
+			return []xmpp.StreamFeature{
+				xmpp.StartTLS(c.dialer.TLSConfig),
+				xmpp.SASL("", pass,
+					sasl.ScramSha256Plus,
+					sasl.ScramSha1Plus,
+					sasl.ScramSha256,
+					sasl.ScramSha1,
+				),
+				xmpp.BindResource(),
+			}
 		},
 		TeeIn:  c.win,
 		TeeOut: c.wout,
 	})
-	c.Session, err = xmpp.NegotiateSession(ctx, c.addr.Domain(), c.addr, conn, false, negotiator)
+	c.Session, err = xmpp.NewSession(ctx, c.addr.Domain(), c.addr, conn, 0, negotiator)
 	if err != nil {
 		return fmt.Errorf("error negotiating session: %v", err)
 	}
@@ -119,16 +128,17 @@ func (c *Client) reconnect(ctx context.Context) error {
 // Client represents an XMPP client.
 type Client struct {
 	*xmpp.Session
-	timeout time.Duration
-	logger  *log.Logger
-	debug   *log.Logger
-	addr    jid.JID
-	win     io.Writer
-	wout    io.Writer
-	dialer  *dial.Dialer
-	getPass func(context.Context) (string, error)
-	online  bool
-	handler func(interface{})
+	timeout         time.Duration
+	logger          *log.Logger
+	debug           *log.Logger
+	addr            jid.JID
+	win             io.Writer
+	wout            io.Writer
+	dialer          *dial.Dialer
+	getPass         func(context.Context) (string, error)
+	online          bool
+	handler         func(interface{})
+	receiptsHandler *receipts.Handler
 }
 
 // Online sets the status to online.
@@ -243,4 +253,11 @@ func (c *Client) Offline() error {
 // Timeout is the read/write timeout used by the client.
 func (c *Client) Timeout() time.Duration {
 	return c.timeout
+}
+
+// SendMessage encodes the provided message to the output stream and adds a
+// request for a receipt. It then blocks until the message receipt is received,
+// or the context is canceled.
+func (c *Client) SendMessage(ctx context.Context, msg stanza.Message, payload xml.TokenReader) error {
+	return c.receiptsHandler.SendMessageElement(ctx, c.Session, payload, msg)
 }

@@ -12,6 +12,7 @@ import (
 	"mellium.im/xmlstream"
 	"mellium.im/xmpp"
 	"mellium.im/xmpp/mux"
+	"mellium.im/xmpp/receipts"
 	"mellium.im/xmpp/roster"
 	"mellium.im/xmpp/stanza"
 )
@@ -28,6 +29,7 @@ func newXMPPHandler(c *Client) xmpp.Handler {
 		mux.Presence("", xml.Name{}, newPresenceHandler(c)),
 		mux.Message(stanza.NormalMessage, xml.Name{Local: "body"}, msgHandler),
 		mux.Message(stanza.ChatMessage, xml.Name{Local: "body"}, msgHandler),
+		receipts.Handle(c.receiptsHandler),
 	)
 }
 
@@ -100,10 +102,10 @@ func newPresenceHandler(c *Client) mux.PresenceHandlerFunc {
 }
 
 func newMessageHandler(c *Client) mux.MessageHandlerFunc {
-	return func(_ stanza.Message, t xmlstream.TokenReadEncoder) error {
+	return func(_ stanza.Message, r xmlstream.TokenReadEncoder) error {
 		msg := event.ChatMessage{}
 
-		d := xml.NewTokenDecoder(t)
+		d := xml.NewTokenDecoder(r)
 		err := d.Decode(&msg)
 		if err != nil {
 			return err
