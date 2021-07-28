@@ -5,33 +5,21 @@
 package main
 
 import (
+	"context"
 	"fmt"
 	"io"
-	"os"
-	"path"
 	"strings"
 	"time"
 
 	"github.com/gdamore/tcell/v2"
-	"github.com/rivo/tview"
 	"golang.org/x/text/transform"
 
 	"mellium.im/communique/internal/client/event"
 	"mellium.im/communique/internal/escape"
+	"mellium.im/communique/internal/storage"
 	"mellium.im/communique/internal/ui"
-	"mellium.im/xmpp/jid"
 	"mellium.im/xmpp/roster"
 )
-
-func getHistoryPath(configPath string, j jid.JID) (string, error) {
-	historyDir := path.Join(configPath, "history")
-	/* #nosec */
-	err := os.MkdirAll(historyDir, 0755)
-	if err != nil {
-		return "", err
-	}
-	return path.Join(historyDir, j.Bare().String()), nil
-}
 
 func writeMessage(sent bool, pane *ui.UI, configPath string, msg event.ChatMessage) error {
 	historyAddr := msg.From
@@ -40,29 +28,8 @@ func writeMessage(sent bool, pane *ui.UI, configPath string, msg event.ChatMessa
 		historyAddr = msg.To
 		arrow = "→"
 	}
-	historyPath, err := getHistoryPath(configPath, historyAddr)
-	if err != nil {
-		return err
-	}
-	f, err := os.OpenFile(historyPath, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0600)
-	if err != nil {
-		return err
-	}
-	/* #nosec */
-	defer f.Close()
-
-	finfo, err := f.Stat()
-	if err != nil {
-		return err
-	}
-	unreadSize := finfo.Size()
 
 	historyLine := fmt.Sprintf("%s %s %s\n", time.Now().UTC().Format(time.RFC3339), arrow, msg.Body)
-
-	_, err = io.WriteString(f, historyLine)
-	if err != nil {
-		return err
-	}
 
 	history := pane.History()
 
@@ -71,14 +38,14 @@ func writeMessage(sent bool, pane *ui.UI, configPath string, msg event.ChatMessa
 		if item, ok := pane.Roster().GetSelected(); ok && item.Item.JID.Equal(j) {
 			// If the message JID is selected and the window is open, write it to the
 			// history window.
-			_, err = io.WriteString(history, historyLine)
+			_, err := io.WriteString(history, historyLine)
 			return err
 		}
 	}
 
 	// If it's not selected (or the message window is not open), mark the item as
 	// unread in the roster
-	ok := pane.Roster().MarkUnread(j.String(), unreadSize)
+	ok := pane.Roster().MarkUnread(j.String(), msg.ID)
 	if !ok {
 		// If the item did not exist, create it then try to mark it as unread
 		// again.
@@ -90,33 +57,33 @@ func writeMessage(sent bool, pane *ui.UI, configPath string, msg event.ChatMessa
 				Subscription: "none",
 			},
 		})
-		pane.Roster().MarkUnread(j.String(), unreadSize)
+		pane.Roster().MarkUnread(j.String(), msg.ID)
 	}
 	pane.Redraw()
 	return nil
 }
 
-func loadBuffer(pane *ui.UI, configPath string, ev event.OpenChat, unreadSize int64) error {
+func loadBuffer(pane *ui.UI, db *storage.DB, configPath string, ev event.OpenChat, msgID string) error {
 	history := pane.History()
 	history.SetText("")
 
-	configPath, err := getHistoryPath(configPath, ev.JID)
-	if err != nil {
-		return err
+	iter := db.QueryHistory(context.TODO(), ev.JID.String(), "")
+	for iter.Next() {
+		sent, cur := iter.Message()
+		if cur.ID != "" && cur.ID == msgID {
+			_, err := io.WriteString(history, "─\n")
+			if err != nil {
+				return err
+			}
+		}
+		err := writeMessage(sent, pane, configPath, cur)
+		if err != nil {
+			history.SetText(fmt.Sprintf("Error writing history: %v", err))
+			return nil
+		}
 	}
-
-	/* #nosec */
-	file, err := os.Open(configPath)
-	if err != nil {
-		return err
-	}
-	/* #nosec */
-	defer file.Close()
-	// TODO: figure out how to make the unread line full width without wrapping if
-	// the terminal is resized.
-	_, err = io.Copy(history, unreadMarkReader(file, tview.Styles.ContrastSecondaryTextColor, unreadSize))
-	if err != nil {
-		history.SetText(fmt.Sprintf("Error copying history: %v", err))
+	if err := iter.Err(); err != nil {
+		history.SetText(fmt.Sprintf("Error querying for history: %v", err))
 	}
 	return nil
 }

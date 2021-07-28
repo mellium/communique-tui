@@ -13,6 +13,7 @@ import (
 	"bytes"
 	"context"
 	"crypto/tls"
+	_ "embed"
 	"flag"
 	"fmt"
 	"io"
@@ -33,6 +34,7 @@ import (
 
 	"mellium.im/communique/internal/client"
 	"mellium.im/communique/internal/logwriter"
+	"mellium.im/communique/internal/storage"
 	"mellium.im/communique/internal/ui"
 	"mellium.im/xmpp/dial"
 	"mellium.im/xmpp/jid"
@@ -41,6 +43,9 @@ import (
 const (
 	appName = "communiqué"
 )
+
+//go:embed schema.sql
+var schema string
 
 // Set at build time while linking.
 var (
@@ -112,6 +117,19 @@ Try running '%s -config' to generate a default config file.`, err, os.Args[0])
 		logger.Printf("error closing config file: %v", err)
 	}
 
+	if cfg.Log.Verbose {
+		debug.SetOutput(io.MultiWriter(earlyLogs, os.Stderr))
+	}
+
+	// Open the database
+	dbCtx, cancel := context.WithTimeout(context.Background(), 1*time.Second)
+	defer cancel()
+	db, err := storage.OpenDB(dbCtx, appName, cfg.DB, schema, debug)
+	if err != nil {
+		logger.Fatalf("error opening database: %v", err)
+	}
+	defer db.Close()
+
 	// Setup the global tview styles. I hate this.
 	var cfgTheme *theme
 	for _, t := range cfg.Theme {
@@ -163,7 +181,7 @@ Go %s %s
 
 `, string(appName[0]^0x20)+appName[1:], Version, Commit, runtime.Version(), runtime.Compiler)
 	if err != nil {
-		debug.Printf("Error logging to pane: %v", err)
+		debug.Printf("error logging to pane: %v", err)
 	}
 
 	_, err = io.Copy(pane, earlyLogs)
@@ -172,13 +190,13 @@ Go %s %s
 		debug.SetOutput(pane)
 	}
 	if err != nil {
-		debug.Printf("Error copying early log data to output buffer: %q", err)
+		debug.Printf("error copying early log data to output buffer: %q", err)
 	}
 
 	pass := &bytes.Buffer{}
 	if len(cfg.PassCmd) > 0 {
 		args := strings.Fields(cfg.PassCmd)
-		debug.Printf("Running command: %q", cfg.PassCmd)
+		debug.Printf("running command: %q", cfg.PassCmd)
 		// The config file is considered a safe source since it is never written
 		// except by the user, so consider this use of exec to be safe.
 		/* #nosec */
@@ -189,7 +207,7 @@ Go %s %s
 		/* #nosec */
 		err := cmd.Run()
 		if err != nil {
-			debug.Printf("Error running password command, falling back to prompt: %v", err)
+			debug.Printf("error running password command, falling back to prompt: %v", err)
 		}
 	}
 	getPass := func(ctx context.Context) (string, error) {
@@ -201,23 +219,23 @@ Go %s %s
 
 	var j jid.JID
 	if cfg.JID == "" {
-		logger.Printf(`No user address specified, edit %q and add:
+		logger.Printf(`no user address specified, edit %q and add:
 
 	jid="me@example.com"
 
 `, fpath)
 	} else {
-		logger.Printf("User address: %q", cfg.JID)
+		logger.Printf("user address: %q", cfg.JID)
 		j, err = jid.Parse(cfg.JID)
 		if err != nil {
-			logger.Printf("Error parsing user address: %q", err)
+			logger.Printf("error parsing user address: %q", err)
 		}
 	}
 	timeout := 30 * time.Second
 	if cfg.Timeout != "" {
 		timeout, err = time.ParseDuration(cfg.Timeout)
 		if err != nil {
-			logger.Printf("Error parsing timeout, defaulting to 30s: %q", err)
+			logger.Printf("error parsing timeout, defaulting to 30s: %q", err)
 		}
 	}
 	// cfg.KeyLog
@@ -225,7 +243,7 @@ Go %s %s
 	if cfg.KeyLog != "" {
 		keylog, err = os.OpenFile(cfg.KeyLog, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, 0400)
 		if err != nil {
-			logger.Printf("Error creating keylog file: %q", err)
+			logger.Printf("error creating keylog file: %q", err)
 		}
 	}
 	dialer := &dial.Dialer{
@@ -242,9 +260,9 @@ Go %s %s
 		client.Dialer(dialer),
 		client.Tee(logwriter.New(xmlInLog), logwriter.New(xmlOutLog)),
 		client.Password(getPass),
-		client.Handler(newClientHandler(configPath, pane, logger, debug)),
+		client.Handler(newClientHandler(configPath, pane, db, logger, debug)),
 	)
-	pane.Handle(newUIHandler(configPath, pane, c, debug, logger))
+	pane.Handle(newUIHandler(configPath, pane, db, c, debug, logger))
 
 	defer func() {
 		// TODO: this isn't great because we lose the stack trace. Update the
@@ -272,13 +290,13 @@ Go %s %s
 		ctx, cancel := context.WithTimeout(context.Background(), 3*timeout)
 		defer cancel()
 		if err := c.Online(ctx); err != nil {
-			logger.Printf("Initial login failed: %v", err)
+			logger.Printf("initial login failed: %v", err)
 		}
 	}()
 
 	go func() {
 		s := <-sigs
-		debug.Printf("Got signal: %v", s)
+		debug.Printf("got signal: %v", s)
 		pane.Stop()
 	}()
 

@@ -12,6 +12,7 @@ import (
 
 	"mellium.im/communique/internal/client"
 	"mellium.im/communique/internal/client/event"
+	"mellium.im/communique/internal/storage"
 	"mellium.im/communique/internal/ui"
 	"mellium.im/xmlstream"
 	"mellium.im/xmpp/roster"
@@ -19,7 +20,7 @@ import (
 
 // newUIHandler returns a handler for events that are emitted by the UI that
 // need to modify the client state.
-func newUIHandler(configPath string, pane *ui.UI, c *client.Client, logger, debug *log.Logger) func(interface{}) {
+func newUIHandler(configPath string, pane *ui.UI, db *storage.DB, c *client.Client, logger, debug *log.Logger) func(interface{}) {
 	return func(ev interface{}) {
 		switch e := ev.(type) {
 		case event.StatusAway:
@@ -27,7 +28,7 @@ func newUIHandler(configPath string, pane *ui.UI, c *client.Client, logger, debu
 				ctx, cancel := context.WithTimeout(context.Background(), c.Timeout())
 				defer cancel()
 				if err := c.Away(ctx); err != nil {
-					logger.Printf("Error setting away status: %v", err)
+					logger.Printf("error setting away status: %v", err)
 				}
 			}()
 		case event.StatusOnline:
@@ -35,7 +36,7 @@ func newUIHandler(configPath string, pane *ui.UI, c *client.Client, logger, debu
 				ctx, cancel := context.WithTimeout(context.Background(), c.Timeout())
 				defer cancel()
 				if err := c.Online(ctx); err != nil {
-					logger.Printf("Error setting online status: %v", err)
+					logger.Printf("error setting online status: %v", err)
 				}
 			}()
 		case event.StatusBusy:
@@ -43,16 +44,17 @@ func newUIHandler(configPath string, pane *ui.UI, c *client.Client, logger, debu
 				ctx, cancel := context.WithTimeout(context.Background(), c.Timeout())
 				defer cancel()
 				if err := c.Busy(ctx); err != nil {
-					logger.Printf("Error setting busy status: %v", err)
+					logger.Printf("error setting busy status: %v", err)
 				}
 			}()
 		case event.StatusOffline:
 			go func() {
 				if err := c.Offline(); err != nil {
-					logger.Printf("Error going offline: %v", err)
+					logger.Printf("error going offline: %v", err)
 				}
 			}()
 		case event.UpdateRoster:
+			// TODO:
 			panic("event.UpdateRoster: not yet implemented")
 		case event.ChatMessage:
 			go func() {
@@ -64,21 +66,24 @@ func newUIHandler(configPath string, pane *ui.UI, c *client.Client, logger, debu
 					xml.StartElement{Name: xml.Name{Local: "body"}},
 				))
 				if err != nil {
-					logger.Printf("Error sending message: %v", err)
+					logger.Printf("error sending message: %v", err)
 				}
 				if err := writeMessage(true, pane, configPath, e); err != nil {
-					logger.Printf("Error saving sent message to history: %v", err)
+					logger.Printf("error saving sent message to history: %v", err)
+				}
+				if _, err := db.InsertMsg(ctx, true, e); err != nil {
+					logger.Printf("error writing message to database: %v", err)
 				}
 			}()
 		case event.OpenChat:
 			go func() {
-				var unreadSize int64
+				var firstUnread string
 				item, ok := pane.Roster().GetItem(e.JID.Bare().String())
 				if ok {
-					unreadSize = item.UnreadSize()
+					firstUnread = item.FirstUnread()
 				}
-				if err := loadBuffer(pane, configPath, e, unreadSize); err != nil {
-					logger.Printf("Error loading chat: %v", err)
+				if err := loadBuffer(pane, db, configPath, e, firstUnread); err != nil {
+					logger.Printf("error loading chat: %v", err)
 					return
 				}
 				history := pane.History()
@@ -89,14 +94,14 @@ func newUIHandler(configPath string, pane *ui.UI, c *client.Client, logger, debu
 			history := pane.History()
 			history.SetText("")
 		default:
-			debug.Printf("Unrecognized ui event: %q", e)
+			debug.Printf("unrecognized ui event: %q", e)
 		}
 	}
 }
 
 // newClientHandler returns a handler for events that are emitted by the client
 // that need to modify the UI.
-func newClientHandler(configPath string, pane *ui.UI, logger, debug *log.Logger) func(interface{}) {
+func newClientHandler(configPath string, pane *ui.UI, db *storage.DB, logger, debug *log.Logger) func(interface{}) {
 	return func(ev interface{}) {
 		switch e := ev.(type) {
 		case event.StatusAway:
@@ -110,11 +115,16 @@ func newClientHandler(configPath string, pane *ui.UI, logger, debug *log.Logger)
 		case event.UpdateRoster:
 			pane.UpdateRoster(ui.RosterItem{Item: roster.Item(e)})
 		case event.ChatMessage:
+			ctx, cancel := context.WithTimeout(context.Background(), time.Second)
+			defer cancel()
 			if err := writeMessage(false, pane, configPath, e); err != nil {
-				logger.Printf("Error writing received message to history: %v", err)
+				logger.Printf("error writing received message to history: %v", err)
+			}
+			if _, err := db.InsertMsg(ctx, false, e); err != nil {
+				logger.Printf("error writing message to database: %v", err)
 			}
 		default:
-			debug.Printf("Unrecognized client event: %q", e)
+			debug.Printf("unrecognized client event: %q", e)
 		}
 	}
 }

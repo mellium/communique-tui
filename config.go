@@ -93,6 +93,7 @@ type config struct {
 	PassCmd string `toml:"password_eval"`
 	KeyLog  string `toml:"keylog_file"`
 	Timeout string `toml:"timeout"`
+	DB      string `toml:"db_file"`
 	NoSRV   bool   `toml:"disable_srv"`
 
 	Log struct {

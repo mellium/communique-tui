@@ -19,14 +19,13 @@ import (
 // RosterItem represents a contact in the roster.
 type RosterItem struct {
 	roster.Item
-	idx        int
-	unreadSize int64
+	idx         int
+	firstUnread string
 }
 
-// UnreadSize returns the size of the buffer at which an unread marker should be
-// shown.
-func (r RosterItem) UnreadSize() int64 {
-	return r.unreadSize
+// FirstUnread returns the ID of the first unread message.
+func (r RosterItem) FirstUnread() string {
+	return r.firstUnread
 }
 
 // Roster is a tview.Primitive that draws a roster pane.
@@ -191,7 +190,7 @@ func (r Roster) Upsert(item RosterItem, action func()) {
 			// Update the existing roster item.
 			r.list.SetItemText(existing.idx, item.Name, bare)
 			item.idx = existing.idx
-			item.unreadSize = existing.unreadSize
+			item.firstUnread = existing.firstUnread
 			r.items[bare] = item
 			return
 		}
@@ -278,9 +277,9 @@ func (r Roster) GetItem(j string) (RosterItem, bool) {
 
 var highlightTag = fmt.Sprintf("[#%06x::b]", tview.Styles.ContrastSecondaryTextColor.Hex())
 
-// MarkUnread sets the given jid to bold and sets the offset for the unread
-// marker.
-func (r Roster) MarkUnread(j string, unreadSize int64) bool {
+// MarkUnread sets the given jid to bold and sets the first message seen after
+// the unread marker (unless the unread marker is already set).
+func (r Roster) MarkUnread(j, msgID string) bool {
 	r.itemLock.Lock()
 	defer r.itemLock.Unlock()
 
@@ -291,8 +290,8 @@ func (r Roster) MarkUnread(j string, unreadSize int64) bool {
 
 	// The unread size is the moment at which the item first became unread, so if
 	// it's already set don't chagne it.
-	if item.unreadSize <= 0 {
-		item.unreadSize = unreadSize
+	if item.firstUnread == "" {
+		item.firstUnread = msgID
 		r.items[j] = item
 	}
 
@@ -314,7 +313,7 @@ func (r Roster) MarkRead(j string) {
 	if !ok {
 		return
 	}
-	item.unreadSize = 0
+	item.firstUnread = ""
 	r.items[j] = item
 
 	primary, secondary := r.list.GetItemText(item.idx)

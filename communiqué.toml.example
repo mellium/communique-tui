@@ -40,6 +40,15 @@
 #
 # timeout = "30s"
 
+# The path to the sqlite3 database. If left empty the following files are
+# attempted, falling back in this order:
+#
+#  - $XDG_DATA_HOME/communiqué/db,
+#  - $HOME/.local/share/communiqué/db
+#  - ./communiqué.db
+#
+# db_file = ""
+
 [log]
 
 # Turns on debug logging.
