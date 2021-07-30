@@ -41,6 +41,12 @@ type (
 		Sent bool `xml:"-"`
 	}
 
+	// Receipt is sent when a message receipt is received and represents the ID of
+	// the message that should be marked as received.
+	// It may be sent by itself, or in addition to a ChatMessage event (or others)
+	// if the payload containing the receipt also contains other events.
+	Receipt string
+
 	// OpenChat is sent when a roster item is selected.
 	OpenChat roster.Item
 

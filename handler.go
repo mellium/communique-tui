@@ -70,7 +70,8 @@ func newUIHandler(configPath string, pane *ui.UI, db *storage.DB, c *client.Clie
 				if err = db.InsertMsg(ctx, e); err != nil {
 					logger.Printf("error writing message to database: %v", err)
 				}
-				// If we sent the message assume we've read everything before it.
+				// If we sent the message from another client, assume we've read
+				// everything before it.
 				if e.Sent {
 					pane.Roster().MarkRead(e.To.Bare().String())
 				}
@@ -114,6 +115,13 @@ func newClientHandler(configPath string, pane *ui.UI, db *storage.DB, logger, de
 			pane.Offline()
 		case event.UpdateRoster:
 			pane.UpdateRoster(ui.RosterItem{Item: roster.Item(e)})
+		case event.Receipt:
+			ctx, cancel := context.WithTimeout(context.Background(), 1*time.Second)
+			defer cancel()
+			err := db.MarkReceived(ctx, e)
+			if err != nil {
+				logger.Printf("error marking message %q as received: %v", e, err)
+			}
 		case event.ChatMessage:
 			ctx, cancel := context.WithTimeout(context.Background(), time.Second)
 			defer cancel()

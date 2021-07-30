@@ -25,6 +25,7 @@ type DB struct {
 	*sql.DB
 	insertSID *sql.Stmt
 	insertMsg *sql.Stmt
+	markRecvd *sql.Stmt
 	queryMsg  *sql.Stmt
 }
 
@@ -122,6 +123,9 @@ INSERT INTO messages
 		return nil, err
 	}
 
+	wrapDB.markRecvd, err = db.PrepareContext(ctx, `
+UPDATE messages SET received=TRUE WHERE sent=TRUE AND (idAttr=$1 OR originID=$1)`)
+
 	wrapDB.queryMsg, err = db.PrepareContext(ctx, `
 SELECT sent, toAttr, fromAttr, idAttr, body, stanzaType
 	FROM messages
@@ -154,6 +158,12 @@ func execTx(ctx context.Context, db *DB, f func(context.Context, *sql.Tx) error)
 		return err
 	}
 	return tx.Commit()
+}
+
+// MarkReceived marks a message as having been received by the other side.
+func (db *DB) MarkReceived(ctx context.Context, e event.Receipt) error {
+	_, err := db.markRecvd.ExecContext(ctx, string(e))
+	return err
 }
 
 // InsertMsg adds a message to the database.

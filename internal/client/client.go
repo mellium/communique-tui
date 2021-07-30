@@ -28,7 +28,8 @@ import (
 // New creates a new XMPP client but does not attempt to negotiate a session or
 // send an initial presence, etc.
 func New(j jid.JID, logger, debug *log.Logger, opts ...Option) *Client {
-	c := &Client{
+	var c *Client
+	c = &Client{
 		timeout: 30 * time.Second,
 		addr:    j,
 		dialer: &dial.Dialer{
@@ -36,11 +37,13 @@ func New(j jid.JID, logger, debug *log.Logger, opts ...Option) *Client {
 				ServerName: j.Domain().String(),
 			},
 		},
-		logger:          logger,
-		debug:           debug,
-		getPass:         emptyPass,
-		handler:         emptyHandler,
-		receiptsHandler: &receipts.Handler{},
+		logger:  logger,
+		debug:   debug,
+		getPass: emptyPass,
+		handler: emptyHandler,
+		receiptsHandler: &receipts.Handler{
+			Unhandled: func(id string) { c.handler(event.Receipt(id)) },
+		},
 	}
 
 	for _, opt := range opts {
@@ -286,6 +289,9 @@ func omitEmpty(s string, name xml.Name) xml.TokenReader {
 }
 
 func encodeMessage(e event.ChatMessage) xml.TokenReader {
+	// Make sure we've already set the namespace, otherwise receipt wrapping and
+	// the like doesn't work.
+	e.Message.XMLName = xml.Name{Space: "jabber:client", Local: "message"}
 	return e.Message.Wrap(xmlstream.MultiReader(
 		omitEmpty(e.Body, xml.Name{Local: "body"}),
 		e.OriginID.TokenReader(),
