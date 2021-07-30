@@ -28,5 +28,5 @@ CREATE TABLE IF NOT EXISTS messages (
 	stanzaType TEXT     NOT NULL DEFAULT "normal", -- RFC 6121 § 5.2.2
 	delay      DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
 
-	UNIQUE (originID, fromAttr)
+	UNIQUE (originID, fromAttr, sent)
 );

@@ -6,7 +6,6 @@ package main
 
 import (
 	"context"
-	"encoding/xml"
 	"log"
 	"time"
 
@@ -14,7 +13,6 @@ import (
 	"mellium.im/communique/internal/client/event"
 	"mellium.im/communique/internal/storage"
 	"mellium.im/communique/internal/ui"
-	"mellium.im/xmlstream"
 	"mellium.im/xmpp/roster"
 )
 
@@ -61,17 +59,15 @@ func newUIHandler(configPath string, pane *ui.UI, db *storage.DB, c *client.Clie
 				ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 				defer cancel()
 
-				err := c.SendMessage(ctx, e.Message, xmlstream.Wrap(
-					xmlstream.Token(xml.CharData(e.Body)),
-					xml.StartElement{Name: xml.Name{Local: "body"}},
-				))
+				var err error
+				e, err = c.SendMessage(ctx, e)
 				if err != nil {
 					logger.Printf("error sending message: %v", err)
 				}
-				if err := writeMessage(pane, configPath, e); err != nil {
+				if err = writeMessage(pane, configPath, e); err != nil {
 					logger.Printf("error saving sent message to history: %v", err)
 				}
-				if _, err := db.InsertMsg(ctx, e); err != nil {
+				if err = db.InsertMsg(ctx, e); err != nil {
 					logger.Printf("error writing message to database: %v", err)
 				}
 				// If we sent the message assume we've read everything before it.
@@ -124,7 +120,7 @@ func newClientHandler(configPath string, pane *ui.UI, db *storage.DB, logger, de
 			if err := writeMessage(pane, configPath, e); err != nil {
 				logger.Printf("error writing received message to history: %v", err)
 			}
-			if _, err := db.InsertMsg(ctx, e); err != nil {
+			if err := db.InsertMsg(ctx, e); err != nil {
 				logger.Printf("error writing message to database: %v", err)
 			}
 			// If we sent the message assume we've read everything before it.

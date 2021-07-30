@@ -23,6 +23,7 @@ import (
 // DB represents a SQL database with common pre-prepared statements.
 type DB struct {
 	*sql.DB
+	insertSID *sql.Stmt
 	insertMsg *sql.Stmt
 	queryMsg  *sql.Stmt
 }
@@ -104,15 +105,24 @@ func OpenDB(ctx context.Context, appName, dbFile, schema string, debug *log.Logg
 }
 
 func prepareQueries(ctx context.Context, db *sql.DB) (*DB, error) {
-	insertMsg, err := db.PrepareContext(ctx, `
+	var err error
+	wrapDB := &DB{DB: db}
+	wrapDB.insertSID, err = db.PrepareContext(ctx, `
+INSERT INTO sids
+	(message, sid, byAttr)
+	VALUES (?, ?, ?)`)
+	if err != nil {
+		return nil, err
+	}
+	wrapDB.insertMsg, err = db.PrepareContext(ctx, `
 INSERT INTO messages
 	(sent, toAttr, fromAttr, idAttr, body, stanzaType, originID)
-VALUES (?, ?, ?, ?, ?, ?, ?)`)
+	VALUES (?, ?, ?, ?, ?, ?, NULLIF(?, ""))`)
 	if err != nil {
 		return nil, err
 	}
 
-	queryMsg, err := db.PrepareContext(ctx, `
+	wrapDB.queryMsg, err = db.PrepareContext(ctx, `
 SELECT sent, toAttr, fromAttr, idAttr, body, stanzaType
 	FROM messages
 	WHERE (toAttr=$1 OR fromAttr=$1)
@@ -122,17 +132,53 @@ SELECT sent, toAttr, fromAttr, idAttr, body, stanzaType
 	if err != nil {
 		return nil, err
 	}
+	return wrapDB, nil
+}
 
-	return &DB{
-		DB:        db,
-		insertMsg: insertMsg,
-		queryMsg:  queryMsg,
-	}, nil
+// execTx creates a transaction and executes f.
+// If an error is returned the transaction is rolled back, otherwise it is
+// committed.
+func execTx(ctx context.Context, db *DB, f func(context.Context, *sql.Tx) error) (e error) {
+	tx, err := db.BeginTx(ctx, nil)
+	if err != nil {
+		return err
+	}
+	defer func() {
+		if e != nil {
+			/* #nosec */
+			tx.Rollback()
+		}
+	}()
+	err = f(ctx, tx)
+	if err != nil {
+		return err
+	}
+	return tx.Commit()
 }
 
 // InsertMsg adds a message to the database.
-func (db *DB) InsertMsg(ctx context.Context, msg event.ChatMessage) (sql.Result, error) {
-	return db.insertMsg.ExecContext(ctx, msg.Sent, msg.To.Bare().String(), msg.From.Bare().String(), msg.ID, msg.Body, msg.Type, nil)
+func (db *DB) InsertMsg(ctx context.Context, msg event.ChatMessage) error {
+	return execTx(ctx, db, func(ctx context.Context, tx *sql.Tx) error {
+		res, err := tx.Stmt(db.insertMsg).ExecContext(ctx, msg.Sent, msg.To.Bare().String(), msg.From.Bare().String(), msg.ID, msg.Body, msg.Type, msg.OriginID.ID)
+		if err != nil {
+			return err
+		}
+		msgRID, err := res.LastInsertId()
+		if err != nil {
+			return err
+		}
+
+		if len(msg.SID) > 0 {
+			insertSID := tx.Stmt(db.insertSID)
+			for _, sid := range msg.SID {
+				res, err = insertSID.ExecContext(ctx, msgRID, sid.ID, sid.By.String())
+				if err != nil {
+					return err
+				}
+			}
+		}
+		return nil
+	})
 }
 
 // MessageIter iterates over a collection of SQL rows, returning messages.

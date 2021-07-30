@@ -267,6 +267,27 @@ func (c *Client) Timeout() time.Duration {
 // SendMessage encodes the provided message to the output stream and adds a
 // request for a receipt. It then blocks until the message receipt is received,
 // or the context is canceled.
-func (c *Client) SendMessage(ctx context.Context, msg stanza.Message, payload xml.TokenReader) error {
-	return c.receiptsHandler.SendMessageElement(ctx, c.Session, payload, msg)
+func (c *Client) SendMessage(ctx context.Context, msg event.ChatMessage) (event.ChatMessage, error) {
+	if msg.ID == "" {
+		id := randomID()
+		msg.ID = id
+		msg.OriginID.ID = id
+	}
+
+	return msg, c.Session.Send(ctx, receipts.Request(encodeMessage(msg)))
+}
+
+func omitEmpty(s string, name xml.Name) xml.TokenReader {
+	if s == "" {
+		// Returns nil, EOF
+		return xmlstream.Token(nil)
+	}
+	return xmlstream.Wrap(xmlstream.Token(xml.CharData(s)), xml.StartElement{Name: name})
+}
+
+func encodeMessage(e event.ChatMessage) xml.TokenReader {
+	return e.Message.Wrap(xmlstream.MultiReader(
+		omitEmpty(e.Body, xml.Name{Local: "body"}),
+		e.OriginID.TokenReader(),
+	))
 }

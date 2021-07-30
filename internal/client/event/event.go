@@ -32,7 +32,9 @@ type (
 	ChatMessage struct {
 		stanza.Message
 
-		Body string `xml:"body,omitempty"`
+		Body     string          `xml:"body,omitempty"`
+		OriginID stanza.OriginID `xml:"urn:xmpp:sid:0 origin-id"`
+		SID      []stanza.ID     `xml:"urn:xmpp:sid:0 stanza-id"`
 
 		// True if this message is one that we sent from another device (for
 		// example, a message forwarded to us by message carbons).
