@@ -185,7 +185,8 @@ func New(opts ...Option) *UI {
 	buffers.AddPage(chatPageName, chats, true, false)
 
 	logs := newLogs(app, func(event *tcell.EventKey) *tcell.EventKey {
-		if event.Key() == tcell.KeyESC {
+		switch event.Key() {
+		case tcell.KeyESC, tcell.KeyTAB, tcell.KeyBacktab:
 			ui.chatsOpen.Set(false)
 			ui.SelectRoster()
 			return nil
@@ -197,8 +198,9 @@ func New(opts ...Option) *UI {
 
 	innerCapture := rosterBox.GetInputCapture()
 	rosterBox.SetInputCapture(func(event *tcell.EventKey) *tcell.EventKey {
+		key := event.Key()
 		switch {
-		case event.Key() == tcell.KeyTAB:
+		case key == tcell.KeyTAB || key == tcell.KeyBacktab:
 			buffers.SwitchToPage(logsPageName)
 			app.SetFocus(buffers)
 			return nil
