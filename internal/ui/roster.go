@@ -28,27 +28,62 @@ func (r RosterItem) FirstUnread() string {
 	return r.firstUnread
 }
 
+// SearchDir the direction of a search.
+type SearchDir bool
+
+// Valid search directions.
+const (
+	SearchUp   SearchDir = true
+	SearchDown SearchDir = false
+)
+
 // Roster is a tview.Primitive that draws a roster pane.
 type Roster struct {
-	items    map[string]RosterItem
-	itemLock *sync.Mutex
-	list     *tview.List
-	Width    int
+	items      map[string]RosterItem
+	itemLock   *sync.Mutex
+	list       *tview.List
+	Width      int
+	search     *tview.InputField
+	flex       *tview.Flex
+	searching  bool
+	lastSearch string
+	searchDir  SearchDir
 }
 
 // newRoster creates a new roster widget with the provided options.
-func newRoster(onStatus func()) Roster {
-	r := Roster{
+func newRoster(onStatus func()) *Roster {
+	r := &Roster{
 		items:    make(map[string]RosterItem),
 		itemLock: &sync.Mutex{},
 		list:     tview.NewList(),
+		search:   tview.NewInputField(),
+		flex:     tview.NewFlex(),
 	}
-	r.list.SetTitle("Roster")
-	r.list.SetBorder(true).
+	r.flex.SetBorder(true).
 		SetBorderPadding(0, 0, 1, 0)
+	r.flex.AddItem(r.list, 0, 1, true).
+		SetDirection(tview.FlexRow)
+	r.list.SetTitle("Roster")
 
 	events := &bytes.Buffer{}
 	m := &sync.Mutex{}
+	r.search.SetPlaceholder("Search").
+		SetFieldBackgroundColor(tview.Styles.PrimitiveBackgroundColor).
+		SetDoneFunc(func(key tcell.Key) {
+			switch key {
+			case tcell.KeyTab, tcell.KeyBacktab:
+				return
+			case tcell.KeyESC:
+			case tcell.KeyEnter:
+				r.Search(r.search.GetText(), r.searchDir)
+			}
+			m.Lock()
+			defer m.Unlock()
+			events.Reset()
+			r.searching = false
+			r.search.SetText("")
+			r.flex.RemoveItem(r.search)
+		})
 	r.list.SetInputCapture(func(event *tcell.EventKey) *tcell.EventKey {
 		if event == nil || event.Key() != tcell.KeyRune {
 			return event
@@ -119,7 +154,6 @@ func newRoster(onStatus func()) Roster {
 			events.Reset()
 			r.list.SetCurrentItem(r.list.GetItemCount() - 1)
 			return nil
-
 		case 'g':
 			if events.String() == "gg" {
 				events.Reset()
@@ -127,6 +161,32 @@ func newRoster(onStatus func()) Roster {
 			}
 			return nil
 		case '1', '2', '3', '4', '5', '6', '7', '8', '9', '0':
+			return nil
+		case '/':
+			if events.String() == "/" {
+				r.searching = true
+				r.searchDir = SearchDown
+				r.flex.AddItem(r.search, 1, 0, true)
+			}
+			return event
+		case '?':
+			if events.String() == "?" {
+				r.searching = true
+				r.searchDir = SearchUp
+				r.flex.AddItem(r.search, 1, 0, true)
+			}
+			return event
+		case 'n':
+			events.Reset()
+			if r.lastSearch != "" {
+				r.Search(r.lastSearch, r.searchDir)
+			}
+			return nil
+		case 'N':
+			events.Reset()
+			if r.lastSearch != "" {
+				r.Search(r.lastSearch, !r.searchDir)
+			}
 			return nil
 		}
 
@@ -202,42 +262,45 @@ func (r Roster) Upsert(item RosterItem, action func()) {
 
 // Draw implements tview.Primitive for Roster.
 func (r Roster) Draw(screen tcell.Screen) {
-	r.list.Draw(screen)
+	r.flex.Draw(screen)
 }
 
 // GetRect implements tview.Primitive for Roster.
 func (r Roster) GetRect() (int, int, int, int) {
-	return r.list.GetRect()
+	return r.flex.GetRect()
 }
 
 // SetRect implements tview.Primitive for Roster.
 func (r Roster) SetRect(x, y, width, height int) {
-	r.list.SetRect(x, y, width, height)
+	r.flex.SetRect(x, y, width, height)
 }
 
 // InputHandler implements tview.Primitive for Roster.
 func (r Roster) InputHandler() func(event *tcell.EventKey, setFocus func(p tview.Primitive)) {
-	return r.list.InputHandler()
+	if r.searching {
+		return r.search.InputHandler()
+	}
+	return r.flex.InputHandler()
 }
 
 // Focus implements tview.Primitive for Roster.
 func (r Roster) Focus(delegate func(p tview.Primitive)) {
-	r.list.Focus(delegate)
+	r.flex.Focus(delegate)
 }
 
 // Blur implements tview.Primitive for Roster.
 func (r Roster) Blur() {
-	r.list.Blur()
+	r.flex.Blur()
 }
 
 // GetFocusable implements tview.Primitive for Roster.
 func (r Roster) GetFocusable() tview.Focusable {
-	return r.list.GetFocusable()
+	return r.flex.GetFocusable()
 }
 
 // MouseHandler implements tview.Primitive for Roster.
 func (r Roster) MouseHandler() func(tview.MouseAction, *tcell.EventMouse, func(tview.Primitive)) (bool, tview.Primitive) {
-	return r.list.MouseHandler()
+	return r.flex.MouseHandler()
 }
 
 // ShowStatus shows or hides the status line under contacts in the roster.
@@ -250,14 +313,14 @@ func (r *Roster) OnChanged(f func(int, string, string, rune)) {
 	r.list.SetChangedFunc(f)
 }
 
-// SetInputCapture passes calls through to the underlying list view.
+// SetInputCapture passes calls through to the underlying view(s).
 func (r Roster) SetInputCapture(capture func(event *tcell.EventKey) *tcell.EventKey) *tview.Box {
-	return r.list.SetInputCapture(capture)
+	return r.flex.SetInputCapture(capture)
 }
 
 // GetInputCapture returns the input capture function for the underlying list.
 func (r Roster) GetInputCapture() func(event *tcell.EventKey) *tcell.EventKey {
-	return r.list.GetInputCapture()
+	return r.flex.GetInputCapture()
 }
 
 // GetSelected returns the currently selected roster item.
@@ -334,4 +397,34 @@ func (r Roster) Unread(j string) bool {
 	}
 	primary, _ := r.list.GetItemText(item.idx)
 	return strings.HasPrefix(primary, highlightTag)
+}
+
+// Search looks forward in the roster trying to find items that match s.
+// It is case insensitive and looks in the primary or secondary texts.
+// If a match is found after the current selection, we jump to the match,
+// wrapping at the end of the list.
+func (r *Roster) Search(s string, dir SearchDir) bool {
+	r.lastSearch = s
+	items := r.list.FindItems(s, s, false, true)
+	if len(items) == 0 {
+		return false
+	}
+	if dir == SearchDown {
+		for _, item := range items {
+			if item > r.list.GetCurrentItem() {
+				r.list.SetCurrentItem(item)
+				return true
+			}
+		}
+		r.list.SetCurrentItem(items[0])
+	} else {
+		for i := len(items) - 1; i >= 0; i-- {
+			if items[i] < r.list.GetCurrentItem() {
+				r.list.SetCurrentItem(items[i])
+				return true
+			}
+		}
+		r.list.SetCurrentItem(items[len(items)-1])
+	}
+	return true
 }

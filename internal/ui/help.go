@@ -15,29 +15,31 @@ func helpModal(onEsc func()) *tview.Modal {
 		SetText(`Global :
 
 q⃣: quit or close
-Esc ⎋: close
-?⃣: help
+⎋⃣: close
+K⃣: help
 
 
 Navigation:
 
-Tab ⇥⃣: focus to next
-Shift+Tab ⇧⃣ + ⇥⃣: focus to previous
-g⃣ g⃣, Home ⇱⃣: scroll to top
-G⃣, End ⇲⃣: scroll to bottom
-h⃣, ←⃣: move left
-j⃣, ↓⃣: move down
-k⃣, ↑⃣: move up
-l⃣, →⃣: move right
-Page Up ⇞⃣: move up one page
-Page Down ⇟⃣: move down one page
+⇥⃣, ⇤⃣ focus to next/previous
+g⃣ g⃣, ⇱⃣ scroll to top
+G⃣, ⇲⃣ scroll to bottom
+h⃣, ←⃣ move left
+j⃣, ↓⃣ move down
+k⃣, ↑⃣ move up
+l⃣, →⃣ move right
+⇞⃣, ⇟⃣ move up/down one page
+1⃣ 0⃣ k⃣ move 10 lines up
+1⃣ 0⃣ j⃣ move 10 lines down
+/⃣ search forward
+?⃣ search backward
+n⃣ next search result
+N⃣ previous search result
 
 
 Roster:
 
-i⃣, ⏎⃣: open chat
-1⃣ 0⃣ k⃣: move 10 entries up
-1⃣ 0⃣ j⃣: move 10 entries down
+i⃣, ⏎⃣ open chat
 `).
 		SetDoneFunc(func(int, string) {
 			onEsc()

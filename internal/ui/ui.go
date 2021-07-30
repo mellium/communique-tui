@@ -51,7 +51,7 @@ type UI struct {
 	buffers     *tview.Pages
 	history     unreadTextView
 	statusBar   *tview.TextView
-	roster      Roster
+	roster      *Roster
 	rosterWidth int
 	logWriter   *tview.TextView
 	handler     func(interface{})
@@ -199,15 +199,16 @@ func New(opts ...Option) *UI {
 	innerCapture := rosterBox.GetInputCapture()
 	rosterBox.SetInputCapture(func(event *tcell.EventKey) *tcell.EventKey {
 		key := event.Key()
+		eventRune := event.Rune()
 		switch {
 		case key == tcell.KeyTAB || key == tcell.KeyBacktab:
 			buffers.SwitchToPage(logsPageName)
 			app.SetFocus(buffers)
 			return nil
-		case event.Rune() == 'q':
+		case eventRune == 'q':
 			ui.ShowQuitPrompt()
 			return nil
-		case event.Rune() == '?':
+		case eventRune == 'K' || key == tcell.KeyF1 || key == tcell.KeyHelp:
 			ui.ShowHelpPrompt()
 			return nil
 		}
@@ -281,7 +282,7 @@ func (ui *UI) Write(p []byte) (n int, err error) {
 }
 
 // Roster returns the underlying roster pane widget.
-func (ui *UI) Roster() Roster {
+func (ui *UI) Roster() *Roster {
 	return ui.roster
 }
 
