@@ -263,9 +263,13 @@ func (r Roster) Upsert(item RosterItem, action func()) {
 	r.itemLock.Lock()
 	defer r.itemLock.Unlock()
 
+	bare := item.JID.Bare().String()
+	if item.Name == "" {
+		item.Name = item.JID.Localpart()
+	}
+
 	switch item.Subscription {
 	case "remove":
-		bare := item.JID.Bare().String()
 		var ok bool
 		item, ok = r.items[bare]
 		if !ok {
@@ -274,7 +278,6 @@ func (r Roster) Upsert(item RosterItem, action func()) {
 		r.list.RemoveItem(item.idx)
 		delete(r.items, bare)
 	default:
-		bare := item.JID.Bare().String()
 		existing, ok := r.items[bare]
 		if ok {
 			// Update the existing roster item.
