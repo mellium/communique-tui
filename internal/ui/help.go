@@ -35,7 +35,7 @@ Page Down ⇟⃣: move down one page
 
 Roster:
 
-i⃣: open chat
+i⃣, ⏎⃣: open chat
 1⃣ 0⃣ k⃣: move 10 entries up
 1⃣ 0⃣ j⃣: move 10 entries down
 `).
