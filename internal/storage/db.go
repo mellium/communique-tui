@@ -117,6 +117,7 @@ SELECT sent, toAttr, fromAttr, idAttr, body, stanzaType
 	FROM messages
 	WHERE (toAttr=$1 OR fromAttr=$1)
 		AND stanzaType=COALESCE(NULLIF($2, ''), stanzaType)
+	ORDER BY delay ASC;
 `)
 	if err != nil {
 		return nil, err

@@ -18,12 +18,13 @@ CREATE TABLE IF NOT EXISTS sids (
 );
 
 CREATE TABLE IF NOT EXISTS messages (
-	id         INTEGER PRIMARY KEY NOT NULL,
-	sent       BOOLEAN NOT NULL,
+	id         INTEGER  PRIMARY KEY NOT NULL,
+	sent       BOOLEAN  NOT NULL,
 	toAttr     TEXT,
 	fromAttr   TEXT,
 	idAttr     TEXT,
 	body       TEXT,
-	stanzaType TEXT    NOT NULL DEFAULT "normal", -- RFC 6121 § 5.2.2
-	originID   TEXT    UNIQUE
+	stanzaType TEXT     NOT NULL DEFAULT "normal", -- RFC 6121 § 5.2.2
+	originID   TEXT     UNIQUE,
+	delay      DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
