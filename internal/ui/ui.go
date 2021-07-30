@@ -21,6 +21,7 @@ const (
 	logsPageName        = "logs"
 	chatPageName        = "chat"
 	quitPageName        = "quit"
+	helpPageName        = "help"
 	setStatusPageName   = "set_status"
 	uiPageName          = "ui"
 )
@@ -204,6 +205,9 @@ func New(opts ...Option) *UI {
 		case event.Rune() == 'q':
 			ui.ShowQuitPrompt()
 			return nil
+		case event.Rune() == '?':
+			ui.ShowHelpPrompt()
+			return nil
 		}
 
 		if innerCapture != nil {
@@ -246,6 +250,9 @@ func New(opts ...Option) *UI {
 			app.Stop()
 		}
 		ui.pages.HidePage(quitPageName)
+	}), true, false)
+	ui.pages.AddPage(helpPageName, helpModal(func() {
+		ui.pages.HidePage(helpPageName)
 	}), true, false)
 	ui.pages.AddPage(getPasswordPageName, getPasswordPage, true, false)
 
@@ -328,6 +335,13 @@ func (ui *UI) ShowPasswordPrompt() string {
 func (ui *UI) ShowQuitPrompt() {
 	ui.pages.ShowPage(quitPageName)
 	ui.pages.SendToFront(quitPageName)
+	ui.app.SetFocus(ui.pages)
+}
+
+// ShowHelpPrompt shows a list of keyboard shortcuts..
+func (ui *UI) ShowHelpPrompt() {
+	ui.pages.ShowPage(helpPageName)
+	ui.pages.SendToFront(helpPageName)
 	ui.app.SetFocus(ui.pages)
 }
 
