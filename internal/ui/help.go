@@ -21,7 +21,7 @@ K⃣: help
 
 Navigation:
 
-⇥⃣, ⇤⃣ focus to next/previous
+⇥⃣, ⇤⃣ focus to next/prev
 g⃣ g⃣, ⇱⃣ scroll to top
 G⃣, ⇲⃣ scroll to bottom
 h⃣, ←⃣ move left
@@ -40,6 +40,7 @@ N⃣ previous search result
 Roster:
 
 i⃣, ⏎⃣ open chat
+o⃣, O⃣: open next/prev unread
 `).
 		SetDoneFunc(func(int, string) {
 			onEsc()

@@ -100,6 +100,36 @@ func newRoster(onStatus func()) *Roster {
 		case 'i':
 			events.Reset()
 			return tcell.NewEventKey(tcell.KeyCR, 0, tcell.ModNone)
+		case 'o':
+			events.Reset()
+			for i := 0; i < r.list.GetItemCount(); i++ {
+				idx := (i + r.list.GetCurrentItem()) % r.list.GetItemCount()
+				main, _ := r.list.GetItemText(idx)
+				if strings.HasPrefix(main, highlightTag) {
+					r.list.SetCurrentItem(idx)
+					return tcell.NewEventKey(tcell.KeyCR, 0, tcell.ModNone)
+				}
+			}
+			idx := (r.list.GetCurrentItem() + 1) % r.list.GetItemCount()
+			r.list.SetCurrentItem(idx)
+			return tcell.NewEventKey(tcell.KeyCR, 0, tcell.ModNone)
+		case 'O':
+			events.Reset()
+			// -1 because we ignore the online indicator
+			count := r.list.GetItemCount()
+			currentItem := r.list.GetCurrentItem()
+			for i := 0; i < count; i++ {
+				// Least positive remainder
+				idx := ((currentItem-i)%count + count) % count
+				main, _ := r.list.GetItemText(idx)
+				if strings.HasPrefix(main, highlightTag) {
+					r.list.SetCurrentItem(idx)
+					return tcell.NewEventKey(tcell.KeyCR, 0, tcell.ModNone)
+				}
+			}
+			idx := ((currentItem-1)%count + count) % count
+			r.list.SetCurrentItem(idx)
+			return tcell.NewEventKey(tcell.KeyCR, 0, tcell.ModNone)
 		case 'k':
 			if events.Len() > 1 {
 				n, err := strconv.Atoi(events.String()[0 : events.Len()-1])
