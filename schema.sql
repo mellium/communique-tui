@@ -24,7 +24,9 @@ CREATE TABLE IF NOT EXISTS messages (
 	fromAttr   TEXT,
 	idAttr     TEXT,
 	body       TEXT,
+	originID   TEXT,
 	stanzaType TEXT     NOT NULL DEFAULT "normal", -- RFC 6121 § 5.2.2
-	originID   TEXT     UNIQUE,
-	delay      DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP
+	delay      DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+	UNIQUE (originID, fromAttr)
 );
