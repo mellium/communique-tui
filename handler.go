@@ -68,11 +68,15 @@ func newUIHandler(configPath string, pane *ui.UI, db *storage.DB, c *client.Clie
 				if err != nil {
 					logger.Printf("error sending message: %v", err)
 				}
-				if err := writeMessage(true, pane, configPath, e); err != nil {
+				if err := writeMessage(pane, configPath, e); err != nil {
 					logger.Printf("error saving sent message to history: %v", err)
 				}
-				if _, err := db.InsertMsg(ctx, true, e); err != nil {
+				if _, err := db.InsertMsg(ctx, e); err != nil {
 					logger.Printf("error writing message to database: %v", err)
+				}
+				// If we sent the message assume we've read everything before it.
+				if e.Sent {
+					pane.Roster().MarkRead(e.To.Bare().String())
 				}
 			}()
 		case event.OpenChat:
@@ -117,11 +121,15 @@ func newClientHandler(configPath string, pane *ui.UI, db *storage.DB, logger, de
 		case event.ChatMessage:
 			ctx, cancel := context.WithTimeout(context.Background(), time.Second)
 			defer cancel()
-			if err := writeMessage(false, pane, configPath, e); err != nil {
+			if err := writeMessage(pane, configPath, e); err != nil {
 				logger.Printf("error writing received message to history: %v", err)
 			}
-			if _, err := db.InsertMsg(ctx, false, e); err != nil {
+			if _, err := db.InsertMsg(ctx, e); err != nil {
 				logger.Printf("error writing message to database: %v", err)
+			}
+			// If we sent the message assume we've read everything before it.
+			if e.Sent {
+				pane.Roster().MarkRead(e.To.Bare().String())
 			}
 		default:
 			debug.Printf("unrecognized client event: %q", e)

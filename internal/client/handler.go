@@ -11,6 +11,7 @@ import (
 	"mellium.im/communique/internal/client/event"
 	"mellium.im/xmlstream"
 	"mellium.im/xmpp"
+	"mellium.im/xmpp/carbons"
 	"mellium.im/xmpp/mux"
 	"mellium.im/xmpp/receipts"
 	"mellium.im/xmpp/roster"
@@ -23,6 +24,18 @@ func newXMPPHandler(c *Client) xmpp.Handler {
 		roster.Handle(roster.Handler{
 			Push: func(item roster.Item) error {
 				c.handler(event.UpdateRoster(item))
+				return nil
+			},
+		}),
+		carbons.Handle(carbons.Handler{
+			F: func(_ stanza.Message, sent bool, inner xml.TokenReader) error {
+				d := xml.NewTokenDecoder(inner)
+				e := event.ChatMessage{Sent: sent}
+				err := d.Decode(&e)
+				if err != nil {
+					return err
+				}
+				c.handler(e)
 				return nil
 			},
 		}),

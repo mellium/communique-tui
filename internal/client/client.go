@@ -17,6 +17,7 @@ import (
 	"mellium.im/sasl"
 	"mellium.im/xmlstream"
 	"mellium.im/xmpp"
+	"mellium.im/xmpp/carbons"
 	"mellium.im/xmpp/dial"
 	"mellium.im/xmpp/jid"
 	"mellium.im/xmpp/receipts"
@@ -112,14 +113,22 @@ func (c *Client) reconnect(ctx context.Context) error {
 		Name: "Me",
 	}))
 
-	// TODO: should this be synchronous so that when we call reconnect we fail if
-	// the roster isn't fetched?
+	// Enable message carbons.
+	carbonsCtx, carbonsCancel := context.WithTimeout(context.Background(), c.timeout)
+	defer carbonsCancel()
+	err = carbons.Enable(carbonsCtx, c.Session)
+	if err != nil {
+		c.debug.Printf("error enabling carbons: %q", err)
+		return err
+	}
+
+	// TODO: cache the roster and support roster versioning.
 	go func() {
 		rosterCtx, rosterCancel := context.WithTimeout(context.Background(), c.timeout)
 		defer rosterCancel()
 		err = c.Roster(rosterCtx)
 		if err != nil {
-			c.logger.Printf("Error fetching roster: %q", err)
+			c.logger.Printf("error fetching roster: %q", err)
 		}
 	}()
 	return nil

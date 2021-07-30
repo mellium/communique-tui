@@ -33,6 +33,10 @@ type (
 		stanza.Message
 
 		Body string `xml:"body,omitempty"`
+
+		// True if this message is one that we sent from another device (for
+		// example, a message forwarded to us by message carbons).
+		Sent bool `xml:"-"`
 	}
 
 	// OpenChat is sent when a roster item is selected.

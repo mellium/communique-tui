@@ -130,8 +130,8 @@ SELECT sent, toAttr, fromAttr, idAttr, body, stanzaType
 }
 
 // InsertMsg adds a message to the database.
-func (db *DB) InsertMsg(ctx context.Context, sent bool, msg event.ChatMessage) (sql.Result, error) {
-	return db.insertMsg.ExecContext(ctx, sent, msg.To.Bare().String(), msg.From.Bare().String(), msg.ID, msg.Body, msg.Type, nil)
+func (db *DB) InsertMsg(ctx context.Context, msg event.ChatMessage) (sql.Result, error) {
+	return db.insertMsg.ExecContext(ctx, msg.Sent, msg.To.Bare().String(), msg.From.Bare().String(), msg.ID, msg.Body, msg.Type, nil)
 }
 
 // MessageIter iterates over a collection of SQL rows, returning messages.
@@ -139,7 +139,6 @@ type MessageIter struct {
 	err  error
 	rows *sql.Rows
 	cur  event.ChatMessage
-	sent bool
 }
 
 // Next advances the iterator and returns whether the next row is ready to be
@@ -155,7 +154,7 @@ func (i *MessageIter) Next() bool {
 
 	i.cur = event.ChatMessage{}
 	var to, from, typ string
-	i.err = i.rows.Scan(&i.sent, &to, &from, &i.cur.ID, &i.cur.Body, &typ)
+	i.err = i.rows.Scan(&i.cur.Sent, &to, &from, &i.cur.ID, &i.cur.Body, &typ)
 	if i.err != nil {
 		return false
 	}
@@ -176,8 +175,8 @@ func (i *MessageIter) Next() bool {
 
 // Message returns the next event.
 // Sent is whether the message was sent or received.
-func (i *MessageIter) Message() (sent bool, e event.ChatMessage) {
-	return i.sent, i.cur
+func (i *MessageIter) Message() event.ChatMessage {
+	return i.cur
 }
 
 // Err returns the error, if any, that was encountered during iteration.

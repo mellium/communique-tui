@@ -21,10 +21,14 @@ import (
 	"mellium.im/xmpp/roster"
 )
 
-func writeMessage(sent bool, pane *ui.UI, configPath string, msg event.ChatMessage) error {
+func writeMessage(pane *ui.UI, configPath string, msg event.ChatMessage) error {
+	if msg.Body == "" {
+		return nil
+	}
+
 	historyAddr := msg.From
 	arrow := "←"
-	if sent {
+	if msg.Sent {
 		historyAddr = msg.To
 		arrow = "→"
 	}
@@ -45,21 +49,23 @@ func writeMessage(sent bool, pane *ui.UI, configPath string, msg event.ChatMessa
 
 	// If it's not selected (or the message window is not open), mark the item as
 	// unread in the roster
-	ok := pane.Roster().MarkUnread(j.String(), msg.ID)
-	if !ok {
-		// If the item did not exist, create it then try to mark it as unread
-		// again.
-		pane.UpdateRoster(ui.RosterItem{
-			Item: roster.Item{
-				JID: j,
-				// TODO: get the preferred nickname.
-				Name:         j.Localpart(),
-				Subscription: "none",
-			},
-		})
-		pane.Roster().MarkUnread(j.String(), msg.ID)
+	if !msg.Sent {
+		ok := pane.Roster().MarkUnread(j.String(), msg.ID)
+		if !ok {
+			// If the item did not exist, create it then try to mark it as unread
+			// again.
+			pane.UpdateRoster(ui.RosterItem{
+				Item: roster.Item{
+					JID: j,
+					// TODO: get the preferred nickname.
+					Name:         j.Localpart(),
+					Subscription: "none",
+				},
+			})
+			pane.Roster().MarkUnread(j.String(), msg.ID)
+		}
+		pane.Redraw()
 	}
-	pane.Redraw()
 	return nil
 }
 
@@ -69,14 +75,14 @@ func loadBuffer(pane *ui.UI, db *storage.DB, configPath string, ev event.OpenCha
 
 	iter := db.QueryHistory(context.TODO(), ev.JID.String(), "")
 	for iter.Next() {
-		sent, cur := iter.Message()
+		cur := iter.Message()
 		if cur.ID != "" && cur.ID == msgID {
 			_, err := io.WriteString(history, "─\n")
 			if err != nil {
 				return err
 			}
 		}
-		err := writeMessage(sent, pane, configPath, cur)
+		err := writeMessage(pane, configPath, cur)
 		if err != nil {
 			history.SetText(fmt.Sprintf("Error writing history: %v", err))
 			return nil
