@@ -103,6 +103,7 @@ func newChats(ui *UI) (*tview.Flex, unreadTextView) {
 					Type: stanza.ChatMessage,
 				},
 				Body: body,
+				Sent: true,
 			})
 			inputField.SetText("")
 			return nil
