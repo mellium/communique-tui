@@ -21,7 +21,7 @@ import (
 	"mellium.im/xmpp/roster"
 )
 
-func writeMessage(pane *ui.UI, configPath string, msg event.ChatMessage) error {
+func writeMessage(pane *ui.UI, configPath string, msg event.ChatMessage, notNew bool) error {
 	if msg.Body == "" {
 		return nil
 	}
@@ -48,8 +48,9 @@ func writeMessage(pane *ui.UI, configPath string, msg event.ChatMessage) error {
 	}
 
 	// If it's not selected (or the message window is not open), mark the item as
-	// unread in the roster
-	if !msg.Sent {
+	// unread in the roster.
+	// If the message isn't a new one (we're just loading history), skip all this.
+	if !msg.Sent && !notNew {
 		ok := pane.Roster().MarkUnread(j.String(), msg.ID)
 		if !ok {
 			// If the item did not exist, create it then try to mark it as unread
@@ -82,7 +83,7 @@ func loadBuffer(pane *ui.UI, db *storage.DB, configPath string, ev event.OpenCha
 				return err
 			}
 		}
-		err := writeMessage(pane, configPath, cur)
+		err := writeMessage(pane, configPath, cur, true)
 		if err != nil {
 			history.SetText(fmt.Sprintf("Error writing history: %v", err))
 			return nil

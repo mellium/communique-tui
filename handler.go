@@ -64,15 +64,15 @@ func newUIHandler(configPath string, pane *ui.UI, db *storage.DB, c *client.Clie
 				if err != nil {
 					logger.Printf("error sending message: %v", err)
 				}
-				if err = writeMessage(pane, configPath, e); err != nil {
+				if err = writeMessage(pane, configPath, e, false); err != nil {
 					logger.Printf("error saving sent message to history: %v", err)
 				}
 				if err = db.InsertMsg(ctx, e); err != nil {
 					logger.Printf("error writing message to database: %v", err)
 				}
-				// If we sent the message from another client, assume we've read
-				// everything before it.
-				if e.Sent {
+				// If we sent the message that wasn't automated (it has a body), assume
+				// we've read everything before it.
+				if e.Sent && e.Body != "" {
 					pane.Roster().MarkRead(e.To.Bare().String())
 				}
 			}()
@@ -125,14 +125,15 @@ func newClientHandler(configPath string, pane *ui.UI, db *storage.DB, logger, de
 		case event.ChatMessage:
 			ctx, cancel := context.WithTimeout(context.Background(), time.Second)
 			defer cancel()
-			if err := writeMessage(pane, configPath, e); err != nil {
+			if err := writeMessage(pane, configPath, e, false); err != nil {
 				logger.Printf("error writing received message to history: %v", err)
 			}
 			if err := db.InsertMsg(ctx, e); err != nil {
 				logger.Printf("error writing message to database: %v", err)
 			}
-			// If we sent the message assume we've read everything before it.
-			if e.Sent {
+			// If we sent the message that wasn't automated (it has a body), assume
+			// we've read everything before it.
+			if e.Sent && e.Body != "" {
 				pane.Roster().MarkRead(e.To.Bare().String())
 			}
 		default:
