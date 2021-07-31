@@ -12,6 +12,7 @@ import (
 	"log"
 	"os"
 	"path/filepath"
+	"time"
 
 	_ "modernc.org/sqlite"
 
@@ -117,7 +118,7 @@ INSERT INTO sids
 	}
 	wrapDB.insertMsg, err = db.PrepareContext(ctx, `
 INSERT INTO messages
-	(sent, toAttr, fromAttr, idAttr, body, stanzaType, originID)
+	(sent, toAttr, fromAttr, idAttr, body, stanzaType, originID, delay)
 	VALUES (?, ?, ?, ?, ?, ?, NULLIF(?, ""))`)
 	if err != nil {
 		return nil, err
@@ -169,7 +170,13 @@ func (db *DB) MarkReceived(ctx context.Context, e event.Receipt) error {
 // InsertMsg adds a message to the database.
 func (db *DB) InsertMsg(ctx context.Context, msg event.ChatMessage) error {
 	return execTx(ctx, db, func(ctx context.Context, tx *sql.Tx) error {
-		res, err := tx.Stmt(db.insertMsg).ExecContext(ctx, msg.Sent, msg.To.Bare().String(), msg.From.Bare().String(), msg.ID, msg.Body, msg.Type, msg.OriginID.ID)
+		var delay *time.Time
+		// Only store the delay if it was actually set and if it was sent from our
+		// account.
+		if msg.Account && !msg.Delay.Time.IsZero() {
+			delay = &msg.Delay.Time
+		}
+		res, err := tx.Stmt(db.insertMsg).ExecContext(ctx, msg.Sent, msg.To.Bare().String(), msg.From.Bare().String(), msg.ID, msg.Body, msg.Type, msg.OriginID.ID, delay)
 		if err != nil {
 			return err
 		}

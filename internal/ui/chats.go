@@ -9,7 +9,6 @@ import (
 	"github.com/rivo/tview"
 
 	"mellium.im/communique/internal/client/event"
-	"mellium.im/xmpp/jid"
 	"mellium.im/xmpp/stanza"
 )
 
@@ -97,9 +96,7 @@ func newChats(ui *UI) (*tview.Flex, unreadTextView) {
 			}
 			ui.handler(event.ChatMessage{
 				Message: stanza.Message{
-					To: item.Item.JID,
-					// TODO: shouldn't this be automatically set by the library?
-					From: jid.MustParse(ui.addr),
+					To:   item.Item.JID,
 					Type: stanza.ChatMessage,
 				},
 				Body: body,

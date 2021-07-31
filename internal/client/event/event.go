@@ -6,6 +6,7 @@
 package event // import "mellium.im/communique/internal/client/event"
 
 import (
+	"mellium.im/xmpp/delay"
 	"mellium.im/xmpp/roster"
 	"mellium.im/xmpp/stanza"
 )
@@ -35,10 +36,14 @@ type (
 		Body     string          `xml:"body,omitempty"`
 		OriginID stanza.OriginID `xml:"urn:xmpp:sid:0 origin-id"`
 		SID      []stanza.ID     `xml:"urn:xmpp:sid:0 stanza-id"`
+		Delay    delay.Delay     `xml:"urn:xmpp:delay delay"`
 
-		// True if this message is one that we sent from another device (for
+		// Sent is true if this message is one that we sent from another device (for
 		// example, a message forwarded to us by message carbons).
 		Sent bool `xml:"-"`
+		// Account is true if this message was sent by the server (empty from, or
+		// from matching the bare JID of the authenticated account).
+		Account bool `xml:"-"`
 	}
 
 	// Receipt is sent when a message receipt is received and represents the ID of

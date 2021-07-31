@@ -12,6 +12,7 @@ import (
 	"mellium.im/xmlstream"
 	"mellium.im/xmpp"
 	"mellium.im/xmpp/carbons"
+	"mellium.im/xmpp/jid"
 	"mellium.im/xmpp/mux"
 	"mellium.im/xmpp/receipts"
 	"mellium.im/xmpp/roster"
@@ -113,6 +114,10 @@ func newMessageHandler(c *Client) mux.MessageHandlerFunc {
 		err := d.Decode(&msg)
 		if err != nil {
 			return err
+		}
+		fromBare := msg.From.Bare()
+		if fromBare.Equal(jid.JID{}) || fromBare.Equal(c.addr.Bare()) {
+			msg.Account = true
 		}
 		c.handler(msg)
 		return nil
