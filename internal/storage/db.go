@@ -165,7 +165,7 @@ INSERT INTO sids (message, sid, byAttr)
 	wrapDB.insertMsg, err = db.PrepareContext(ctx, `
 INSERT INTO messages
 	(sent, toAttr, fromAttr, idAttr, body, stanzaType, originID, delay)
-	VALUES (?, ?, ?, ?, ?, ?, NULLIF(?, ""))`)
+	VALUES ($1, $2, $3, $4, $5, $6, $7, IFNULL(NULLIF($8, ""), CURRENT_TIMESTAMP))`)
 	if err != nil {
 		return nil, err
 	}
