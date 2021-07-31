@@ -24,10 +24,17 @@ import (
 // DB represents a SQL database with common pre-prepared statements.
 type DB struct {
 	*sql.DB
-	insertSID *sql.Stmt
-	insertMsg *sql.Stmt
-	markRecvd *sql.Stmt
-	queryMsg  *sql.Stmt
+	truncateRoster  *sql.Stmt
+	delRoster       *sql.Stmt
+	insertRoster    *sql.Stmt
+	insertGroup     *sql.Stmt
+	insertRosterVer *sql.Stmt
+	selectRosterVer *sql.Stmt
+	selectRoster    *sql.Stmt
+	insertSID       *sql.Stmt
+	insertMsg       *sql.Stmt
+	markRecvd       *sql.Stmt
+	queryMsg        *sql.Stmt
 }
 
 // OpenDB attempts to open the database at dbFile.
@@ -109,9 +116,48 @@ func OpenDB(ctx context.Context, appName, dbFile, schema string, debug *log.Logg
 func prepareQueries(ctx context.Context, db *sql.DB) (*DB, error) {
 	var err error
 	wrapDB := &DB{DB: db}
+	wrapDB.truncateRoster, err = db.PrepareContext(ctx, `
+DELETE FROM rosterJIDs;
+`)
+	wrapDB.delRoster, err = db.PrepareContext(ctx, `
+DELETE FROM roster WHERE jid=?`)
+	if err != nil {
+		return nil, err
+	}
+	wrapDB.insertRoster, err = db.PrepareContext(ctx, `
+INSERT INTO rosterJIDs (jid, name, subs)
+	VALUES ($1, $2, $3)
+	ON CONFLICT(jid) DO UPDATE SET name=$2, subs=$3`)
+	if err != nil {
+		return nil, err
+	}
+	wrapDB.insertGroup, err = db.PrepareContext(ctx, `
+INSERT INTO rosterGroups (jid, name)
+	VALUES (?, ?)
+	ON CONFLICT DO NOTHING`)
+	if err != nil {
+		return nil, err
+	}
+	wrapDB.insertRosterVer, err = db.PrepareContext(ctx, `
+INSERT INTO rosterVer (id, ver)
+	VALUES (FALSE, $1)
+	ON CONFLICT(id) DO UPDATE SET ver=$1`)
+	if err != nil {
+		return nil, err
+	}
+	wrapDB.selectRosterVer, err = db.PrepareContext(ctx, `
+SELECT ver FROM rosterVer WHERE id=0`)
+	if err != nil {
+		return nil, err
+	}
+	wrapDB.selectRoster, err = db.PrepareContext(ctx, `
+SELECT jid,name,subs FROM rosterJIDs`)
+	if err != nil {
+		return nil, err
+	}
+
 	wrapDB.insertSID, err = db.PrepareContext(ctx, `
-INSERT INTO sids
-	(message, sid, byAttr)
+INSERT INTO sids (message, sid, byAttr)
 	VALUES (?, ?, ?)`)
 	if err != nil {
 		return nil, err
@@ -140,6 +186,8 @@ SELECT sent, toAttr, fromAttr, idAttr, body, stanzaType
 	return wrapDB, nil
 }
 
+var errRollback = errors.New("rollback")
+
 // execTx creates a transaction and executes f.
 // If an error is returned the transaction is rolled back, otherwise it is
 // committed.
@@ -150,8 +198,12 @@ func execTx(ctx context.Context, db *DB, f func(context.Context, *sql.Tx) error)
 	}
 	defer func() {
 		if e != nil {
-			/* #nosec */
-			tx.Rollback()
+			if e == errRollback {
+				e = tx.Rollback()
+			} else {
+				/* #nosec */
+				tx.Rollback()
+			}
 		}
 	}()
 	err = f(ctx, tx)
@@ -192,6 +244,117 @@ func (db *DB) InsertMsg(ctx context.Context, msg event.ChatMessage) error {
 				if err != nil {
 					return err
 				}
+			}
+		}
+		return nil
+	})
+}
+
+// ForRoster executes f for each roster entry.
+func (db *DB) ForRoster(ctx context.Context, f func(event.UpdateRoster)) error {
+	tx, err := db.BeginTx(ctx, nil)
+	if err != nil {
+		return err
+	}
+	/* #nosec */
+	defer tx.Commit()
+
+	var ver string
+	err = tx.Stmt(db.selectRosterVer).QueryRowContext(ctx).Scan(&ver)
+	if err != nil {
+		return err
+	}
+	rows, err := tx.Stmt(db.selectRoster).Query()
+	if err != nil {
+		return err
+	}
+	/* #nosec */
+	defer rows.Close()
+	for rows.Next() {
+		e := event.UpdateRoster{
+			Ver: ver,
+		}
+		var jidStr string
+		err = rows.Scan(&jidStr, &e.Item.Name, &e.Item.Subscription)
+		if err != nil {
+			return err
+		}
+		j, err := jid.ParseUnsafe(jidStr)
+		if err != nil {
+			return err
+		}
+		e.Item.JID = j.JID
+		f(e)
+	}
+	return rows.Err()
+}
+
+// ReplaceRoster truncates the entire roster and replaces it with the provided
+// items.
+func (db *DB) ReplaceRoster(ctx context.Context, e event.FetchRoster) error {
+	return execTx(ctx, db, func(ctx context.Context, tx *sql.Tx) error {
+		var err error
+		if e.Ver != "" {
+			_, err = tx.Stmt(db.insertRosterVer).ExecContext(ctx, e.Ver)
+			if err != nil {
+				return err
+			}
+		}
+		var foundItems bool
+		for item := range e.Items {
+			if !foundItems {
+				foundItems = true
+				_, err := tx.Stmt(db.truncateRoster).ExecContext(ctx)
+				if err != nil {
+					return err
+				}
+			}
+			bareJID := item.Item.JID.Bare().String()
+			_, err = tx.Stmt(db.insertRoster).ExecContext(ctx, bareJID, item.Name, item.Subscription)
+			if err != nil {
+				return err
+			}
+			insGroup := tx.Stmt(db.insertGroup)
+			for _, group := range item.Group {
+				_, err = tx.Stmt(insGroup).ExecContext(ctx, bareJID, group)
+				if err != nil {
+					return err
+				}
+			}
+		}
+		return nil
+	})
+}
+
+// RosterVer returns the currently saved roster version.
+func (db *DB) RosterVer(ctx context.Context) (string, error) {
+	var ver string
+	err := db.selectRosterVer.QueryRowContext(ctx).Scan(&ver)
+	return ver, err
+}
+
+// UpdateRoster upserts or removes a JID from the roster.
+func (db *DB) UpdateRoster(ctx context.Context, ver string, item event.UpdateRoster) error {
+	if item.Subscription == "remove" {
+		_, err := db.delRoster.ExecContext(ctx, item.JID.Bare().String())
+		return err
+	}
+
+	return execTx(ctx, db, func(ctx context.Context, tx *sql.Tx) error {
+		_, err := tx.Stmt(db.insertRosterVer).ExecContext(ctx, ver)
+		if err != nil {
+			return err
+		}
+		bareJID := item.JID.Bare().String()
+		_, err = tx.Stmt(db.insertRoster).ExecContext(ctx, bareJID, item.Name, item.Subscription)
+		if err != nil {
+			return err
+		}
+		insGroup := tx.Stmt(db.insertGroup)
+		for _, group := range item.Group {
+			_, err = insGroup.ExecContext(ctx, bareJID, group)
+			if err != nil {
+				return err
 			}
 		}
 		return nil

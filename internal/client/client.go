@@ -82,6 +82,7 @@ func (c *Client) reconnect(ctx context.Context) error {
 					sasl.ScramSha256,
 					sasl.ScramSha1,
 				),
+				roster.Versioning(),
 				xmpp.BindResource(),
 			}
 		},
@@ -111,10 +112,12 @@ func (c *Client) reconnect(ctx context.Context) error {
 	}()
 
 	// Put a special case in the roster so we can send notes to ourselves easily.
-	c.handler(event.UpdateRoster(roster.Item{
-		JID:  c.addr.Bare(),
-		Name: "Me",
-	}))
+	c.handler(event.UpdateRoster{
+		Item: roster.Item{
+			JID:  c.addr.Bare(),
+			Name: "Me",
+		},
+	})
 
 	// Enable message carbons.
 	carbonsCtx, carbonsCancel := context.WithTimeout(context.Background(), c.timeout)
@@ -125,7 +128,6 @@ func (c *Client) reconnect(ctx context.Context) error {
 		return err
 	}
 
-	// TODO: cache the roster and support roster versioning.
 	go func() {
 		rosterCtx, rosterCancel := context.WithTimeout(context.Background(), c.timeout)
 		defer rosterCancel()
@@ -151,6 +153,7 @@ type Client struct {
 	online          bool
 	handler         func(interface{})
 	receiptsHandler *receipts.Handler
+	rosterVer       string
 }
 
 // Online sets the status to online.
@@ -172,23 +175,36 @@ func (c *Client) Online(ctx context.Context) error {
 
 // Roster requests the users contact list.
 func (c *Client) Roster(ctx context.Context) error {
-	iter := roster.Fetch(ctx, c.Session)
+	rosterIQ := roster.IQ{}
+	rosterIQ.Query.Ver = c.rosterVer
+	iter := roster.FetchIQ(ctx, rosterIQ, c.Session)
 	defer func() {
 		e := iter.Close()
 		if e != nil {
 			c.debug.Printf("Error closing roster stream: %q", e)
 		}
 	}()
-	for iter.Next() {
-		item := iter.Item()
-		if item.Name == "" {
-			item.Name = item.JID.Localpart()
+	items := make(chan event.UpdateRoster)
+	go func() {
+		defer close(items)
+		for iter.Next() {
+			item := iter.Item()
+			if item.Name == "" {
+				item.Name = item.JID.Localpart()
+			}
+			if item.Name == "" {
+				item.Name = item.JID.Domainpart()
+			}
+			items <- event.UpdateRoster{
+				Item: item,
+				Ver:  iter.Version(),
+			}
 		}
-		if item.Name == "" {
-			item.Name = item.JID.Domainpart()
-		}
-		c.handler(event.UpdateRoster(item))
-	}
+	}()
+	c.handler(event.FetchRoster{
+		Ver:   iter.Version(),
+		Items: items,
+	})
 	err := iter.Err()
 	if err == io.EOF {
 		err = nil

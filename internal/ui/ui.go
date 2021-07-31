@@ -262,6 +262,11 @@ func New(opts ...Option) *UI {
 	return ui
 }
 
+// RosterLen returns the length of the roster.
+func (ui *UI) RosterLen() int {
+	return ui.roster.Len()
+}
+
 // UpdateRoster adds an item to the roster.
 func (ui *UI) UpdateRoster(item RosterItem) {
 	ui.roster.Upsert(item, func() {

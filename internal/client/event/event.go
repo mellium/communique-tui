@@ -24,9 +24,18 @@ type (
 	// StatusBusy is sent when the user should change their status to busy.
 	StatusBusy struct{}
 
+	// FetchRoster is sent when a roster is fetched.
+	FetchRoster struct {
+		Ver   string
+		Items <-chan UpdateRoster
+	}
+
 	// UpdateRoster is sent when a roster item should be updated (eg. after a
-	// roster fetch or a roster push).
-	UpdateRoster roster.Item
+	// roster push).
+	UpdateRoster struct {
+		roster.Item
+		Ver string
+	}
 
 	// ChatMessage is sent when messages of type "chat" or "normal" are received
 	// or sent.

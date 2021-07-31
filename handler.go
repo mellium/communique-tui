@@ -113,10 +113,26 @@ func newClientHandler(configPath string, pane *ui.UI, db *storage.DB, logger, de
 			pane.Online()
 		case event.StatusOffline:
 			pane.Offline()
+		case event.FetchRoster:
+			ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+			defer cancel()
+			err := db.ReplaceRoster(ctx, e)
+			if err != nil {
+				logger.Printf("error fetching roster ver %q: %v", e.Ver, err)
+			}
+			err = db.ForRoster(ctx, func(item event.UpdateRoster) {
+				pane.UpdateRoster(ui.RosterItem{Item: roster.Item(item.Item)})
+			})
+			if err != nil {
+				logger.Printf("error iterating over roster items: %v", err)
+			}
 		case event.UpdateRoster:
-			pane.UpdateRoster(ui.RosterItem{Item: roster.Item(e)})
+			pane.UpdateRoster(ui.RosterItem{Item: roster.Item(e.Item)})
+			ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+			defer cancel()
+			db.UpdateRoster(ctx, e.Ver, e)
 		case event.Receipt:
-			ctx, cancel := context.WithTimeout(context.Background(), 1*time.Second)
+			ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
 			defer cancel()
 			err := db.MarkReceived(ctx, e)
 			if err != nil {

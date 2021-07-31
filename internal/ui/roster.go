@@ -461,3 +461,8 @@ func (r *Roster) Search(s string, dir SearchDir) bool {
 	}
 	return true
 }
+
+// Len returns the length of the roster.
+func (r *Roster) Len() int {
+	return len(r.items)
+}

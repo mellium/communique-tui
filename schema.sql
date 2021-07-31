@@ -31,3 +31,29 @@ CREATE TABLE IF NOT EXISTS messages (
 
 	UNIQUE (originID, fromAttr, sent)
 );
+
+-- Roster storage
+
+CREATE TABLE IF NOT EXISTS rosterVer (
+	id  BOOLEAN PRIMARY KEY DEFAULT FALSE CHECK (id = FALSE),
+	ver TEXT    NOT NULL
+) WITHOUT ROWID;
+-- Go ahead and populate the row if it doesn't exist so that we don't run into
+-- errors the first time we try to fetch it.
+INSERT INTO rosterVer (ver) VALUES ("") ON CONFLICT DO NOTHING;
+
+CREATE TABLE IF NOT EXISTS rosterJIDs (
+	jid  TEXT PRIMARY KEY NOT NULL,
+	name TEXT             NOT NULL DEFAULT "",
+	subs TEXT             NOT NULL
+) WITHOUT ROWID;
+
+
+CREATE TABLE IF NOT EXISTS rosterGroups (
+	id   INTEGER  PRIMARY KEY NOT NULL,
+	jid  TEXT                 NOT NULL,
+	name TEXT                 NOT NULL,
+
+	FOREIGN KEY (jid) REFERENCES rosterJIDs(jid) ON DELETE CASCADE,
+	UNIQUE (jid, name)
+);

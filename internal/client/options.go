@@ -15,6 +15,13 @@ import (
 // Option is used to configure a client.
 type Option func(*Client)
 
+// RosterVer sets the last seen and stored roster version.
+func RosterVer(ver string) Option {
+	return func(c *Client) {
+		c.rosterVer = ver
+	}
+}
+
 // Timeout sets a timeout for reads and writes from the client.
 // If no timeout is provided, the default is 30 seconds.
 func Timeout(timeout time.Duration) Option {

@@ -254,6 +254,15 @@ Go %s %s
 		NoLookup: cfg.NoSRV,
 	}
 	configPath = path.Dir(fpath)
+	var rosterVer string
+	func() {
+		ctx, cancel := context.WithTimeout(context.Background(), timeout)
+		defer cancel()
+		rosterVer, err = db.RosterVer(ctx)
+		if err != nil {
+			logger.Printf("error retrieving roster version, falling back to full roster fetch: %v", err)
+		}
+	}()
 	c := client.New(
 		j, logger, debug,
 		client.Timeout(timeout),
@@ -261,6 +270,7 @@ Go %s %s
 		client.Tee(logwriter.New(xmlInLog), logwriter.New(xmlOutLog)),
 		client.Password(getPass),
 		client.Handler(newClientHandler(configPath, pane, db, logger, debug)),
+		client.RosterVer(rosterVer),
 	)
 	pane.Handle(newUIHandler(configPath, pane, db, c, debug, logger))
 

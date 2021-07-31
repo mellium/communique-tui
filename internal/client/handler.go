@@ -23,8 +23,9 @@ func newXMPPHandler(c *Client) xmpp.Handler {
 	msgHandler := newMessageHandler(c)
 	return mux.New(
 		roster.Handle(roster.Handler{
-			Push: func(item roster.Item) error {
-				c.handler(event.UpdateRoster(item))
+			Push: func(ver string, item roster.Item) error {
+				c.rosterVer = ver
+				c.handler(event.UpdateRoster{Ver: ver, Item: item})
 				return nil
 			},
 		}),
