@@ -124,7 +124,11 @@ Try running '%s -config' to generate a default config file.`, err, os.Args[0])
 	// Open the database
 	dbCtx, cancel := context.WithTimeout(context.Background(), 1*time.Second)
 	defer cancel()
-	db, err := storage.OpenDB(dbCtx, appName, cfg.DB, schema, debug)
+	account, err := jid.Parse(cfg.JID)
+	if err != nil {
+		logger.Fatalf("error parsing main account as XMPP address: %v", err)
+	}
+	db, err := storage.OpenDB(dbCtx, appName, account.Bare().String(), cfg.DB, schema, debug)
 	if err != nil {
 		logger.Fatalf("error opening database: %v", err)
 	}

@@ -42,13 +42,13 @@ type DB struct {
 // If dbFile is empty a fallback sequence of names is used starting with
 // $XDG_DATA_HOME, then falling back to $HOME/.local/share, then falling back to
 // the current working directory.
-func OpenDB(ctx context.Context, appName, dbFile, schema string, debug *log.Logger) (*DB, error) {
+func OpenDB(ctx context.Context, appName, account, dbFile, schema string, debug *log.Logger) (*DB, error) {
 	const (
-		dbDriver   = "sqlite"
-		dbFileName = "db"
+		dbDriver = "sqlite"
 	)
 	var fPath string
 	var paths []string
+	dbFileName := account + ".db"
 
 	if dbFile != "" {
 		paths = []string{dbFile}
@@ -67,7 +67,7 @@ func OpenDB(ctx context.Context, appName, dbFile, schema string, debug *log.Logg
 		if err != nil {
 			debug.Printf("error getting current working directory: %v", err)
 		} else {
-			paths = append(paths, filepath.Join(fPath, appName+".db"))
+			paths = append(paths, filepath.Join(fPath, dbFileName))
 		}
 	}
 
