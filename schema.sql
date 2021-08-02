@@ -28,9 +28,11 @@ CREATE TABLE IF NOT EXISTS messages (
 	stanzaType TEXT     NOT NULL DEFAULT "normal", -- RFC 6121 § 5.2.2
 	received   BOOLEAN  NOT NULL DEFAULT FALSE,
 	delay      DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+	rosterJID  TEXT,
 
 	UNIQUE (originID, fromAttr, sent)
 );
+
 
 -- Roster storage
 

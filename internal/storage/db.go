@@ -164,8 +164,8 @@ INSERT INTO sids (message, sid, byAttr)
 	}
 	wrapDB.insertMsg, err = db.PrepareContext(ctx, `
 INSERT INTO messages
-	(sent, toAttr, fromAttr, idAttr, body, stanzaType, originID, delay)
-	VALUES ($1, $2, $3, $4, $5, $6, $7, IFNULL(NULLIF($8, ""), CURRENT_TIMESTAMP))`)
+	(sent, toAttr, fromAttr, idAttr, body, stanzaType, originID, delay, rosterJID)
+	VALUES ($1, $2, $3, $4, $5, $6, $7, IFNULL(NULLIF($8, ""), CURRENT_TIMESTAMP), $9)`)
 	if err != nil {
 		return nil, err
 	}
@@ -176,10 +176,9 @@ UPDATE messages SET received=TRUE WHERE sent=TRUE AND (idAttr=$1 OR originID=$1)
 	wrapDB.queryMsg, err = db.PrepareContext(ctx, `
 SELECT sent, toAttr, fromAttr, idAttr, body, stanzaType
 	FROM messages
-	WHERE (toAttr=$1 OR fromAttr=$1)
+	WHERE rosterJID=$1
 		AND stanzaType=COALESCE(NULLIF($2, ''), stanzaType)
-	ORDER BY delay ASC;
-`)
+	ORDER BY delay ASC`)
 	if err != nil {
 		return nil, err
 	}
@@ -228,7 +227,13 @@ func (db *DB) InsertMsg(ctx context.Context, msg event.ChatMessage) error {
 		if msg.Account && !msg.Delay.Time.IsZero() {
 			delay = &msg.Delay.Time
 		}
-		res, err := tx.Stmt(db.insertMsg).ExecContext(ctx, msg.Sent, msg.To.Bare().String(), msg.From.Bare().String(), msg.ID, msg.Body, msg.Type, msg.OriginID.ID, delay)
+		var rosterJID string
+		if msg.Sent {
+			rosterJID = msg.To.Bare().String()
+		} else {
+			rosterJID = msg.From.Bare().String()
+		}
+		res, err := tx.Stmt(db.insertMsg).ExecContext(ctx, msg.Sent, msg.To.Bare().String(), msg.From.Bare().String(), msg.ID, msg.Body, msg.Type, msg.OriginID.ID, delay, rosterJID)
 		if err != nil {
 			return err
 		}
