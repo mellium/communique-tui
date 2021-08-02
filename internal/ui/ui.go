@@ -371,6 +371,15 @@ func (ui *UI) ShowRosterInfo() {
 %s
 `, main, secondary))
 	} else {
+		subscriptionIcon := "✘"
+		switch item.Subscription {
+		case "both":
+			subscriptionIcon = "⇆"
+		case "to":
+			subscriptionIcon = "→"
+		case "from":
+			subscriptionIcon = "←"
+		}
 		name := item.Name
 		if name == "" {
 			name = item.JID.Localpart()
@@ -382,7 +391,7 @@ func (ui *UI) ShowRosterInfo() {
 
 Subscription: %s
 Groups: %v
-`, name, item.JID, item.Subscription, item.Group))
+`, name, item.JID, subscriptionIcon, item.Group))
 	}
 	ui.pages.ShowPage(infoPageName)
 	ui.pages.SendToFront(infoPageName)
