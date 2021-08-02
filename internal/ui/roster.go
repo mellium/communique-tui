@@ -258,6 +258,32 @@ func (r Roster) setStatus(color, name string) {
 	r.list.SetItemText(0, name, fmt.Sprintf("[%s]%s", color, strings.Repeat("─", width)))
 }
 
+// Delete removes an item from the roster.
+func (r Roster) Delete(bareJID string) {
+	r.itemLock.Lock()
+	defer r.itemLock.Unlock()
+	r.deleteItem(bareJID)
+}
+
+func (r Roster) deleteItem(bareJID string) {
+	var ok bool
+	item, ok := r.items[bareJID]
+	if !ok {
+		return
+	}
+	oldIdx := item.idx
+	r.list.RemoveItem(oldIdx)
+	delete(r.items, bareJID)
+	for bareJID, item = range r.items {
+		found := r.list.FindItems(item.Name, bareJID, true, false)
+		if len(found) == 0 {
+			continue
+		}
+		item.idx = found[0]
+		r.items[bareJID] = item
+	}
+}
+
 // Upsert inserts or updates an item in the roster.
 func (r Roster) Upsert(item RosterItem, action func()) {
 	r.itemLock.Lock()
@@ -270,13 +296,7 @@ func (r Roster) Upsert(item RosterItem, action func()) {
 
 	switch item.Subscription {
 	case "remove":
-		var ok bool
-		item, ok = r.items[bare]
-		if !ok {
-			return
-		}
-		r.list.RemoveItem(item.idx)
-		delete(r.items, bare)
+		r.deleteItem(bare)
 	default:
 		existing, ok := r.items[bare]
 		if ok {
