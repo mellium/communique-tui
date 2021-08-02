@@ -22,6 +22,7 @@ const (
 	chatPageName        = "chat"
 	quitPageName        = "quit"
 	helpPageName        = "help"
+	delRosterPageName   = "del_roster"
 	infoPageName        = "info"
 	setStatusPageName   = "set_status"
 	uiPageName          = "ui"
@@ -156,6 +157,10 @@ func New(opts ...Option) *UI {
 		pages.ShowPage(setStatusPageName)
 		pages.SendToFront(setStatusPageName)
 		app.SetFocus(pages)
+	}, func() {
+		pages.ShowPage(delRosterPageName)
+		pages.SendToFront(delRosterPageName)
+		app.SetFocus(pages)
 	})
 	rosterBox.OnChanged(func(idx int, main string, secondary string, shortcut rune) {
 		if idx == 0 {
@@ -265,6 +270,25 @@ func New(opts ...Option) *UI {
 	ui.pages.AddPage(helpPageName, helpModal(func() {
 		ui.pages.HidePage(helpPageName)
 	}), true, false)
+	ui.pages.AddPage(delRosterPageName, delRosterModal(func() {
+		ui.pages.HidePage(delRosterPageName)
+	}, func() {
+		ui.roster.itemLock.Lock()
+		defer ui.roster.itemLock.Unlock()
+		cur := ui.roster.list.GetCurrentItem()
+		if cur == 0 {
+			// we can't delete the status selector.
+			return
+		}
+		for bare, item := range ui.roster.items {
+			if item.idx == cur {
+				ui.roster.deleteItem(bare)
+				ui.handler(event.DeleteRosterItem(item.Item))
+				break
+			}
+		}
+	}), true, false)
+
 	ui.pages.AddPage(infoPageName, ui.infoModal, true, false)
 	ui.pages.AddPage(getPasswordPageName, getPasswordPage, true, false)
 
@@ -362,6 +386,7 @@ func (ui *UI) ShowHelpPrompt() {
 	ui.app.SetFocus(ui.pages)
 }
 
+// ShowRosterInfo displays more info about the currently selected roster item.
 func (ui *UI) ShowRosterInfo() {
 	item, ok := ui.roster.GetSelected()
 	if !ok {

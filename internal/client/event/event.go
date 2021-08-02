@@ -30,6 +30,10 @@ type (
 		Items <-chan UpdateRoster
 	}
 
+	// DeleteRosterItem is sent when a roster item has been removed (eg. after
+	// UpdateRoster triggers a removal or it is removed in the UI).
+	DeleteRosterItem roster.Item
+
 	// UpdateRoster is sent when a roster item should be updated (eg. after a
 	// roster push).
 	UpdateRoster struct {

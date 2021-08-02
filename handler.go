@@ -51,6 +51,15 @@ func newUIHandler(configPath string, pane *ui.UI, db *storage.DB, c *client.Clie
 					logger.Printf("error going offline: %v", err)
 				}
 			}()
+		case event.DeleteRosterItem:
+			go func() {
+				ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+				defer cancel()
+				err := roster.Delete(ctx, c.Session, e.JID)
+				if err != nil {
+					logger.Printf("error removing roster item %s: %v", e.JID, err)
+				}
+			}()
 		case event.UpdateRoster:
 			// TODO:
 			panic("event.UpdateRoster: not yet implemented")

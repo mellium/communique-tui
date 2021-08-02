@@ -14,8 +14,27 @@ func modalClose(onEsc func()) func(event *tcell.EventKey) *tcell.EventKey {
 		if event.Rune() == 'q' || event.Key() == tcell.KeyESC {
 			onEsc()
 		}
-		return nil
+		return event
 	}
+}
+
+func delRosterModal(onEsc func(), onDel func()) *tview.Modal {
+	const (
+		cancelButton = "Cancel"
+		removeButton = "Remove"
+	)
+	mod := tview.NewModal().
+		SetText(`Remove this contact from your roster?`).
+		SetBackgroundColor(tview.Styles.PrimitiveBackgroundColor).
+		AddButtons([]string{cancelButton, removeButton}).
+		SetDoneFunc(func(_ int, buttonLabel string) {
+			if buttonLabel == removeButton {
+				onDel()
+			}
+			onEsc()
+		})
+	mod.SetInputCapture(modalClose(onEsc))
+	return mod
 }
 
 func infoModal(onEsc func()) *tview.Modal {
@@ -61,7 +80,8 @@ Roster:
 
 i⃣, ⏎⃣ open chat
 I⃣ more info
-o⃣, O⃣: open next/prev unread
+o⃣, O⃣ open next/prev unread
+d⃣ d⃣ remove contact
 `).
 		SetDoneFunc(func(int, string) {
 			onEsc()

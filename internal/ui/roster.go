@@ -51,7 +51,7 @@ type Roster struct {
 }
 
 // newRoster creates a new roster widget with the provided options.
-func newRoster(onStatus func()) *Roster {
+func newRoster(onStatus func(), onDelete func()) *Roster {
 	r := &Roster{
 		items:    make(map[string]RosterItem),
 		itemLock: &sync.Mutex{},
@@ -188,6 +188,12 @@ func newRoster(onStatus func()) *Roster {
 			if events.String() == "gg" {
 				events.Reset()
 				r.list.SetCurrentItem(0)
+			}
+			return nil
+		case 'd':
+			if events.String() == "dd" {
+				events.Reset()
+				onDelete()
 			}
 			return nil
 		case '1', '2', '3', '4', '5', '6', '7', '8', '9', '0':
