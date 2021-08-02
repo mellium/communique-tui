@@ -9,6 +9,26 @@ import (
 	"github.com/rivo/tview"
 )
 
+func modalClose(onEsc func()) func(event *tcell.EventKey) *tcell.EventKey {
+	return func(event *tcell.EventKey) *tcell.EventKey {
+		if event.Rune() == 'q' || event.Key() == tcell.KeyESC {
+			onEsc()
+		}
+		return nil
+	}
+}
+
+func infoModal(onEsc func()) *tview.Modal {
+	mod := tview.NewModal().
+		SetText(`Roster info:`).
+		SetDoneFunc(func(int, string) {
+			onEsc()
+		}).
+		SetBackgroundColor(tview.Styles.PrimitiveBackgroundColor)
+	mod.SetInputCapture(modalClose(onEsc))
+	return mod
+}
+
 func helpModal(onEsc func()) *tview.Modal {
 	// U+20E3 COMBINING ENCLOSING KEYCAP
 	mod := tview.NewModal().
@@ -40,17 +60,13 @@ N⃣ previous search result
 Roster:
 
 i⃣, ⏎⃣ open chat
+I⃣ more info
 o⃣, O⃣: open next/prev unread
 `).
 		SetDoneFunc(func(int, string) {
 			onEsc()
 		}).
 		SetBackgroundColor(tview.Styles.PrimitiveBackgroundColor)
-	mod.SetInputCapture(func(event *tcell.EventKey) *tcell.EventKey {
-		if event.Rune() == 'q' || event.Key() == tcell.KeyESC {
-			onEsc()
-		}
-		return nil
-	})
+	mod.SetInputCapture(modalClose(onEsc))
 	return mod
 }

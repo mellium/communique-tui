@@ -22,6 +22,7 @@ const (
 	chatPageName        = "chat"
 	quitPageName        = "quit"
 	helpPageName        = "help"
+	infoPageName        = "info"
 	setStatusPageName   = "set_status"
 	uiPageName          = "ui"
 )
@@ -59,6 +60,7 @@ type UI struct {
 	addr        string
 	passPrompt  chan string
 	chatsOpen   *syncBool
+	infoModal   *tview.Modal
 }
 
 // Run starts the application event loop.
@@ -176,6 +178,9 @@ func New(opts ...Option) *UI {
 		passPrompt:  make(chan string),
 		chatsOpen:   &syncBool{},
 	}
+	ui.infoModal = infoModal(func() {
+		ui.pages.HidePage(infoPageName)
+	})
 	for _, o := range opts {
 		o(ui)
 	}
@@ -210,6 +215,9 @@ func New(opts ...Option) *UI {
 			return nil
 		case eventRune == 'K' || key == tcell.KeyF1 || key == tcell.KeyHelp:
 			ui.ShowHelpPrompt()
+			return nil
+		case eventRune == 'I':
+			ui.ShowRosterInfo()
 			return nil
 		}
 
@@ -257,6 +265,7 @@ func New(opts ...Option) *UI {
 	ui.pages.AddPage(helpPageName, helpModal(func() {
 		ui.pages.HidePage(helpPageName)
 	}), true, false)
+	ui.pages.AddPage(infoPageName, ui.infoModal, true, false)
 	ui.pages.AddPage(getPasswordPageName, getPasswordPage, true, false)
 
 	return ui
@@ -350,6 +359,33 @@ func (ui *UI) ShowQuitPrompt() {
 func (ui *UI) ShowHelpPrompt() {
 	ui.pages.ShowPage(helpPageName)
 	ui.pages.SendToFront(helpPageName)
+	ui.app.SetFocus(ui.pages)
+}
+
+func (ui *UI) ShowRosterInfo() {
+	item, ok := ui.roster.GetSelected()
+	if !ok {
+		idx := ui.roster.list.GetCurrentItem()
+		main, secondary := ui.roster.list.GetItemText(idx)
+		ui.infoModal.SetText(fmt.Sprintf(`%s
+%s
+`, main, secondary))
+	} else {
+		name := item.Name
+		if name == "" {
+			name = item.JID.Localpart()
+		}
+		ui.infoModal.SetText(fmt.Sprintf(`🛈
+
+%s
+%s
+
+Subscription: %s
+Groups: %v
+`, name, item.JID, item.Subscription, item.Group))
+	}
+	ui.pages.ShowPage(infoPageName)
+	ui.pages.SendToFront(infoPageName)
 	ui.app.SetFocus(ui.pages)
 }
 
