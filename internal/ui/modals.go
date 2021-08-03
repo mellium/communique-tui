@@ -7,6 +7,8 @@ package ui
 import (
 	"github.com/gdamore/tcell/v2"
 	"github.com/rivo/tview"
+
+	"mellium.im/xmpp/jid"
 )
 
 func modalClose(onEsc func()) func(event *tcell.EventKey) *tcell.EventKey {
@@ -16,6 +18,36 @@ func modalClose(onEsc func()) func(event *tcell.EventKey) *tcell.EventKey {
 		}
 		return event
 	}
+}
+
+func addRosterModal(autocomplete func(s string) []string, onEsc func(), onAdd func(jid.JID)) *Modal {
+	const (
+		cancelButton = "Cancel"
+		addButton    = "Add"
+	)
+	mod := NewModal().
+		SetText(`Start Chat`)
+	var inputJID jid.JID
+	jidInput := tview.NewInputField().SetPlaceholder("me@example.net")
+	mod.Form().AddFormItem(jidInput)
+	jidInput.SetChangedFunc(func(text string) {
+		var err error
+		inputJID, err = jid.Parse(text)
+		if err == nil {
+			jidInput.SetLabel("✅")
+		} else {
+			jidInput.SetLabel("❌")
+		}
+	}).SetAutocompleteFunc(autocomplete)
+	mod.SetBackgroundColor(tview.Styles.PrimitiveBackgroundColor).
+		AddButtons([]string{cancelButton, addButton}).
+		SetDoneFunc(func(_ int, buttonLabel string) {
+			if buttonLabel == addButton {
+				onAdd(inputJID.Bare())
+			}
+			onEsc()
+		})
+	return mod
 }
 
 func delRosterModal(onEsc func(), onDel func()) *tview.Modal {
@@ -78,6 +110,7 @@ N⃣ previous search result
 
 Roster:
 
+c⃣ start chat
 i⃣, ⏎⃣ open chat
 I⃣ more info
 o⃣, O⃣ open next/prev unread

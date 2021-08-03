@@ -14,6 +14,8 @@ import (
 	"github.com/rivo/tview"
 
 	"mellium.im/communique/internal/client/event"
+	"mellium.im/xmpp/jid"
+	"mellium.im/xmpp/roster"
 )
 
 const (
@@ -23,6 +25,7 @@ const (
 	quitPageName        = "quit"
 	helpPageName        = "help"
 	delRosterPageName   = "del_roster"
+	addRosterPageName   = "add_roster"
 	infoPageName        = "info"
 	setStatusPageName   = "set_status"
 	uiPageName          = "ui"
@@ -47,21 +50,22 @@ func (b *syncBool) Get() bool {
 
 // UI is a widget that combines other widgets to make the main UI.
 type UI struct {
-	app         *tview.Application
-	flex        *tview.Flex
-	pages       *tview.Pages
-	buffers     *tview.Pages
-	history     unreadTextView
-	statusBar   *tview.TextView
-	roster      *Roster
-	rosterWidth int
-	logWriter   *tview.TextView
-	handler     func(interface{})
-	redraw      func() *tview.Application
-	addr        string
-	passPrompt  chan string
-	chatsOpen   *syncBool
-	infoModal   *tview.Modal
+	app            *tview.Application
+	flex           *tview.Flex
+	pages          *tview.Pages
+	buffers        *tview.Pages
+	history        unreadTextView
+	statusBar      *tview.TextView
+	roster         *Roster
+	rosterWidth    int
+	logWriter      *tview.TextView
+	handler        func(interface{})
+	redraw         func() *tview.Application
+	addr           string
+	passPrompt     chan string
+	chatsOpen      *syncBool
+	infoModal      *tview.Modal
+	addRosterModal *Modal
 }
 
 // Run starts the application event loop.
@@ -186,6 +190,38 @@ func New(opts ...Option) *UI {
 	ui.infoModal = infoModal(func() {
 		ui.pages.HidePage(infoPageName)
 	})
+	ui.addRosterModal = addRosterModal(func(s string) []string {
+		idx := strings.IndexByte(s, '@')
+		if idx < 0 {
+			return nil
+		}
+		search := s[idx+1:]
+		entriesSet := make(map[string]struct{})
+		for _, item := range ui.roster.items {
+			domainpart := item.JID.Domainpart()
+			entry := strings.TrimPrefix(domainpart, search)
+			if entry == domainpart {
+				continue
+			}
+			entriesSet[entry] = struct{}{}
+		}
+		var entries []string
+		for entry := range entriesSet {
+			entries = append(entries, s+entry)
+		}
+		return entries
+	}, func() {
+		ui.pages.HidePage(addRosterPageName)
+	}, func(j jid.JID) {
+		// add to roster
+		go func() {
+			ui.UpdateRoster(RosterItem{
+				Item: roster.Item{
+					JID: j,
+				},
+			})
+		}()
+	})
 	for _, o := range opts {
 		o(ui)
 	}
@@ -214,6 +250,9 @@ func New(opts ...Option) *UI {
 		case key == tcell.KeyTAB || key == tcell.KeyBacktab:
 			buffers.SwitchToPage(logsPageName)
 			app.SetFocus(buffers)
+			return nil
+		case eventRune == 'c':
+			ui.ShowAddRoster()
 			return nil
 		case eventRune == 'q':
 			ui.ShowQuitPrompt()
@@ -261,7 +300,7 @@ func New(opts ...Option) *UI {
 
 	ui.pages.AddPage(setStatusPageName, setStatusPage, true, false)
 	ui.pages.AddPage(uiPageName, ui.flex, true, true)
-	ui.pages.AddPage(quitPageName, quitModal(func(buttonIndex int, buttonLabel string) {
+	ui.pages.AddPage(quitPageName, quitModal(func(buttonIndex int, _ string) {
 		if buttonIndex == 0 {
 			app.Stop()
 		}
@@ -270,19 +309,17 @@ func New(opts ...Option) *UI {
 	ui.pages.AddPage(helpPageName, helpModal(func() {
 		ui.pages.HidePage(helpPageName)
 	}), true, false)
+	ui.pages.AddPage(addRosterPageName, ui.addRosterModal, true, false)
 	ui.pages.AddPage(delRosterPageName, delRosterModal(func() {
 		ui.pages.HidePage(delRosterPageName)
 	}, func() {
-		ui.roster.itemLock.Lock()
-		defer ui.roster.itemLock.Unlock()
 		cur := ui.roster.list.GetCurrentItem()
 		if cur == 0 {
 			// we can't delete the status selector.
 			return
 		}
-		for bare, item := range ui.roster.items {
+		for _, item := range ui.roster.items {
 			if item.idx == cur {
-				ui.roster.deleteItem(bare)
 				ui.handler(event.DeleteRosterItem(item.Item))
 				break
 			}
@@ -376,6 +413,13 @@ func (ui *UI) ShowPasswordPrompt() string {
 func (ui *UI) ShowQuitPrompt() {
 	ui.pages.ShowPage(quitPageName)
 	ui.pages.SendToFront(quitPageName)
+	ui.app.SetFocus(ui.pages)
+}
+
+// ShowAddRoster asks the user for a new JID.
+func (ui *UI) ShowAddRoster() {
+	ui.pages.ShowPage(addRosterPageName)
+	ui.pages.SendToFront(addRosterPageName)
 	ui.app.SetFocus(ui.pages)
 }
 

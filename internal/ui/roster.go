@@ -352,9 +352,9 @@ func (r Roster) Blur() {
 	r.flex.Blur()
 }
 
-// GetFocusable implements tview.Primitive for Roster.
-func (r Roster) GetFocusable() tview.Focusable {
-	return r.flex.GetFocusable()
+// HasFocus implements tview.Primitive for Roster.
+func (r Roster) HasFocus() bool {
+	return r.flex.HasFocus()
 }
 
 // MouseHandler implements tview.Primitive for Roster.
