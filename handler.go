@@ -13,7 +13,9 @@ import (
 	"mellium.im/communique/internal/client/event"
 	"mellium.im/communique/internal/storage"
 	"mellium.im/communique/internal/ui"
+	"mellium.im/xmpp/jid"
 	"mellium.im/xmpp/roster"
+	"mellium.im/xmpp/stanza"
 )
 
 // newUIHandler returns a handler for events that are emitted by the UI that
@@ -105,6 +107,23 @@ func newUIHandler(configPath string, pane *ui.UI, db *storage.DB, c *client.Clie
 		case event.CloseChat:
 			history := pane.History()
 			history.SetText("")
+		case event.Subscribe:
+			ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+			defer cancel()
+			err := c.Send(ctx, stanza.Presence{
+				To:   jid.JID(e),
+				Type: stanza.SubscribedPresence,
+			}.Wrap(nil))
+			if err != nil {
+				logger.Printf("error sending presence pre-approval to %s: %v", jid.JID(e), err)
+			}
+			err = c.Send(ctx, stanza.Presence{
+				To:   jid.JID(e),
+				Type: stanza.SubscribePresence,
+			}.Wrap(nil))
+			if err != nil {
+				logger.Printf("error sending presence request to %s: %v", jid.JID(e), err)
+			}
 		default:
 			debug.Printf("unrecognized ui event: %q", e)
 		}

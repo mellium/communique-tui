@@ -433,8 +433,8 @@ func (ui *UI) ShowHelpPrompt() {
 // ShowRosterInfo displays more info about the currently selected roster item.
 func (ui *UI) ShowRosterInfo() {
 	item, ok := ui.roster.GetSelected()
+	idx := ui.roster.list.GetCurrentItem()
 	if !ok {
-		idx := ui.roster.list.GetCurrentItem()
 		main, secondary := ui.roster.list.GetItemText(idx)
 		ui.infoModal.SetText(fmt.Sprintf(`%s
 %s
@@ -460,7 +460,21 @@ func (ui *UI) ShowRosterInfo() {
 
 Subscription: %s
 Groups: %v
-`, name, item.JID, subscriptionIcon, item.Group))
+`, name, item.JID, subscriptionIcon, item.Group)).
+			ClearButtons()
+		// If this isn't the status button or the "Me" item and we're not
+		// subscribed, add a subscribe button.
+		if idx > 1 && item.Subscription != "to" && item.Subscription != "both" {
+			const subscribeBtn = "Subscribe"
+			ui.infoModal.AddButtons([]string{subscribeBtn}).
+				SetDoneFunc(func(_ int, buttonLabel string) {
+					switch buttonLabel {
+					case subscribeBtn:
+						ui.handler(event.Subscribe(item.JID.Bare()))
+					}
+					ui.pages.HidePage(infoPageName)
+				})
+		}
 	}
 	ui.pages.ShowPage(infoPageName)
 	ui.pages.SendToFront(infoPageName)

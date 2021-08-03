@@ -7,6 +7,7 @@ package event // import "mellium.im/communique/internal/client/event"
 
 import (
 	"mellium.im/xmpp/delay"
+	"mellium.im/xmpp/jid"
 	"mellium.im/xmpp/roster"
 	"mellium.im/xmpp/stanza"
 )
@@ -70,4 +71,7 @@ type (
 
 	// CloseChat is sent when the chat view is closed.
 	CloseChat roster.Item
+
+	// Subscribe is sent when we subscribe to a users presence.
+	Subscribe jid.JID
 )
