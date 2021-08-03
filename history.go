@@ -8,6 +8,7 @@ import (
 	"context"
 	"fmt"
 	"io"
+	"log"
 	"strings"
 	"time"
 
@@ -70,11 +71,11 @@ func writeMessage(pane *ui.UI, configPath string, msg event.ChatMessage, notNew 
 	return nil
 }
 
-func loadBuffer(pane *ui.UI, db *storage.DB, configPath string, ev event.OpenChat, msgID string) error {
+func loadBuffer(ctx context.Context, pane *ui.UI, db *storage.DB, configPath string, ev event.OpenChat, msgID string, logger *log.Logger) error {
 	history := pane.History()
 	history.SetText("")
 
-	iter := db.QueryHistory(context.TODO(), ev.JID.String(), "")
+	iter := db.QueryHistory(ctx, ev.JID.String(), "")
 	for iter.Next() {
 		cur := iter.Message()
 		if cur.ID != "" && cur.ID == msgID {
@@ -85,12 +86,16 @@ func loadBuffer(pane *ui.UI, db *storage.DB, configPath string, ev event.OpenCha
 		}
 		err := writeMessage(pane, configPath, cur, true)
 		if err != nil {
-			history.SetText(fmt.Sprintf("Error writing history: %v", err))
+			err = fmt.Errorf("error writing history: %w", err)
+			history.SetText(err.Error())
+			logger.Println(err)
 			return nil
 		}
 	}
 	if err := iter.Err(); err != nil {
-		history.SetText(fmt.Sprintf("Error querying for history: %v", err))
+		history.SetText(err.Error())
+		err = fmt.Errorf("error querying history for %s: %w", ev.JID, err)
+		logger.Println(err)
 	}
 	return nil
 }

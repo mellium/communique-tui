@@ -120,7 +120,7 @@ func prepareQueries(ctx context.Context, db *sql.DB) (*DB, error) {
 DELETE FROM rosterJIDs;
 `)
 	wrapDB.delRoster, err = db.PrepareContext(ctx, `
-DELETE FROM roster WHERE jid=?`)
+DELETE FROM rosterJIDs WHERE jid=$1`)
 	if err != nil {
 		return nil, err
 	}
@@ -341,17 +341,28 @@ func (db *DB) RosterVer(ctx context.Context) (string, error) {
 // UpdateRoster upserts or removes a JID from the roster.
 func (db *DB) UpdateRoster(ctx context.Context, ver string, item event.UpdateRoster) error {
 	if item.Subscription == "remove" {
-		_, err := db.delRoster.ExecContext(ctx, item.JID.Bare().String())
-		return err
+		return execTx(ctx, db, func(ctx context.Context, tx *sql.Tx) error {
+			if ver != "" {
+				_, err := tx.Stmt(db.insertRosterVer).ExecContext(ctx, ver)
+				if err != nil {
+					return err
+				}
+			}
+
+			_, err := tx.Stmt(db.delRoster).ExecContext(ctx, item.JID.Bare().String())
+			return err
+		})
 	}
 
 	return execTx(ctx, db, func(ctx context.Context, tx *sql.Tx) error {
-		_, err := tx.Stmt(db.insertRosterVer).ExecContext(ctx, ver)
-		if err != nil {
-			return err
+		if ver != "" {
+			_, err := tx.Stmt(db.insertRosterVer).ExecContext(ctx, ver)
+			if err != nil {
+				return err
+			}
 		}
 		bareJID := item.JID.Bare().String()
-		_, err = tx.Stmt(db.insertRoster).ExecContext(ctx, bareJID, item.Name, item.Subscription)
+		_, err := tx.Stmt(db.insertRoster).ExecContext(ctx, bareJID, item.Name, item.Subscription)
 		if err != nil {
 			return err
 		}

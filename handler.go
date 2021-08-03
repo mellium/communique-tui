@@ -92,7 +92,9 @@ func newUIHandler(configPath string, pane *ui.UI, db *storage.DB, c *client.Clie
 				if ok {
 					firstUnread = item.FirstUnread()
 				}
-				if err := loadBuffer(pane, db, configPath, e, firstUnread); err != nil {
+				ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+				defer cancel()
+				if err := loadBuffer(ctx, pane, db, configPath, e, firstUnread, logger); err != nil {
 					logger.Printf("error loading chat: %v", err)
 					return
 				}
