@@ -305,7 +305,9 @@ Go %s %s
 		defer cancel()
 		if err := c.Online(ctx); err != nil {
 			logger.Printf("initial login failed: %v", err)
+			return
 		}
+		debug.Printf("logged in as: %q", c.LocalAddr())
 	}()
 
 	go func() {
