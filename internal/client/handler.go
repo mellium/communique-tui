@@ -12,6 +12,7 @@ import (
 	"mellium.im/xmlstream"
 	"mellium.im/xmpp"
 	"mellium.im/xmpp/carbons"
+	"mellium.im/xmpp/disco"
 	"mellium.im/xmpp/jid"
 	"mellium.im/xmpp/mux"
 	"mellium.im/xmpp/receipts"
@@ -22,6 +23,7 @@ import (
 func newXMPPHandler(c *Client) xmpp.Handler {
 	msgHandler := newMessageHandler(c)
 	return mux.New(
+		disco.Handle(),
 		roster.Handle(roster.Handler{
 			Push: func(ver string, item roster.Item) error {
 				c.rosterVer = ver
