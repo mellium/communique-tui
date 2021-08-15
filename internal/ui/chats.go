@@ -15,19 +15,156 @@ import (
 // UnreadRegion is a tview region tag that will draw an unread marker.
 const UnreadRegion = "unreadMarker"
 
-// unreadTextView wraps a text view and draws the unread marker on any line that
-// starts with a '─'.
+// ConversationView is a wrapper around TextView that adds other functionality
+// important for displaying chats.
+type ConversationView struct {
+	*tview.Flex
+	TextView      *tview.TextView
+	input         *tview.InputField
+	scrollHandler func(row, col int)
+	ui            *UI
+}
+
+// NewConversationView configures and creates a new chat view.
+func NewConversationView(ui *UI) *ConversationView {
+	cv := ConversationView{
+		Flex: tview.NewFlex().SetDirection(tview.FlexRow),
+		TextView: tview.NewTextView().
+			SetDynamicColors(true).
+			SetRegions(true).
+			Highlight(UnreadRegion),
+		input: tview.NewInputField().
+			SetFieldBackgroundColor(tview.Styles.PrimitiveBackgroundColor),
+		ui:            ui,
+		scrollHandler: func(int, int) {},
+	}
+	cv.TextView.SetBorder(true).SetTitle("Conversation")
+	cv.input.SetBorder(true)
+	cv.Flex.SetBorder(false)
+	cv.Flex.AddItem(unreadTextView{TextView: cv.TextView}, 0, 100, false)
+	cv.Flex.AddItem(cv.input, 3, 1, true)
+	cv.TextView.SetChangedFunc(func() {
+		ui.app.Draw()
+	})
+	return &cv
+}
+
+// OnScroll sets a handler to be called any time the sroll position changes (ie.
+// due to a keyboard shortcut or a screen size change).
+// This does not include writes to the buffer when the scroll position is at the
+// bottom, even though technically this will result in a position change, nor
+// does it account for horizontal position change.
+func (cv *ConversationView) OnScroll(f func(int, int)) {
+	cv.scrollHandler = f
+}
+
+func checkScroll(cv *ConversationView, f func()) {
+	oldRow, _ := cv.TextView.GetScrollOffset()
+	f()
+	newRow, newCol := cv.TextView.GetScrollOffset()
+	if oldRow != newRow {
+		cv.scrollHandler(newRow, newCol)
+	}
+}
+
+// ScrollTo scrolls to the specified row and column (both starting with 0).
+func (cv *ConversationView) ScrollTo(row, column int) {
+	checkScroll(cv, func() {
+		cv.TextView.ScrollTo(row, column)
+	})
+}
+
+// ScrollToBeginning scrolls to the top left corner of the text if the text view
+// is scrollable.
+func (cv *ConversationView) ScrollToBeginning() {
+	checkScroll(cv, func() {
+		cv.TextView.ScrollToBeginning()
+	})
+}
+
+// ScrollToEnd scrolls to the bottom left corner of the text if the text view is
+// scrollable.
+// Adding new rows to the end of the text view will cause it to scroll with the
+// new data.
+func (cv *ConversationView) ScrollToEnd() {
+	checkScroll(cv, func() {
+		cv.TextView.ScrollToEnd()
+	})
+}
+
+// ScrollToHighlight will cause the visible area to be scrolled so that the
+// highlighted regions appear in the visible area of the text view.
+// This repositioning happens the next time the text view is drawn.
+// It happens only once so you will need to call this function repeatedly to
+// always keep highlighted regions in view.
+//
+// Nothing happens if there are no highlighted regions or if the text view is
+// not scrollable.
+func (cv *ConversationView) ScrollToHighlight() {
+	checkScroll(cv, func() {
+		cv.TextView.ScrollToHighlight()
+	})
+}
+
+// InputHandler returns the handler for this primitive.
+func (cv *ConversationView) InputHandler() func(event *tcell.EventKey, setFocus func(p tview.Primitive)) {
+	return func(ev *tcell.EventKey, setFocus func(p tview.Primitive)) {
+		switch ev.Key() {
+		case tcell.KeyUp, tcell.KeyDown, tcell.KeyRight, tcell.KeyLeft, tcell.KeyPgUp, tcell.KeyPgDn:
+			cv.TextView.InputHandler()(ev, setFocus)
+		case tcell.KeyTAB, tcell.KeyBacktab:
+			if cv.input.HasFocus() {
+				setFocus(cv.TextView)
+			} else {
+				setFocus(cv.input)
+			}
+		case tcell.KeyESC:
+			cv.ui.SelectRoster()
+		case tcell.KeyEnter:
+			if !cv.input.HasFocus() {
+				break
+			}
+			body := cv.input.GetText()
+			if body == "" {
+				return
+			}
+			item, ok := cv.ui.roster.GetSelected()
+			if !ok {
+				return
+			}
+			cv.ui.handler(event.ChatMessage{
+				Message: stanza.Message{
+					To:   item.Item.JID,
+					Type: stanza.ChatMessage,
+				},
+				Body: body,
+				Sent: true,
+			})
+			cv.input.SetText("")
+		default:
+			// Pass anything else to the input handler.
+			if cv.input.HasFocus() {
+				cv.input.InputHandler()(ev, setFocus)
+			} else {
+				checkScroll(cv, func() {
+					cv.TextView.InputHandler()(ev, setFocus)
+				})
+			}
+		}
+	}
+}
+
 type unreadTextView struct {
 	*tview.TextView
 }
 
-func (t unreadTextView) Draw(screen tcell.Screen) {
-	t.TextView.Draw(screen)
+func (cv unreadTextView) Draw(screen tcell.Screen) {
+	cv.TextView.Draw(screen)
 
-	t.TextView.Lock()
-	defer t.TextView.Unlock()
+	cv.TextView.Lock()
+	defer cv.TextView.Unlock()
 
-	x, y, width, height := t.GetInnerRect()
+	x, y, width, height := cv.TextView.GetInnerRect()
 	top := y + height
 
 	var found bool
@@ -56,63 +193,4 @@ func (t unreadTextView) Draw(screen tcell.Screen) {
 				Foreground(tview.Styles.ContrastSecondaryTextColor),
 		)
 	}
-}
-
-func newChats(ui *UI) (*tview.Flex, unreadTextView) {
-	chats := tview.NewFlex().
-		SetDirection(tview.FlexRow)
-
-	history := tview.NewTextView().
-		SetDynamicColors(true).
-		SetRegions(true).
-		Highlight(UnreadRegion)
-	history.SetBorder(true).SetTitle("Conversation")
-	history.SetChangedFunc(func() {
-		ui.app.Draw()
-	})
-	inputField := tview.NewInputField().SetFieldBackgroundColor(tview.Styles.PrimitiveBackgroundColor)
-	inputField.SetBorder(true)
-	unreadHistory := unreadTextView{
-		TextView: history,
-	}
-	chats.AddItem(unreadHistory, 0, 100, false)
-	chats.AddItem(inputField, 3, 1, true)
-
-	chats.SetBorder(false)
-	chats.SetInputCapture(func(ev *tcell.EventKey) *tcell.EventKey {
-		// If escape is pressed, call the escape handler.
-		switch ev.Key() {
-		case tcell.KeyESC:
-			ui.SelectRoster()
-			return nil
-		case tcell.KeyEnter:
-			body := inputField.GetText()
-			if body == "" {
-				return nil
-			}
-			item, ok := ui.roster.GetSelected()
-			if !ok {
-				return nil
-			}
-			ui.handler(event.ChatMessage{
-				Message: stanza.Message{
-					To:   item.Item.JID,
-					Type: stanza.ChatMessage,
-				},
-				Body: body,
-				Sent: true,
-			})
-			inputField.SetText("")
-			return nil
-		}
-
-		// If anythig but Esc is pressed, pass input to the text box.
-		capt := inputField.InputHandler()
-		if capt != nil {
-			capt(ev, nil)
-		}
-		return nil
-	})
-
-	return chats, unreadHistory
 }

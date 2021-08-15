@@ -54,7 +54,7 @@ type UI struct {
 	flex           *tview.Flex
 	pages          *tview.Pages
 	buffers        *tview.Pages
-	history        unreadTextView
+	history        *ConversationView
 	statusBar      *tview.TextView
 	roster         *Roster
 	rosterWidth    int
@@ -226,8 +226,8 @@ func New(opts ...Option) *UI {
 		o(ui)
 	}
 
-	chats, history := newChats(ui)
-	ui.history = history
+	chats := NewConversationView(ui)
+	ui.history = chats
 	buffers.AddPage(chatPageName, chats, true, false)
 
 	logs := newLogs(app, func(event *tcell.EventKey) *tcell.EventKey {
