@@ -13,6 +13,7 @@ import (
 	"mellium.im/communique/internal/client/event"
 	"mellium.im/communique/internal/storage"
 	"mellium.im/communique/internal/ui"
+	"mellium.im/xmpp/history"
 	"mellium.im/xmpp/jid"
 	"mellium.im/xmpp/roster"
 	"mellium.im/xmpp/stanza"
@@ -67,7 +68,7 @@ func newUIHandler(configPath string, pane *ui.UI, db *storage.DB, c *client.Clie
 			panic("event.UpdateRoster: not yet implemented")
 		case event.ChatMessage:
 			go func() {
-				ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+				ctx, cancel := context.WithTimeout(context.Background(), 60*time.Second)
 				defer cancel()
 
 				var err error
@@ -78,7 +79,7 @@ func newUIHandler(configPath string, pane *ui.UI, db *storage.DB, c *client.Clie
 				if err = writeMessage(pane, configPath, e, false); err != nil {
 					logger.Printf("error saving sent message to history: %v", err)
 				}
-				if err = db.InsertMsg(ctx, e); err != nil {
+				if err = db.InsertMsg(ctx, e.Account, e, c.LocalAddr()); err != nil {
 					logger.Printf("error writing message to database: %v", err)
 				}
 				// If we sent the message that wasn't automated (it has a body), assume
@@ -100,8 +101,8 @@ func newUIHandler(configPath string, pane *ui.UI, db *storage.DB, c *client.Clie
 					logger.Printf("error loading chat: %v", err)
 					return
 				}
-				history := pane.History()
-				history.ScrollToEnd()
+				historyPane := pane.History()
+				historyPane.ScrollToEnd()
 				pane.Roster().MarkRead(e.JID.Bare().String())
 			}()
 		case event.CloseChat:
@@ -132,7 +133,7 @@ func newUIHandler(configPath string, pane *ui.UI, db *storage.DB, c *client.Clie
 
 // newClientHandler returns a handler for events that are emitted by the client
 // that need to modify the UI.
-func newClientHandler(configPath string, pane *ui.UI, db *storage.DB, logger, debug *log.Logger) func(interface{}) {
+func newClientHandler(configPath string, client *client.Client, pane *ui.UI, db *storage.DB, logger, debug *log.Logger) func(interface{}) {
 	return func(ev interface{}) {
 		switch e := ev.(type) {
 		case event.StatusAway:
@@ -148,16 +149,76 @@ func newClientHandler(configPath string, pane *ui.UI, db *storage.DB, logger, de
 			defer cancel()
 			err := db.ReplaceRoster(ctx, e)
 			if err != nil {
-				logger.Printf("error fetching roster ver %q: %v", e.Ver, err)
+				logger.Printf("error updating to roster ver %q: %v", e.Ver, err)
+			}
+			ctx, cancel = context.WithTimeout(context.Background(), 30*time.Second)
+			defer cancel()
+			accountBare := client.Session.LocalAddr().Bare()
+			afterIDs := db.AfterID(ctx)
+			ids := make(map[string]storage.AfterIDResult)
+			for afterIDs.Next() {
+				id := afterIDs.Result()
+				ids[id.Addr.Bare().String()] = id
+			}
+			if err := afterIDs.Err(); err != nil {
+				logger.Printf("error querying database for last seen messages: %v", err)
+				return
 			}
 			err = db.ForRoster(ctx, func(item event.UpdateRoster) {
 				pane.UpdateRoster(ui.RosterItem{Item: roster.Item(item.Item)})
+				id, ok := ids[item.JID.Bare().String()]
+				go func() {
+					// We don't really care how long it takes to get history, and it will
+					// continue to be processed even if we time out, so just set this to a
+					// long time.
+					ctx, cancel := context.WithTimeout(context.Background(), 10*time.Minute)
+					defer cancel()
+					if ok {
+						// We have some history already, catch up from the last known
+						// message if extended queries are supported, or from the last known
+						// datetime if not.
+
+						// if extended {
+						// 	_, err := history.Fetch(ctx, history.Query{
+						// 		With:    item.JID.Bare(),
+						// 		AfterID: id.ID,
+						// 	}, accountBare, client.Session)
+						// 	if err != nil {
+						// 		logger.Printf("error fetching history after %s for %s: %v", id.ID, item.JID, err)
+						// 	}
+						// 	return
+						// }
+
+						_, err := history.Fetch(ctx, history.Query{
+							With:  item.JID.Bare(),
+							Start: id.Delay,
+						}, accountBare, client.Session)
+						if err != nil {
+							logger.Printf("error fetching history after %s for %s: %v", id.ID, item.JID, err)
+						}
+						return
+					}
+
+					// We don't have any history yet, so bootstrap a limited amount of
+					// history from the server.
+					_, _, _, screenHeight := pane.History().GetInnerRect()
+					_, err := history.Fetch(ctx, history.Query{
+						With:    item.JID.Bare(),
+						End:     time.Now(),
+						Limit:   2 * uint64(screenHeight),
+						Reverse: true,
+						Last:    true,
+					}, accountBare, client.Session)
+					if err != nil {
+						debug.Printf("error bootstraping history for %s: %v", item.JID, err)
+					}
+				}()
 			})
 			if err != nil {
 				logger.Printf("error iterating over roster items: %v", err)
 			}
 		case event.UpdateRoster:
-			pane.UpdateRoster(ui.RosterItem{Item: roster.Item(e.Item)})
+			pane.UpdateRoster(ui.RosterItem{Item: e.Item})
 			ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
 			defer cancel()
 			db.UpdateRoster(ctx, e.Ver, e)
@@ -172,15 +233,24 @@ func newClientHandler(configPath string, pane *ui.UI, db *storage.DB, logger, de
 			ctx, cancel := context.WithTimeout(context.Background(), time.Second)
 			defer cancel()
 			if err := writeMessage(pane, configPath, e, false); err != nil {
-				logger.Printf("error writing received message to history: %v", err)
+				logger.Printf("error writing received message to chat: %v", err)
 			}
-			if err := db.InsertMsg(ctx, e); err != nil {
+			if err := db.InsertMsg(ctx, e.Account, e, client.LocalAddr()); err != nil {
 				logger.Printf("error writing message to database: %v", err)
 			}
 			// If we sent the message that wasn't automated (it has a body), assume
 			// we've read everything before it.
 			if e.Sent && e.Body != "" {
 				pane.Roster().MarkRead(e.To.Bare().String())
+			}
+		case event.HistoryMessage:
+			ctx, cancel := context.WithTimeout(context.Background(), time.Second)
+			defer cancel()
+			if err := writeMessage(pane, configPath, e.Result.Forward.Msg, false); err != nil {
+				logger.Printf("error writing history message to chat: %v", err)
+			}
+			if err := db.InsertMsg(ctx, true, e.Result.Forward.Msg, client.LocalAddr()); err != nil {
+				logger.Printf("error writing history to database: %v", err)
 			}
 		default:
 			debug.Printf("unrecognized client event: %q", e)

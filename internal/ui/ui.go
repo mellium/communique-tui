@@ -349,6 +349,7 @@ func (ui *UI) UpdateRoster(item RosterItem) {
 		ui.app.SetFocus(ui.buffers)
 	})
 	ui.redraw()
+	ui.handler(event.UpdateRoster{Item: item.Item})
 }
 
 // Write writes to the logging text view.

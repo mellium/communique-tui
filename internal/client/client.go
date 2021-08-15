@@ -25,6 +25,8 @@ import (
 	"mellium.im/xmpp/stanza"
 )
 
+func noopHandler(interface{}) {}
+
 // New creates a new XMPP client but does not attempt to negotiate a session or
 // send an initial presence, etc.
 func New(j jid.JID, logger, debug *log.Logger, opts ...Option) *Client {
@@ -40,7 +42,7 @@ func New(j jid.JID, logger, debug *log.Logger, opts ...Option) *Client {
 		logger:  logger,
 		debug:   debug,
 		getPass: emptyPass,
-		handler: emptyHandler,
+		handler: noopHandler,
 		receiptsHandler: &receipts.Handler{
 			Unhandled: func(id string) { c.handler(event.Receipt(id)) },
 		},
@@ -51,6 +53,19 @@ func New(j jid.JID, logger, debug *log.Logger, opts ...Option) *Client {
 	}
 
 	return c
+}
+
+// Handler configures a handler function to be used for events emitted by the
+// client.
+//
+// For a list of events that any handler function may handle, see the event
+// package.
+func (c *Client) Handler(h func(interface{})) {
+	if h == nil {
+		c.handler = noopHandler
+		return
+	}
+	c.handler = h
 }
 
 func (c *Client) reconnect(ctx context.Context) error {
@@ -95,6 +110,7 @@ func (c *Client) reconnect(ctx context.Context) error {
 	}
 
 	c.online = true
+
 	go func() {
 		err := c.Serve(newXMPPHandler(c))
 		if err != nil {
@@ -128,14 +144,13 @@ func (c *Client) reconnect(ctx context.Context) error {
 		return err
 	}
 
-	go func() {
-		rosterCtx, rosterCancel := context.WithTimeout(context.Background(), c.timeout)
-		defer rosterCancel()
-		err = c.Roster(rosterCtx)
-		if err != nil {
-			c.logger.Printf("error fetching roster: %q", err)
-		}
-	}()
+	rosterCtx, rosterCancel := context.WithTimeout(context.Background(), c.timeout)
+	defer rosterCancel()
+	err = c.Roster(rosterCtx)
+	if err != nil {
+		c.logger.Printf("error fetching roster: %q", err)
+	}
+
 	return nil
 }
 

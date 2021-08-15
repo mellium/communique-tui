@@ -9,9 +9,11 @@ import (
 	"context"
 	"database/sql"
 	"errors"
+	"fmt"
 	"log"
 	"os"
 	"path/filepath"
+	"sync"
 	"time"
 
 	_ "modernc.org/sqlite"
@@ -24,6 +26,7 @@ import (
 // DB represents a SQL database with common pre-prepared statements.
 type DB struct {
 	*sql.DB
+	txM             sync.Mutex
 	truncateRoster  *sql.Stmt
 	delRoster       *sql.Stmt
 	insertRoster    *sql.Stmt
@@ -31,10 +34,11 @@ type DB struct {
 	insertRosterVer *sql.Stmt
 	selectRosterVer *sql.Stmt
 	selectRoster    *sql.Stmt
-	insertSID       *sql.Stmt
 	insertMsg       *sql.Stmt
 	markRecvd       *sql.Stmt
 	queryMsg        *sql.Stmt
+	afterID         *sql.Stmt
+	debug           *log.Logger
 }
 
 // OpenDB attempts to open the database at dbFile.
@@ -98,24 +102,27 @@ func OpenDB(ctx context.Context, appName, account, dbFile, schema string, debug 
 
 	db, err := sql.Open(dbDriver, fPath)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("error opening DB: %w", err)
 	}
 	_, err = db.Exec("PRAGMA foreign_keys = ON")
 	if err != nil {
 		db.Close()
-		return nil, err
+		return nil, fmt.Errorf("error enabling foreign keys: %w", err)
 	}
 	_, err = db.Exec(schema)
 	if err != nil {
 		db.Close()
-		return nil, err
+		return nil, fmt.Errorf("error applying schema: %w", err)
 	}
-	return prepareQueries(ctx, db)
+	return prepareQueries(ctx, db, debug)
 }
 
-func prepareQueries(ctx context.Context, db *sql.DB) (*DB, error) {
+func prepareQueries(ctx context.Context, db *sql.DB, debug *log.Logger) (*DB, error) {
 	var err error
-	wrapDB := &DB{DB: db}
+	wrapDB := &DB{
+		DB:    db,
+		debug: debug,
+	}
 	wrapDB.truncateRoster, err = db.PrepareContext(ctx, `
 DELETE FROM rosterJIDs;
 `)
@@ -156,16 +163,13 @@ SELECT jid,name,subs FROM rosterJIDs`)
 		return nil, err
 	}
 
-	wrapDB.insertSID, err = db.PrepareContext(ctx, `
-INSERT INTO sids (message, sid, byAttr)
-	VALUES (?, ?, ?)`)
-	if err != nil {
-		return nil, err
-	}
 	wrapDB.insertMsg, err = db.PrepareContext(ctx, `
 INSERT INTO messages
-	(sent, toAttr, fromAttr, idAttr, body, stanzaType, originID, delay, rosterJID)
-	VALUES ($1, $2, $3, $4, $5, $6, $7, IFNULL(NULLIF($8, ""), CURRENT_TIMESTAMP), $9)`)
+	(sent, toAttr, fromAttr, idAttr, body, stanzaType, originID, delay, rosterJID, archiveID)
+	VALUES ($1, $2, $3, $4, $5, $6, $7, IFNULL(NULLIF($8, 0), CAST(strftime('%s', 'now') AS INTEGER)), $9, $10)
+	ON CONFLICT (originID, fromAttr) DO UPDATE SET archiveID=$10
+	ON CONFLICT (archiveID) DO NOTHING
+	RETURNING id`)
 	if err != nil {
 		return nil, err
 	}
@@ -182,6 +186,14 @@ SELECT sent, toAttr, fromAttr, idAttr, body, stanzaType
 	if err != nil {
 		return nil, err
 	}
+	wrapDB.afterID, err = db.PrepareContext(ctx, `
+SELECT j.jid, m.archiveID, MAX(m.delay)
+	FROM messages AS m
+		INNER JOIN rosterJIDs AS j ON m.rosterJID=j.jid
+	GROUP BY j.jid`)
+	if err != nil {
+		return nil, err
+	}
 	return wrapDB, nil
 }
 
@@ -191,6 +203,9 @@ var errRollback = errors.New("rollback")
 // If an error is returned the transaction is rolled back, otherwise it is
 // committed.
 func execTx(ctx context.Context, db *DB, f func(context.Context, *sql.Tx) error) (e error) {
+	db.txM.Lock()
+	defer db.txM.Unlock()
+
 	tx, err := db.BeginTx(ctx, nil)
 	if err != nil {
 		return err
@@ -219,13 +234,16 @@ func (db *DB) MarkReceived(ctx context.Context, e event.Receipt) error {
 }
 
 // InsertMsg adds a message to the database.
-func (db *DB) InsertMsg(ctx context.Context, msg event.ChatMessage) error {
+func (db *DB) InsertMsg(ctx context.Context, respectDelay bool, msg event.ChatMessage, addr jid.JID) error {
 	return execTx(ctx, db, func(ctx context.Context, tx *sql.Tx) error {
-		var delay *time.Time
-		// Only store the delay if it was actually set and if it was sent from our
-		// account.
-		if msg.Account && !msg.Delay.Time.IsZero() {
-			delay = &msg.Delay.Time
+		var delay int64
+		// Only store the delay if it was actually set and if it was sent from a
+		// source that's trusted to set the delay.
+		if respectDelay && !msg.Delay.Time.IsZero() {
+			delay = msg.Delay.Time.Unix()
+		}
+		if msg.From.Equal(jid.JID{}) {
+			msg.From = addr
 		}
 		var rosterJID string
 		if msg.Sent {
@@ -233,24 +251,36 @@ func (db *DB) InsertMsg(ctx context.Context, msg event.ChatMessage) error {
 		} else {
 			rosterJID = msg.From.Bare().String()
 		}
-		res, err := tx.Stmt(db.insertMsg).ExecContext(ctx, msg.Sent, msg.To.Bare().String(), msg.From.Bare().String(), msg.ID, msg.Body, msg.Type, msg.OriginID.ID, delay, rosterJID)
-		if err != nil {
-			return err
+		var originID *string
+		switch {
+		case msg.OriginID.ID != "":
+			originID = &msg.OriginID.ID
+		case msg.ID != "":
+			// We use origin ID in the database to de-dup messages. If none was set,
+			// use the regular ID and just treat it like an origin ID. This probably
+			// isn't safe, but XMPP made a stupid choice early on and there aren't
+			// always stable and unique IDs.
+			originID = &msg.ID
 		}
-		msgRID, err := res.LastInsertId()
-		if err != nil {
+
+		var domainSID *string
+		for _, sid := range msg.SID {
+			if sid.By.String() == addr.Bare().String() {
+				domainSID = &sid.ID
+				break
+			}
+		}
+
+		var msgRID uint64
+		err := tx.Stmt(db.insertMsg).QueryRowContext(ctx, msg.Sent, msg.To.Bare().String(), msg.From.Bare().String(), msg.ID, msg.Body, msg.Type, originID, delay, rosterJID, domainSID).Scan(&msgRID)
+		switch err {
+		case sql.ErrNoRows:
+			return nil
+		case nil:
+		default:
 			return err
 		}
 
-		if len(msg.SID) > 0 {
-			insertSID := tx.Stmt(db.insertSID)
-			for _, sid := range msg.SID {
-				res, err = insertSID.ExecContext(ctx, msgRID, sid.ID, sid.By.String())
-				if err != nil {
-					return err
-				}
-			}
-		}
 		return nil
 	})
 }
@@ -377,73 +407,99 @@ func (db *DB) UpdateRoster(ctx context.Context, ver string, item event.UpdateRos
 	})
 }
 
-// MessageIter iterates over a collection of SQL rows, returning messages.
+// MessageIter is an iterator that can return concrete messages.
 type MessageIter struct {
-	err  error
-	rows *sql.Rows
-	cur  event.ChatMessage
+	*Iter
 }
 
-// Next advances the iterator and returns whether the next row is ready to be
-// read.
-func (i *MessageIter) Next() bool {
-	if i.err != nil {
-		return false
+// Result returns the most recent result read from the iter.
+func (iter MessageIter) Message() event.ChatMessage {
+	cur := iter.Iter.Current()
+	if cur == nil {
+		return event.ChatMessage{}
 	}
-	next := i.rows.Next()
-	if !next {
-		return next
-	}
-
-	i.cur = event.ChatMessage{}
-	var to, from, typ string
-	i.err = i.rows.Scan(&i.cur.Sent, &to, &from, &i.cur.ID, &i.cur.Body, &typ)
-	if i.err != nil {
-		return false
-	}
-	i.cur.Type = stanza.MessageType(typ)
-	var unsafeTo, unsafeFrom jid.Unsafe
-	unsafeTo, i.err = jid.ParseUnsafe(to)
-	if i.err != nil {
-		return false
-	}
-	i.cur.To = unsafeTo.JID
-	unsafeFrom, i.err = jid.ParseUnsafe(from)
-	if i.err != nil {
-		return false
-	}
-	i.cur.From = unsafeFrom.JID
-	return true
-}
-
-// Message returns the next event.
-// Sent is whether the message was sent or received.
-func (i *MessageIter) Message() event.ChatMessage {
-	return i.cur
-}
-
-// Err returns the error, if any, that was encountered during iteration.
-// Err may be called after an explicit or implicit Close.
-func (i *MessageIter) Err() error {
-	if i.err != nil {
-		return i.err
-	}
-	return i.rows.Err()
-}
-
-// Close stops iteration.
-// If Next is called and returns false, Close is called automatically.
-// Close is idempotent and does not affect the result of Err.
-func (i *MessageIter) Close() error {
-	return i.rows.Close()
+	return cur.(event.ChatMessage)
 }
 
 // QueryHistory returns all rows to or from the given JID.
 // Any errors encountered while querying are deferred until the iter is used.
-func (db *DB) QueryHistory(ctx context.Context, j string, typ stanza.MessageType) *MessageIter {
+func (db *DB) QueryHistory(ctx context.Context, j string, typ stanza.MessageType) MessageIter {
 	rows, err := db.queryMsg.QueryContext(ctx, j, string(typ))
-	return &MessageIter{
-		err:  err,
-		rows: rows,
+	return MessageIter{
+		Iter: &Iter{
+			err:  err,
+			rows: rows,
+			f: func(rows *sql.Rows) (interface{}, error) {
+				cur := event.ChatMessage{}
+				var to, from, typ string
+				err := rows.Scan(&cur.Sent, &to, &from, &cur.ID, &cur.Body, &typ)
+				if err != nil {
+					return cur, err
+				}
+				cur.Type = stanza.MessageType(typ)
+				unsafeTo, err := jid.ParseUnsafe(to)
+				if err != nil {
+					return cur, err
+				}
+				cur.To = unsafeTo.JID
+				unsafeFrom, err := jid.ParseUnsafe(from)
+				if err != nil {
+					return cur, err
+				}
+				cur.From = unsafeFrom.JID
+				return cur, nil
+			},
+		},
+	}
+}
+
+// AfterIDRes is returned from an AfterID query.
+type AfterIDResult struct {
+	Addr  jid.JID
+	ID    string
+	Delay time.Time
+}
+
+// AfterIDIter is an iterator that can return concrete AfterIDRes values.
+type AfterIDIter struct {
+	*Iter
+}
+
+// Result returns the most recent result read from the iter.
+func (iter AfterIDIter) Result() AfterIDResult {
+	cur := iter.Iter.Current()
+	if cur == nil {
+		return AfterIDResult{}
+	}
+	return cur.(AfterIDResult)
+}
+
+// AfterID gets the last known message ID assigned by the 'by' JID for each
+// roster entry.
+func (db *DB) AfterID(ctx context.Context) AfterIDIter {
+	rows, err := db.afterID.QueryContext(ctx)
+	return AfterIDIter{
+		Iter: &Iter{
+			err:  err,
+			rows: rows,
+			f: func(rows *sql.Rows) (interface{}, error) {
+				cur := AfterIDResult{}
+				var j string
+				var delay int64
+				var id *string
+				err := rows.Scan(&j, &id, &delay)
+				if err != nil {
+					return cur, err
+				}
+				if id != nil {
+					cur.ID = *id
+				}
+				cur.Delay = time.Unix(delay, 0)
+				var unsafeJID jid.Unsafe
+				unsafeJID, err = jid.ParseUnsafe(j)
+				cur.Addr = unsafeJID.JID
+				return cur, err
+			},
+		},
 	}
 }

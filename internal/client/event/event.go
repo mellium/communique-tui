@@ -7,12 +7,16 @@ package event // import "mellium.im/communique/internal/client/event"
 
 import (
 	"mellium.im/xmpp/delay"
+	"mellium.im/xmpp/forward"
 	"mellium.im/xmpp/jid"
 	"mellium.im/xmpp/roster"
 	"mellium.im/xmpp/stanza"
 )
 
 type (
+	// Connected is sent immediately after the connection is esablished.
+	Connected struct{}
+
 	// StatusOnline is sent when the user should come online.
 	StatusOnline struct{}
 
@@ -58,6 +62,19 @@ type (
 		// Account is true if this message was sent by the server (empty from, or
 		// from matching the bare JID of the authenticated account).
 		Account bool `xml:"-"`
+	}
+
+	// HistoryMessage is sent on incoming messages resulting from a history query.
+	HistoryMessage struct {
+		stanza.Message
+		Result struct {
+			QueryID string `xml:"queryid,attr"`
+			ID      string `xml:"id,attr"`
+			Forward struct {
+				forward.Forwarded
+				Msg ChatMessage `xml:"jabber:client message"`
+			} `xml:"urn:xmpp:forward:0 forwarded"`
+		} `xml:"urn:xmpp:mam:2 result"`
 	}
 
 	// Receipt is sent when a message receipt is received and represents the ID of

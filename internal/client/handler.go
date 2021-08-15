@@ -13,6 +13,7 @@ import (
 	"mellium.im/xmpp"
 	"mellium.im/xmpp/carbons"
 	"mellium.im/xmpp/disco"
+	"mellium.im/xmpp/history"
 	"mellium.im/xmpp/jid"
 	"mellium.im/xmpp/mux"
 	"mellium.im/xmpp/receipts"
@@ -47,6 +48,7 @@ func newXMPPHandler(c *Client) xmpp.Handler {
 		mux.Message(stanza.NormalMessage, xml.Name{Local: "body"}, msgHandler),
 		mux.Message(stanza.ChatMessage, xml.Name{Local: "body"}, msgHandler),
 		receipts.Handle(c.receiptsHandler),
+		history.Handle(newHistoryHandler(c)),
 	)
 }
 
@@ -122,6 +124,30 @@ func newMessageHandler(c *Client) mux.MessageHandlerFunc {
 		if fromBare.Equal(jid.JID{}) || fromBare.Equal(c.addr.Bare()) {
 			msg.Account = true
 		}
+		c.handler(msg)
+		return nil
+	}
+}
+
+func newHistoryHandler(c *Client) mux.MessageHandlerFunc {
+	return func(_ stanza.Message, r xmlstream.TokenReadEncoder) error {
+		msg := event.HistoryMessage{}
+
+		d := xml.NewTokenDecoder(r)
+		err := d.Decode(&msg)
+		if err != nil {
+			return err
+		}
+		if !msg.From.Equal(jid.JID{}) && !msg.From.Equal(c.addr.Bare()) {
+			c.debug.Printf("possibly spoofed history message from %s", msg.From)
+			return nil
+		}
+		fromBare := msg.Result.Forward.Msg.From.Bare()
+		if fromBare.Equal(jid.JID{}) || fromBare.Equal(c.addr.Bare()) {
+			msg.Result.Forward.Msg.Account = true
+		}
+		msg.Result.Forward.Msg.Sent = fromBare.Equal(c.addr.Bare())
+		msg.Result.Forward.Msg.Delay = msg.Result.Forward.Delay
 		c.handler(msg)
 		return nil
 	}

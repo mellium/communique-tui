@@ -273,9 +273,9 @@ Go %s %s
 		client.Dialer(dialer),
 		client.Tee(logwriter.New(xmlInLog), logwriter.New(xmlOutLog)),
 		client.Password(getPass),
-		client.Handler(newClientHandler(configPath, pane, db, logger, debug)),
 		client.RosterVer(rosterVer),
 	)
+	c.Handler(newClientHandler(configPath, c, pane, db, logger, debug))
 	pane.Handle(newUIHandler(configPath, pane, db, c, debug, logger))
 
 	defer func() {

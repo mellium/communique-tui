@@ -6,17 +6,6 @@
 --  - Tables with primary keys that are not integers and that don't need auto
 --    incrementing counters can use WITHOUT ROWID to save some space.
 
-CREATE TABLE IF NOT EXISTS sids (
-	id        INTEGER PRIMARY KEY NOT NULL,
-	message   INTEGER NOT NULL,
-	sid       TEXT    NOT NULL,
-	byAttr    TEXT    NOT NULL,
-
-	FOREIGN KEY (message) REFERENCES messages(id) ON DELETE CASCADE,
-	UNIQUE      (sid, byAttr),
-	UNIQUE      (message, byAttr)
-);
-
 CREATE TABLE IF NOT EXISTS messages (
 	id         INTEGER  PRIMARY KEY NOT NULL,
 	sent       BOOLEAN  NOT NULL,
@@ -27,10 +16,11 @@ CREATE TABLE IF NOT EXISTS messages (
 	originID   TEXT,
 	stanzaType TEXT     NOT NULL DEFAULT "normal", -- RFC 6121 § 5.2.2
 	received   BOOLEAN  NOT NULL DEFAULT FALSE,
-	delay      DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+	delay      INTEGER  NOT NULL DEFAULT (CAST(strftime('%s', 'now') AS INTEGER)),
 	rosterJID  TEXT,
+	archiveID  TEXT     UNIQUE,
 
-	UNIQUE (originID, fromAttr, sent)
+	UNIQUE (originID, fromAttr)
 );
 
 
