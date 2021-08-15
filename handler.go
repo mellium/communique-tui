@@ -65,7 +65,6 @@ func newUIHandler(configPath string, pane *ui.UI, db *storage.DB, c *client.Clie
 			}()
 		case event.UpdateRoster:
 			// TODO:
-			panic("event.UpdateRoster: not yet implemented")
 		case event.ChatMessage:
 			go func() {
 				ctx, cancel := context.WithTimeout(context.Background(), 60*time.Second)
