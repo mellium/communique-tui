@@ -200,11 +200,11 @@ func newClientHandler(configPath string, client *client.Client, pane *ui.UI, db 
 
 					// We don't have any history yet, so bootstrap a limited amount of
 					// history from the server.
-					_, _, _, screenHeight := pane.History().GetInnerRect()
+					_, _, _, screenHeight := pane.GetRect()
 					_, err := history.Fetch(ctx, history.Query{
 						With:    item.JID.Bare(),
 						End:     time.Now(),
-						Limit:   2 * uint64(screenHeight),
+						Limit:   uint64(2 * screenHeight),
 						Reverse: true,
 						Last:    true,
 					}, accountBare, client.Session)

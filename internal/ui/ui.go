@@ -500,6 +500,12 @@ func (ui *UI) History() *tview.TextView {
 	return ui.history.TextView
 }
 
+// GetRect returns the size of the UI on the screen (including borders and
+// bounding boxes).
+func (ui *UI) GetRect() (x, y, width, height int) {
+	return ui.flex.GetRect()
+}
+
 // Redraw redraws the UI.
 func (ui *UI) Redraw() {
 	ui.redraw()
