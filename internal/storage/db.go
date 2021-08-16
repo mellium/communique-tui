@@ -229,8 +229,10 @@ func execTx(ctx context.Context, db *DB, f func(context.Context, *sql.Tx) error)
 
 // MarkReceived marks a message as having been received by the other side.
 func (db *DB) MarkReceived(ctx context.Context, e event.Receipt) error {
-	_, err := db.markRecvd.ExecContext(ctx, string(e))
-	return err
+	return execTx(ctx, db, func(ctx context.Context, tx *sql.Tx) error {
+		_, err := tx.Stmt(db.markRecvd).ExecContext(ctx, string(e))
+		return err
+	})
 }
 
 // InsertMsg adds a message to the database.
@@ -287,41 +289,36 @@ func (db *DB) InsertMsg(ctx context.Context, respectDelay bool, msg event.ChatMe
 
 // ForRoster executes f for each roster entry.
 func (db *DB) ForRoster(ctx context.Context, f func(event.UpdateRoster)) error {
-	tx, err := db.BeginTx(ctx, nil)
-	if err != nil {
-		return err
-	}
-	/* #nosec */
-	defer tx.Commit()
-
-	var ver string
-	err = tx.Stmt(db.selectRosterVer).QueryRowContext(ctx).Scan(&ver)
-	if err != nil {
-		return err
-	}
-	rows, err := tx.Stmt(db.selectRoster).Query()
-	if err != nil {
-		return err
-	}
-	/* #nosec */
-	defer rows.Close()
-	for rows.Next() {
-		e := event.UpdateRoster{
-			Ver: ver,
-		}
-		var jidStr string
-		err = rows.Scan(&jidStr, &e.Item.Name, &e.Item.Subscription)
+	return execTx(ctx, db, func(ctx context.Context, tx *sql.Tx) error {
+		var ver string
+		err := tx.Stmt(db.selectRosterVer).QueryRowContext(ctx).Scan(&ver)
 		if err != nil {
 			return err
 		}
-		j, err := jid.ParseUnsafe(jidStr)
+		rows, err := tx.Stmt(db.selectRoster).Query()
 		if err != nil {
 			return err
 		}
-		e.Item.JID = j.JID
-		f(e)
-	}
-	return rows.Err()
+		/* #nosec */
+		defer rows.Close()
+		for rows.Next() {
+			e := event.UpdateRoster{
+				Ver: ver,
+			}
+			var jidStr string
+			err = rows.Scan(&jidStr, &e.Item.Name, &e.Item.Subscription)
+			if err != nil {
+				return err
+			}
+			j, err := jid.ParseUnsafe(jidStr)
+			if err != nil {
+				return err
+			}
+			e.Item.JID = j.JID
+			f(e)
+		}
+		return rows.Err()
+	})
 }
 
 // ReplaceRoster truncates the entire roster and replaces it with the provided
@@ -364,7 +361,10 @@ func (db *DB) ReplaceRoster(ctx context.Context, e event.FetchRoster) error {
 // RosterVer returns the currently saved roster version.
 func (db *DB) RosterVer(ctx context.Context) (string, error) {
 	var ver string
-	err := db.selectRosterVer.QueryRowContext(ctx).Scan(&ver)
+	err := execTx(ctx, db, func(ctx context.Context, tx *sql.Tx) error {
+		err := tx.Stmt(db.selectRosterVer).QueryRowContext(ctx).Scan(&ver)
+		return err
+	})
 	return ver, err
 }
 
@@ -424,11 +424,19 @@ func (iter MessageIter) Message() event.ChatMessage {
 // QueryHistory returns all rows to or from the given JID.
 // Any errors encountered while querying are deferred until the iter is used.
 func (db *DB) QueryHistory(ctx context.Context, j string, typ stanza.MessageType) MessageIter {
+	db.txM.Lock()
+	ctx, cancel := context.WithCancel(ctx)
+	go func() {
+		<-ctx.Done()
+		defer db.txM.Unlock()
+	}()
+
 	rows, err := db.queryMsg.QueryContext(ctx, j, string(typ))
 	return MessageIter{
 		Iter: &Iter{
-			err:  err,
-			rows: rows,
+			cancel: cancel,
+			err:    err,
+			rows:   rows,
 			f: func(rows *sql.Rows) (interface{}, error) {
 				cur := event.ChatMessage{}
 				var to, from, typ string
@@ -477,11 +485,19 @@ func (iter AfterIDIter) Result() AfterIDResult {
 // AfterID gets the last known message ID assigned by the 'by' JID for each
 // roster entry.
 func (db *DB) AfterID(ctx context.Context) AfterIDIter {
+	db.txM.Lock()
+	ctx, cancel := context.WithCancel(ctx)
+	go func() {
+		<-ctx.Done()
+		defer db.txM.Unlock()
+	}()
+
 	rows, err := db.afterID.QueryContext(ctx)
 	return AfterIDIter{
 		Iter: &Iter{
-			err:  err,
-			rows: rows,
+			cancel: cancel,
+			err:    err,
+			rows:   rows,
 			f: func(rows *sql.Rows) (interface{}, error) {
 				cur := AfterIDResult{}
 				var j string

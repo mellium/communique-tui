@@ -5,33 +5,44 @@
 package storage
 
 import (
+	"context"
 	"database/sql"
 )
 
 // Iter is a generic iterator that can be returned to marshal database rows into
 // values.
 type Iter struct {
-	err  error
-	rows *sql.Rows
-	cur  interface{}
-	f    func(*sql.Rows) (interface{}, error)
+	err    error
+	rows   *sql.Rows
+	cur    interface{}
+	f      func(*sql.Rows) (interface{}, error)
+	cancel context.CancelFunc
 }
 
 // Next advances the iterator and returns whether the next row is ready to be
 // read.
 func (i *Iter) Next() bool {
-	if i == nil || i.err != nil || i.rows == nil {
+	switch {
+	case i == nil:
+		return false
+	case i.err != nil || i.rows == nil:
+		i.cancel()
 		return false
 	}
 	next := i.rows.Next()
 	if !next {
+		i.cancel()
 		return next
 	}
 
 	if i.f != nil {
 		i.cur, i.err = i.f(i.rows)
 	}
-	return i.err == nil
+	if i.err != nil {
+		i.cancel()
+		return false
+	}
+	return true
 }
 
 // Current returns the last parsed row.
@@ -64,5 +75,6 @@ func (i *Iter) Close() error {
 	if i == nil {
 		return nil
 	}
+	i.cancel()
 	return i.rows.Close()
 }
