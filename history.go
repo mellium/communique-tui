@@ -71,7 +71,7 @@ func writeMessage(pane *ui.UI, configPath string, msg event.ChatMessage, notNew 
 	return nil
 }
 
-func loadBuffer(ctx context.Context, pane *ui.UI, db *storage.DB, configPath string, ev event.OpenChat, msgID string, logger *log.Logger) error {
+func loadBuffer(ctx context.Context, pane *ui.UI, db *storage.DB, configPath string, ev roster.Item, msgID string, logger *log.Logger) error {
 	history := pane.History()
 	history.SetText("")
 
@@ -97,6 +97,7 @@ func loadBuffer(ctx context.Context, pane *ui.UI, db *storage.DB, configPath str
 		err = fmt.Errorf("error querying history for %s: %w", ev.JID, err)
 		logger.Println(err)
 	}
+	history.ScrollToEnd()
 	return nil
 }
 

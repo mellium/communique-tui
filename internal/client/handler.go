@@ -48,7 +48,7 @@ func newXMPPHandler(c *Client) xmpp.Handler {
 		mux.Message(stanza.NormalMessage, xml.Name{Local: "body"}, msgHandler),
 		mux.Message(stanza.ChatMessage, xml.Name{Local: "body"}, msgHandler),
 		receipts.Handle(c.receiptsHandler),
-		history.Handle(newHistoryHandler(c)),
+		history.Handle(history.NewHandler(newHistoryHandler(c))),
 	)
 }
 
@@ -130,11 +130,11 @@ func newMessageHandler(c *Client) mux.MessageHandlerFunc {
 }
 
 func newHistoryHandler(c *Client) mux.MessageHandlerFunc {
-	return func(_ stanza.Message, r xmlstream.TokenReadEncoder) error {
-		msg := event.HistoryMessage{}
+	return func(m stanza.Message, r xmlstream.TokenReadEncoder) error {
+		msg := event.HistoryMessage{Message: m}
 
 		d := xml.NewTokenDecoder(r)
-		err := d.Decode(&msg)
+		err := d.Decode(&msg.Result)
 		if err != nil {
 			return err
 		}

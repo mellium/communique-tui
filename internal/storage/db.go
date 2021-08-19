@@ -38,6 +38,7 @@ type DB struct {
 	markRecvd       *sql.Stmt
 	queryMsg        *sql.Stmt
 	afterID         *sql.Stmt
+	beforeID        *sql.Stmt
 	debug           *log.Logger
 }
 
@@ -191,6 +192,18 @@ SELECT j.jid, m.archiveID, MAX(m.delay)
 	FROM messages AS m
 		INNER JOIN rosterJIDs AS j ON m.rosterJID=j.jid
 	GROUP BY j.jid`)
+	if err != nil {
+		return nil, err
+	}
+	if err != nil {
+		return nil, err
+	}
+	wrapDB.beforeID, err = db.PrepareContext(ctx, `
+SELECT archiveID, MIN(delay) AS mindelay
+	FROM messages
+	WHERE rosterJID=$1
+	GROUP BY delay
+	HAVING mindelay NOT NULL`)
 	if err != nil {
 		return nil, err
 	}
@@ -518,4 +531,21 @@ func (db *DB) AfterID(ctx context.Context) AfterIDIter {
 			},
 		},
 	}
+}
+
+// BeforeID gets the first known message ID and timestamp for the given JID.
+func (db *DB) BeforeID(ctx context.Context, j jid.JID) (string, time.Time, error) {
+	var id string
+	var timestamp int64
+	err := execTx(ctx, db, func(ctx context.Context, tx *sql.Tx) error {
+		return tx.Stmt(db.beforeID).QueryRowContext(ctx, j.String()).Scan(&id, &timestamp)
+	})
+	if err == sql.ErrNoRows {
+		err = nil
+	}
+	var t time.Time
+	if timestamp != 0 {
+		t = time.Unix(timestamp, 0)
+	}
+	return id, t, err
 }

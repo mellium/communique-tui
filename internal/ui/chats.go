@@ -19,10 +19,9 @@ const UnreadRegion = "unreadMarker"
 // important for displaying chats.
 type ConversationView struct {
 	*tview.Flex
-	TextView      *tview.TextView
-	input         *tview.InputField
-	scrollHandler func(row, col int)
-	ui            *UI
+	TextView *tview.TextView
+	input    *tview.InputField
+	ui       *UI
 }
 
 // NewConversationView configures and creates a new chat view.
@@ -35,35 +34,28 @@ func NewConversationView(ui *UI) *ConversationView {
 			Highlight(UnreadRegion),
 		input: tview.NewInputField().
 			SetFieldBackgroundColor(tview.Styles.PrimitiveBackgroundColor),
-		ui:            ui,
-		scrollHandler: func(int, int) {},
+		ui: ui,
 	}
 	cv.TextView.SetBorder(true).SetTitle("Conversation")
 	cv.input.SetBorder(true)
 	cv.Flex.SetBorder(false)
 	cv.Flex.AddItem(unreadTextView{TextView: cv.TextView}, 0, 100, false)
 	cv.Flex.AddItem(cv.input, 3, 1, true)
-	cv.TextView.SetChangedFunc(func() {
-		ui.app.Draw()
-	})
+	//cv.TextView.SetChangedFunc(func() {
+	//	ui.app.Draw()
+	//})
 	return &cv
-}
-
-// OnScroll sets a handler to be called any time the sroll position changes (ie.
-// due to a keyboard shortcut or a screen size change).
-// This does not include writes to the buffer when the scroll position is at the
-// bottom, even though technically this will result in a position change, nor
-// does it account for horizontal position change.
-func (cv *ConversationView) OnScroll(f func(int, int)) {
-	cv.scrollHandler = f
 }
 
 func checkScroll(cv *ConversationView, f func()) {
 	oldRow, _ := cv.TextView.GetScrollOffset()
 	f()
-	newRow, newCol := cv.TextView.GetScrollOffset()
-	if oldRow != newRow {
-		cv.scrollHandler(newRow, newCol)
+	newRow, _ := cv.TextView.GetScrollOffset()
+	if newRow == 0 && oldRow != newRow {
+		item, ok := cv.ui.roster.GetSelected()
+		if ok {
+			cv.ui.handler(event.PullToRefreshChat(item.Item))
+		}
 	}
 }
 

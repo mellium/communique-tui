@@ -278,29 +278,19 @@ Go %s %s
 	c.Handler(newClientHandler(configPath, c, pane, db, logger, debug))
 	pane.Handle(newUIHandler(configPath, pane, db, c, debug, logger))
 
-	defer func() {
-		// TODO: this isn't great because we lose the stack trace. Update the
-		// error handling so that we can attempt to recover a trace from the
-		// error.
-		if r := recover(); r != nil {
-			pane.Stop()
-			panic(r)
-		}
-	}()
+	// Hopefully nothing ever panics, but in case it does ensure that we exit
+	// TUI mode so that we don't hose the users terminal.
+	//defer func() {
+	//	// TODO: this isn't great because we lose the stack trace. Update the
+	//	// error handling so that we can attempt to recover a trace from the
+	//	// error.
+	//	if r := recover(); r != nil {
+	//		pane.Stop()
+	//		panic(r)
+	//	}
+	//}()
 
 	go func() {
-		// Hopefully nothing ever panics, but in case it does ensure that we exit
-		// TUI mode so that we don't hose the users terminal.
-		defer func() {
-			// TODO: this isn't great because we lose the stack trace. Update the
-			// error handling so that we can attempt to recover a trace from the
-			// error.
-			if r := recover(); r != nil {
-				pane.Stop()
-				panic(r)
-			}
-		}()
-
 		ctx, cancel := context.WithTimeout(context.Background(), 3*timeout)
 		defer cancel()
 		if err := c.Online(ctx); err != nil {
@@ -316,8 +306,6 @@ Go %s %s
 		pane.Stop()
 	}()
 
-	// Hopefully nothing ever panics, but in case it does ensure that we exit TUI
-	// mode so that we don't hose the users terminal.
 	defer pane.Stop()
 	if err := pane.Run(); err != nil {
 		panic(err)

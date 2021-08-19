@@ -96,7 +96,7 @@ func newUIHandler(configPath string, pane *ui.UI, db *storage.DB, c *client.Clie
 				}
 				ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
 				defer cancel()
-				if err := loadBuffer(ctx, pane, db, configPath, e, firstUnread, logger); err != nil {
+				if err := loadBuffer(ctx, pane, db, configPath, roster.Item(e), firstUnread, logger); err != nil {
 					logger.Printf("error loading chat: %v", err)
 					return
 				}
@@ -124,6 +124,40 @@ func newUIHandler(configPath string, pane *ui.UI, db *storage.DB, c *client.Clie
 			if err != nil {
 				logger.Printf("error sending presence request to %s: %v", jid.JID(e), err)
 			}
+		case event.PullToRefreshChat:
+			go func() {
+				ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+				defer cancel()
+
+				// TODO: if mam:2#extended is supported, use archive ID
+				_, t, err := db.BeforeID(ctx, e.JID)
+				if err != nil {
+					logger.Printf("error fetching earliest message info for %v from database: %v", e, err)
+					return
+				}
+				if t.IsZero() {
+					debug.Printf("no scrollback for %v", e.JID)
+					return
+				}
+				debug.Printf("fetching scrollback before %v for %v…", t, e.JID)
+				_, _, _, screenHeight := pane.GetRect()
+				_, err = history.Fetch(ctx, history.Query{
+					With:    e.JID,
+					End:     t,
+					Limit:   uint64(2 * screenHeight),
+					Reverse: true,
+					Last:    true,
+				}, c.Session.LocalAddr().Bare(), c.Session)
+				if err != nil {
+					debug.Printf("error fetching scrollback for %v: %v", e.JID, err)
+				}
+				if err := loadBuffer(ctx, pane, db, configPath, roster.Item(e), "", logger); err != nil {
+					logger.Printf("error scrollback for %v: %v", e.JID, err)
+					return
+				}
+				// TODO: scroll to an offset that keeps context so that we don't lose
+				// our position.
+			}()
 		default:
 			debug.Printf("unrecognized ui event: %q", e)
 		}

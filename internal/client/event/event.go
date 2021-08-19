@@ -91,4 +91,8 @@ type (
 
 	// Subscribe is sent when we subscribe to a users presence.
 	Subscribe jid.JID
+
+	// PullToRefreshChat is sent when we scroll up while already at the top of
+	// the history or when we simply scroll to the top of the history.
+	PullToRefreshChat roster.Item
 )
