@@ -42,6 +42,14 @@ func Dialer(d *dial.Dialer) Option {
 	}
 }
 
+// NoTLS configures the client to use a plain connection.
+// This should only be used for debugging.
+func NoTLS(v bool) Option {
+	return func(c *Client) {
+		c.noTLS = v
+	}
+}
+
 // Tee mirrors XML from the XMPP stream to the underlying writers similar to the
 // tee(1) command.
 //

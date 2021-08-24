@@ -256,6 +256,7 @@ Go %s %s
 			KeyLogWriter: keylog,
 		},
 		NoLookup: cfg.NoSRV,
+		NoTLS:    cfg.NoTLS,
 	}
 	configPath = path.Dir(fpath)
 	var rosterVer string
@@ -271,6 +272,7 @@ Go %s %s
 		j, logger, debug,
 		client.Timeout(timeout),
 		client.Dialer(dialer),
+		client.NoTLS(cfg.NoTLS),
 		client.Tee(logwriter.New(xmlInLog), logwriter.New(xmlOutLog)),
 		client.Password(getPass),
 		client.RosterVer(rosterVer),

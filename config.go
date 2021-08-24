@@ -95,6 +95,7 @@ type config struct {
 	Timeout string `toml:"timeout"`
 	DB      string `toml:"db_file"`
 	NoSRV   bool   `toml:"disable_srv"`
+	NoTLS   bool   `toml:"disable_tls"`
 
 	Log struct {
 		Verbose bool `toml:"verbose"`

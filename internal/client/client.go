@@ -87,16 +87,22 @@ func (c *Client) reconnect(ctx context.Context) error {
 		return fmt.Errorf("error dialing connection: %v", err)
 	}
 
+	saslFeature := xmpp.SASL("", pass,
+		sasl.ScramSha256Plus,
+		sasl.ScramSha1Plus,
+		sasl.ScramSha256,
+		sasl.ScramSha1,
+		sasl.Plain,
+	)
+	if c.noTLS {
+		saslFeature.Necessary &^= xmpp.Secure
+	}
+
 	negotiator := xmpp.NewNegotiator(xmpp.StreamConfig{
 		Features: func(*xmpp.Session, ...xmpp.StreamFeature) []xmpp.StreamFeature {
 			return []xmpp.StreamFeature{
 				xmpp.StartTLS(c.dialer.TLSConfig),
-				xmpp.SASL("", pass,
-					sasl.ScramSha256Plus,
-					sasl.ScramSha1Plus,
-					sasl.ScramSha256,
-					sasl.ScramSha1,
-				),
+				saslFeature,
 				roster.Versioning(),
 				xmpp.BindResource(),
 			}
@@ -169,6 +175,7 @@ type Client struct {
 	handler         func(interface{})
 	receiptsHandler *receipts.Handler
 	rosterVer       string
+	noTLS           bool
 }
 
 // Online sets the status to online.

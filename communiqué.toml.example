@@ -24,16 +24,6 @@
 #
 #     password_eval="echo -n password"
 
-
-# Specifies a file where TLS master secrets will be written in NSS key log
-# format. This can be used to allow external programs such as Wireshark to
-# decrypt TLS connections. The file will be truncated without a prompt if it
-# already exists.
-# See https://developer.mozilla.org/en-US/docs/Mozilla/Projects/NSS/Key_Log_Format.
-# Use of this option compromises security and should only be used for debugging.
-#
-# keylog_file=""
-
 # The timeout to use when creating a connection (eg. 1m or 30s).
 # For more information on the format see:
 # https://golang.org/pkg/time/#ParseDuration
@@ -48,6 +38,24 @@
 #  - ./communiqué.db
 #
 # db_file = ""
+
+# Disables SRV lookups on the domainpart of the address.
+#
+# disable_srv=false
+
+# Disables TLS support and resets all connections to plain, unencrypted TCP.
+# Use of this option compromises security and should only be used for debugging.
+#
+# disable_tls=false
+
+# Specifies a file where TLS master secrets will be written in NSS key log
+# format. This can be used to allow external programs such as Wireshark to
+# decrypt TLS connections. The file will be truncated without a prompt if it
+# already exists.
+# See https://developer.mozilla.org/en-US/docs/Mozilla/Projects/NSS/Key_Log_Format.
+# Use of this option compromises security and should only be used for debugging.
+#
+# keylog_file=""
 
 [log]
 
