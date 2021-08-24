@@ -7,6 +7,8 @@
 
 <a href="https://opencollective.com/mellium" alt="Donate on Open Collective"><img src="https://opencollective.com/mellium/donate/button@2x.png?color=blue" width="200"/></a>
 
+![Screenshot](https://mellium.im/screenshot.png)
+
 An instant messaging client written in [Go] for services that support the [XMPP
 protocol] and the public Jabber network.
 
