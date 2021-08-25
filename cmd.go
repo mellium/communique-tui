@@ -96,7 +96,7 @@ func showCmd(pane *ui.UI, client *client.Client, resp commands.Response, payload
 	if actions&commands.Next == commands.Next {
 		buttons = append(buttons, nextBtn)
 	}
-	if actions&commands.Complete == commands.Complete {
+	if actions == 0 || actions&commands.Complete == commands.Complete {
 		buttons = append(buttons, completeBtn)
 	}
 	buttons = append(buttons, cancelBtn)
@@ -125,9 +125,10 @@ func showCmd(pane *ui.UI, client *client.Client, resp commands.Response, payload
 					}
 				}
 			}
-			pane.HideForm()
 			return
 		}
+
+		pane.HideForm()
 
 		ctx, cancel := context.WithTimeout(context.Background(), client.Timeout())
 		defer cancel()
@@ -135,16 +136,18 @@ func showCmd(pane *ui.UI, client *client.Client, resp commands.Response, payload
 		if formData != nil {
 			payload, _ = formData.Submit()
 		}
-		resp, trc, err := nextCmd.Execute(ctx, payload, client.Session)
-		if err != nil {
-			debug.Printf("error closing command session: %v", err)
-		}
-		go func() {
-			err = showCmd(pane, client, resp, trc, debug)
+		if resp.Status != "completed" && resp.Status != "canceled" {
+			resp, trc, err := nextCmd.Execute(ctx, payload, client.Session)
 			if err != nil {
-				debug.Printf("error showing next command: %v", err)
+				debug.Printf("error closing command session: %v", err)
 			}
-		}()
+			go func() {
+				err = showCmd(pane, client, resp, trc, debug)
+				if err != nil {
+					debug.Printf("error showing next command: %v", err)
+				}
+			}()
+		}
 	}
 
 	switch {
