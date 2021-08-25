@@ -493,8 +493,15 @@ func (ui *UI) ShowForm(formData *form.Data, buttons []string, onDone func(int, s
 			})
 		case form.TypeFixed:
 			// TODO: rewrap text to some reasonable length first.
-			for _, line := range strings.Split(field.Label, "\n") {
-				box.AddFormItem(newLabel(line))
+			if field.Label != "" {
+				for _, line := range strings.Split(field.Label, "\n") {
+					box.AddFormItem(newLabel(line))
+				}
+			}
+			for _, val := range field.Raw {
+				for _, line := range strings.Split(val, "\n") {
+					box.AddFormItem(newLabel(line))
+				}
 			}
 			// TODO: will this just work? it's on the form already right?
 		//case form.TypeHidden:
