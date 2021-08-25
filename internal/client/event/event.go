@@ -6,6 +6,7 @@
 package event // import "mellium.im/communique/internal/client/event"
 
 import (
+	"mellium.im/xmpp/commands"
 	"mellium.im/xmpp/delay"
 	"mellium.im/xmpp/forward"
 	"mellium.im/xmpp/jid"
@@ -28,6 +29,12 @@ type (
 
 	// StatusBusy is sent when the user should change their status to busy.
 	StatusBusy struct{}
+
+	// LoadingCommands is sent by the UI when the ad-hoc command window opens.
+	LoadingCommands struct{}
+
+	// ExecCommand is sent by the UI when an ad-hoc command should be executed.
+	ExecCommand commands.Command
 
 	// FetchRoster is sent when a roster is fetched.
 	FetchRoster struct {

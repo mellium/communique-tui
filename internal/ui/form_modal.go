@@ -44,7 +44,7 @@ func NewModal() *Modal {
 		SetButtonsAlign(tview.AlignCenter).
 		SetButtonBackgroundColor(tview.Styles.PrimitiveBackgroundColor).
 		SetButtonTextColor(tview.Styles.PrimaryTextColor)
-	m.form.SetBackgroundColor(tview.Styles.ContrastBackgroundColor).SetBorderPadding(0, 0, 0, 0)
+	m.form.SetBackgroundColor(tview.Styles.PrimitiveBackgroundColor).SetBorderPadding(0, 0, 0, 0)
 	m.form.SetCancelFunc(func() {
 		if m.done != nil {
 			m.done(-1, "")
@@ -52,7 +52,7 @@ func NewModal() *Modal {
 	})
 	m.frame = tview.NewFrame(m.form).SetBorders(0, 0, 1, 0, 0, 0)
 	m.frame.SetBorder(true).
-		SetBackgroundColor(tview.Styles.ContrastBackgroundColor).
+		SetBackgroundColor(tview.Styles.PrimitiveBackgroundColor).
 		SetBorderPadding(1, 1, 1, 1)
 	return m
 }

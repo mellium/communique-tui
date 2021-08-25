@@ -13,6 +13,7 @@ import (
 	"mellium.im/communique/internal/client/event"
 	"mellium.im/communique/internal/storage"
 	"mellium.im/communique/internal/ui"
+	"mellium.im/xmpp/commands"
 	"mellium.im/xmpp/history"
 	"mellium.im/xmpp/jid"
 	"mellium.im/xmpp/roster"
@@ -24,6 +25,40 @@ import (
 func newUIHandler(configPath string, pane *ui.UI, db *storage.DB, c *client.Client, logger, debug *log.Logger) func(interface{}) {
 	return func(ev interface{}) {
 		switch e := ev.(type) {
+		case event.ExecCommand:
+			go func() {
+				ctx, cancel := context.WithTimeout(context.Background(), c.Timeout())
+				defer cancel()
+				debug.Printf("executing command: %+v", e)
+				resp, trc, err := commands.Command(e).Execute(ctx, nil, c.Session)
+				if err != nil {
+					logger.Printf("error executing command %q on %q: %v", e.Node, e.JID, err)
+				}
+				err = showCmd(pane, c, resp, trc, debug)
+				if err != nil {
+					logger.Printf("error showing next command for %q: %v", e.JID, err)
+				}
+			}()
+		case event.LoadingCommands:
+			go func() {
+				ctx, cancel := context.WithTimeout(context.Background(), c.Timeout())
+				defer cancel()
+				j := pane.GetRosterJID()
+				iter := commands.Fetch(ctx, j, c.Session)
+				var cmd []commands.Command
+				for iter.Next() {
+					cmd = append(cmd, iter.Command())
+				}
+				err := iter.Err()
+				if err != nil {
+					debug.Printf("error fetching commands for %q: %v", j, err)
+				}
+				err = iter.Close()
+				if err != nil {
+					debug.Printf("error closing commands iter for %q: %v", j, err)
+				}
+				pane.SetCommands(j, cmd)
+			}()
 		case event.StatusAway:
 			go func() {
 				ctx, cancel := context.WithTimeout(context.Background(), c.Timeout())

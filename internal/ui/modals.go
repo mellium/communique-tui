@@ -8,7 +8,13 @@ import (
 	"github.com/gdamore/tcell/v2"
 	"github.com/rivo/tview"
 
+	"mellium.im/xmpp/commands"
 	"mellium.im/xmpp/jid"
+)
+
+const (
+	cancelButton = "Cancel"
+	execButton   = "Execute"
 )
 
 func modalClose(onEsc func()) func(event *tcell.EventKey) *tcell.EventKey {
@@ -20,10 +26,20 @@ func modalClose(onEsc func()) func(event *tcell.EventKey) *tcell.EventKey {
 	}
 }
 
+type commandsModal struct {
+	*Modal
+	c []commands.Command
+}
+
+func cmdModal(onEsc func(), onExecute func(commands.Command)) *commandsModal {
+	return &commandsModal{
+		Modal: NewModal(),
+	}
+}
+
 func addRosterModal(autocomplete func(s string) []string, onEsc func(), onAdd func(jid.JID)) *Modal {
 	const (
-		cancelButton = "Cancel"
-		addButton    = "Add"
+		addButton = "Add"
 	)
 	mod := NewModal().
 		SetText(`Start Chat`)
@@ -52,7 +68,6 @@ func addRosterModal(autocomplete func(s string) []string, onEsc func(), onAdd fu
 
 func delRosterModal(onEsc func(), onDel func()) *tview.Modal {
 	const (
-		cancelButton = "Cancel"
 		removeButton = "Remove"
 	)
 	mod := tview.NewModal().
@@ -115,6 +130,7 @@ i⃣, ⏎⃣ open chat
 I⃣ more info
 o⃣, O⃣ open next/prev unread
 d⃣ d⃣ remove contact
+!⃣ execute command
 `).
 		SetDoneFunc(func(int, string) {
 			onEsc()

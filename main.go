@@ -160,6 +160,7 @@ Try running '%s -config' to generate a default config file.`, err, os.Args[0])
 	signal.Notify(sigs, os.Interrupt, syscall.SIGQUIT, syscall.SIGTERM)
 
 	pane := ui.New(
+		ui.Debug(debug),
 		ui.Addr(cfg.JID),
 		ui.ShowStatus(!cfg.UI.HideStatus),
 		ui.RosterWidth(cfg.UI.Width),
@@ -278,7 +279,7 @@ Go %s %s
 		client.RosterVer(rosterVer),
 	)
 	c.Handler(newClientHandler(configPath, c, pane, db, logger, debug))
-	pane.Handle(newUIHandler(configPath, pane, db, c, debug, logger))
+	pane.Handle(newUIHandler(configPath, pane, db, c, logger, debug))
 
 	// Hopefully nothing ever panics, but in case it does ensure that we exit
 	// TUI mode so that we don't hose the users terminal.

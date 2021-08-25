@@ -7,6 +7,8 @@ package ui // import "mellium.im/communique/internal/ui"
 
 import (
 	"fmt"
+	"io"
+	"log"
 	"strings"
 	"sync"
 
@@ -14,11 +16,14 @@ import (
 	"github.com/rivo/tview"
 
 	"mellium.im/communique/internal/client/event"
+	"mellium.im/xmpp/commands"
+	"mellium.im/xmpp/form"
 	"mellium.im/xmpp/jid"
 	"mellium.im/xmpp/roster"
 )
 
 const (
+	commandsLabel       = "Commands"
 	getPasswordPageName = "get_password"
 	logsPageName        = "logs"
 	chatPageName        = "chat"
@@ -26,6 +31,7 @@ const (
 	helpPageName        = "help"
 	delRosterPageName   = "del_roster"
 	addRosterPageName   = "add_roster"
+	cmdPageName         = "list_cmd"
 	infoPageName        = "info"
 	setStatusPageName   = "set_status"
 	uiPageName          = "ui"
@@ -66,6 +72,8 @@ type UI struct {
 	chatsOpen      *syncBool
 	infoModal      *tview.Modal
 	addRosterModal *Modal
+	cmdModal       *commandsModal
+	debug          *log.Logger
 }
 
 // Run starts the application event loop.
@@ -106,6 +114,13 @@ func InputCapture(capture func(event *tcell.EventKey) *tcell.EventKey) Option {
 func Addr(addr string) Option {
 	return func(ui *UI) {
 		ui.addr = addr
+	}
+}
+
+// Debug sets the verbose debug logger that will be used by the UI.
+func Debug(l *log.Logger) Option {
+	return func(ui *UI) {
+		ui.debug = l
 	}
 }
 
@@ -186,9 +201,15 @@ func New(opts ...Option) *UI {
 		pages:       pages,
 		passPrompt:  make(chan string),
 		chatsOpen:   &syncBool{},
+		debug:       log.New(io.Discard, "", 0),
 	}
 	ui.infoModal = infoModal(func() {
 		ui.pages.HidePage(infoPageName)
+	})
+	ui.cmdModal = cmdModal(func() {
+		ui.pages.HidePage(cmdPageName)
+	}, func(c commands.Command) {
+		ui.handler(event.ExecCommand(c))
 	})
 	ui.addRosterModal = addRosterModal(func(s string) []string {
 		idx := strings.IndexByte(s, '@')
@@ -251,6 +272,9 @@ func New(opts ...Option) *UI {
 			buffers.SwitchToPage(logsPageName)
 			app.SetFocus(buffers)
 			return nil
+		case eventRune == '!':
+			ui.ShowLoadCmd()
+			return nil
 		case eventRune == 'c':
 			ui.ShowAddRoster()
 			return nil
@@ -310,6 +334,7 @@ func New(opts ...Option) *UI {
 		ui.pages.HidePage(helpPageName)
 	}), true, false)
 	ui.pages.AddPage(addRosterPageName, ui.addRosterModal, true, false)
+	ui.pages.AddPage(cmdPageName, ui.cmdModal, true, false)
 	ui.pages.AddPage(delRosterPageName, delRosterModal(func() {
 		ui.pages.HidePage(delRosterPageName)
 	}, func() {
@@ -424,11 +449,195 @@ func (ui *UI) ShowAddRoster() {
 	ui.app.SetFocus(ui.pages)
 }
 
+// ShowLoadCmd shows available ad-hoc commands for the selected JID.
+func (ui *UI) ShowLoadCmd() {
+	ui.pages.ShowPage(cmdPageName)
+	ui.pages.SendToFront(cmdPageName)
+	ui.cmdModal.SetText(`Loading commands…`)
+	ui.cmdModal.Form().Clear(true)
+	ui.cmdModal.AddButtons([]string{cancelButton}).SetDoneFunc(func(_ int, buttonLabel string) {
+		ui.HideForm()
+	})
+	ui.handler(event.LoadingCommands{})
+	ui.app.SetFocus(ui.pages)
+}
+
+// ShowForm displays an ad-hoc commands form.
+func (ui *UI) ShowForm(formData *form.Data, buttons []string, onDone func(int, string)) {
+	ui.pages.ShowPage(cmdPageName)
+	ui.pages.SendToFront(cmdPageName)
+	defer func() {
+		ui.app.SetFocus(ui.pages)
+		ui.Redraw()
+	}()
+	title := "Data Form"
+	if t := formData.Title(); t != "" {
+		title = t
+	}
+	if instructions := formData.Instructions(); instructions != "" {
+		title += "\n\n" + instructions
+	}
+	ui.cmdModal.SetText(title)
+	ui.cmdModal.Form().Clear(true)
+	box := ui.cmdModal.Form()
+	formData.ForFields(func(field form.FieldData) {
+		switch field.Type {
+		case form.TypeBoolean:
+			// TODO: changed func/required
+			def, _ := formData.GetBool(field.Var)
+			box.AddCheckbox(field.Label, def, func(checked bool) {
+				_, err := formData.Set(field.Var, checked)
+				if err != nil {
+					ui.debug.Printf("error setting bool form field %s: %v", field.Var, err)
+				}
+			})
+		case form.TypeFixed:
+			// TODO: rewrap text to some reasonable length first.
+			for _, line := range strings.Split(field.Label, "\n") {
+				box.AddFormItem(newLabel(line))
+			}
+			// TODO: will this just work? it's on the form already right?
+		//case form.TypeHidden:
+		//box.AddButton("Hidden: "+field.Label, nil)
+		case form.TypeJIDMulti:
+			jids, _ := formData.GetJIDs(field.Var)
+			opts := make([]string, 0, len(jids))
+			for _, j := range jids {
+				opts = append(opts, j.String())
+			}
+			box.AddDropDown(field.Label, opts, 0, func(option string, optionIndex int) {
+				j, err := jid.Parse(option)
+				if err != nil {
+					ui.debug.Printf("error parsing jid-multi value for field %s: %v", field.Var, err)
+					return
+				}
+				_, err = formData.Set(field.Var, j)
+				if err != nil {
+					ui.debug.Printf("error setting jid-multi form field %s: %v", field.Var, err)
+				}
+			})
+		case form.TypeJID:
+			j, _ := formData.GetJID(field.Var)
+			box.AddInputField(field.Label, j.String(), 20, func(textToCheck string, _ rune) bool {
+				_, err := jid.Parse(textToCheck)
+				return err != nil
+			}, func(text string) {
+				j := jid.MustParse(text)
+				_, err := formData.Set(field.Var, j)
+				if err != nil {
+					ui.debug.Printf("error setting jid form field %s: %v", field.Var, err)
+				}
+			})
+		case form.TypeListMulti, form.TypeList:
+			// TODO: multi select list?
+			opts, _ := formData.GetStrings(field.Var)
+			box.AddDropDown(field.Label, opts, 0, func(option string, optionIndex int) {
+				_, err := formData.Set(field.Var, option)
+				if err != nil {
+					ui.debug.Printf("error setting list or list-multi form field %s: %v", field.Var, err)
+				}
+			})
+		case form.TypeTextMulti, form.TypeText:
+			// TODO: multi line text, max lengths, etc.
+			t, _ := formData.GetString(field.Var)
+			box.AddInputField(field.Label, t, 20, nil, func(text string) {
+				_, err := formData.Set(field.Var, text)
+				if err != nil {
+					ui.debug.Printf("error setting text or text-multi form field %s: %v", field.Var, err)
+				}
+			})
+		case form.TypeTextPrivate:
+			// TODO: multi line text, max lengths, etc.
+			t, _ := formData.GetString(field.Var)
+			box.AddPasswordField(field.Label, t, 20, '*', func(text string) {
+				_, err := formData.Set(field.Var, text)
+				if err != nil {
+					ui.debug.Printf("error setting password form field %s: %v", field.Var, err)
+				}
+			})
+		}
+	})
+	ui.cmdModal.AddButtons(buttons)
+	ui.cmdModal.SetDoneFunc(onDone)
+}
+
+// ShowNote shows a text note from an ad-hoc command.
+func (ui *UI) ShowNote(note commands.Note, buttons []string, onDone func(int, string)) {
+	ui.pages.ShowPage(cmdPageName)
+	ui.pages.SendToFront(cmdPageName)
+	defer func() {
+		ui.app.SetFocus(ui.pages)
+		ui.Redraw()
+	}()
+	var symbol string
+	switch note.Type {
+	case commands.NoteInfo:
+		symbol = "ℹ️\n\n"
+	case commands.NoteWarn:
+		symbol = "⚠️\n\n"
+	case commands.NoteError:
+		symbol = "❌\n\n"
+	default:
+		symbol = "⁉️\n"
+	}
+	ui.cmdModal.SetText(symbol + note.Value)
+	ui.cmdModal.Form().Clear(true)
+	ui.cmdModal.AddButtons(buttons)
+	ui.cmdModal.SetDoneFunc(onDone)
+}
+
+// HideForm hides the ad-hoc form commands window.
+func (ui *UI) HideForm() {
+	ui.pages.HidePage(cmdPageName)
+}
+
+// SetCommands populates the list of ad-hoc commands in the list commands
+// window. It should generally be called after the commands have been loaded and
+// after the "ShowListCMD" function has been called (since that sets the text to
+// a loading indicator).
+func (ui *UI) SetCommands(j jid.JID, c []commands.Command) {
+	defer func() {
+		ui.app.SetFocus(ui.pages)
+		ui.Redraw()
+	}()
+
+	if len(c) == 0 {
+		ui.cmdModal.SetText(fmt.Sprintf("No Commands Found for\n%s", j))
+		return
+	}
+
+	var cmds []string
+	for _, name := range c {
+		cmds = append(cmds, name.Name)
+	}
+	ui.cmdModal.SetText(fmt.Sprintf("Commands for\n%s", j))
+	ui.cmdModal.c = c
+	ui.cmdModal.Form().
+		Clear(true).
+		AddDropDown(commandsLabel, cmds, 0, nil)
+	ui.cmdModal.AddButtons([]string{cancelButton, execButton})
+	ui.cmdModal.SetDoneFunc(func(_ int, buttonLabel string) {
+		if buttonLabel == execButton {
+			idx, _ := ui.cmdModal.Form().GetFormItemByLabel(commandsLabel).(*tview.DropDown).GetCurrentOption()
+			ui.HideForm()
+			ui.handler(event.ExecCommand(ui.cmdModal.c[idx]))
+			return
+		}
+		ui.HideForm()
+	})
+}
+
 // ShowHelpPrompt shows a list of keyboard shortcuts..
 func (ui *UI) ShowHelpPrompt() {
 	ui.pages.ShowPage(helpPageName)
 	ui.pages.SendToFront(helpPageName)
 	ui.app.SetFocus(ui.pages)
+}
+
+// GetRosterJID gets the currently selected roster JID.
+func (ui *UI) GetRosterJID() jid.JID {
+	item, _ := ui.roster.GetSelected()
+	return item.JID
 }
 
 // ShowRosterInfo displays more info about the currently selected roster item.
