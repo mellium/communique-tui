@@ -19,16 +19,16 @@ type (
 	Connected struct{}
 
 	// StatusOnline is sent when the user should come online.
-	StatusOnline struct{}
+	StatusOnline jid.JID
 
 	// StatusOffline is sent when the user should go offline.
-	StatusOffline struct{}
+	StatusOffline jid.JID
 
 	// StatusAway is sent when the user should change their status to away.
-	StatusAway struct{}
+	StatusAway jid.JID
 
 	// StatusBusy is sent when the user should change their status to busy.
-	StatusBusy struct{}
+	StatusBusy jid.JID
 
 	// LoadingCommands is sent by the UI when the ad-hoc command window opens.
 	LoadingCommands struct{}

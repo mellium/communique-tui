@@ -13,14 +13,21 @@ import (
 
 	"github.com/gdamore/tcell/v2"
 	"github.com/rivo/tview"
+	"mellium.im/xmpp/jid"
 	"mellium.im/xmpp/roster"
 )
+
+type presence struct {
+	From   jid.JID
+	Status string
+}
 
 // RosterItem represents a contact in the roster.
 type RosterItem struct {
 	roster.Item
 	idx         int
 	firstUnread string
+	presences   []presence
 }
 
 // FirstUnread returns the ID of the first unread message.
@@ -386,6 +393,48 @@ func (r Roster) GetInputCapture() func(event *tcell.EventKey) *tcell.EventKey {
 func (r Roster) GetSelected() (RosterItem, bool) {
 	_, j := r.list.GetItemText(r.list.GetCurrentItem())
 	return r.GetItem(j)
+}
+
+// UpsertPresence updates an existing roster item with a newly seen resource or
+// presence change.
+// If the item is not in the roster, false is returned.
+func (r Roster) UpsertPresence(j jid.JID, status string) bool {
+	r.itemLock.Lock()
+	defer r.itemLock.Unlock()
+
+	key := j.Bare().String()
+	item, ok := r.items[key]
+	if !ok {
+		return ok
+	}
+	//type presence struct {
+	//	From   jid.JID
+	//	Status string
+	//}
+	var found bool
+	filtered := item.presences[:0]
+	for _, p := range item.presences {
+		if !p.From.Equal(j) {
+			filtered = append(filtered, p)
+			continue
+		}
+		found = true
+		if status == statusOffline {
+			continue
+		}
+		p.Status = status
+		filtered = append(filtered, p)
+	}
+	item.presences = filtered
+	if !found {
+		item.presences = append(item.presences, presence{
+			From:   j,
+			Status: status,
+		})
+	}
+	r.items[key] = item
+
+	return ok
 }
 
 // GetItem returns the item for the given JID.

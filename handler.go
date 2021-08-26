@@ -205,13 +205,13 @@ func newClientHandler(configPath string, client *client.Client, pane *ui.UI, db 
 	return func(ev interface{}) {
 		switch e := ev.(type) {
 		case event.StatusAway:
-			pane.Away()
+			pane.Away(jid.JID(e), jid.JID(e).Equal(client.LocalAddr()))
 		case event.StatusBusy:
-			pane.Busy()
+			pane.Busy(jid.JID(e), jid.JID(e).Equal(client.LocalAddr()))
 		case event.StatusOnline:
-			pane.Online()
+			pane.Online(jid.JID(e), jid.JID(e).Equal(client.LocalAddr()))
 		case event.StatusOffline:
-			pane.Offline()
+			pane.Offline(jid.JID(e), jid.JID(e).Equal(client.LocalAddr()))
 		case event.FetchRoster:
 			ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 			defer cancel()

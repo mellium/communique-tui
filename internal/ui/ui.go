@@ -11,6 +11,7 @@ import (
 	"log"
 	"strings"
 	"sync"
+	"text/tabwriter"
 
 	"github.com/gdamore/tcell/v2"
 	"github.com/rivo/tview"
@@ -35,6 +36,11 @@ const (
 	infoPageName        = "info"
 	setStatusPageName   = "set_status"
 	uiPageName          = "ui"
+
+	statusOnline  = "online"
+	statusOffline = "offline"
+	statusAway    = "away"
+	statusBusy    = "busy"
 )
 
 type syncBool struct {
@@ -397,27 +403,39 @@ func (ui *UI) ChatsOpen() bool {
 }
 
 // Offline sets the state of the roster to show the user as offline.
-func (ui *UI) Offline() {
-	ui.roster.Offline()
-	ui.redraw()
+func (ui *UI) Offline(j jid.JID, self bool) {
+	if self {
+		ui.roster.Offline()
+		ui.redraw()
+	}
+	ui.roster.UpsertPresence(j, statusOffline)
 }
 
 // Online sets the state of the roster to show the user as online.
-func (ui *UI) Online() {
-	ui.roster.Online()
-	ui.redraw()
+func (ui *UI) Online(j jid.JID, self bool) {
+	if self {
+		ui.roster.Online()
+		ui.redraw()
+	}
+	ui.roster.UpsertPresence(j, statusOnline)
 }
 
 // Away sets the state of the roster to show the user as away.
-func (ui *UI) Away() {
-	ui.roster.Away()
-	ui.redraw()
+func (ui *UI) Away(j jid.JID, self bool) {
+	if self {
+		ui.roster.Away()
+		ui.redraw()
+	}
+	ui.roster.UpsertPresence(j, statusAway)
 }
 
 // Busy sets the state of the roster to show the user as busy.
-func (ui *UI) Busy() {
-	ui.roster.Busy()
-	ui.redraw()
+func (ui *UI) Busy(j jid.JID, self bool) {
+	if self {
+		ui.roster.Busy()
+		ui.redraw()
+	}
+	ui.roster.UpsertPresence(j, statusBusy)
 }
 
 // Handle configures an event handler which will be called when the user
@@ -651,6 +669,29 @@ func (ui *UI) GetRosterJID() jid.JID {
 	return item.JID
 }
 
+func formatPresence(p []presence) string {
+	var buf strings.Builder
+	tabWriter := tabwriter.NewWriter(&buf, 0, 0, 1, ' ', 0)
+	for _, pres := range p {
+		icon := ""
+		switch pres.Status {
+		case statusOnline:
+			icon = "●"
+		case statusBusy:
+			icon = "◐"
+		case statusAway:
+			icon = "◓"
+		case statusOffline:
+			icon = "◯"
+		}
+		/* #nosec */
+		fmt.Fprintf(tabWriter, "%s\t%s\t\n", icon, pres.From.Resourcepart())
+	}
+	/* #nosec */
+	tabWriter.Flush()
+	return buf.String()
+}
+
 // ShowRosterInfo displays more info about the currently selected roster item.
 func (ui *UI) ShowRosterInfo() {
 	item, ok := ui.roster.GetSelected()
@@ -681,7 +722,10 @@ func (ui *UI) ShowRosterInfo() {
 
 Subscription: %s
 Groups: %v
-`, name, item.JID, subscriptionIcon, item.Group)).
+Resources:
+
+%s
+`, name, item.JID, subscriptionIcon, item.Group, formatPresence(item.presences))).
 			ClearButtons()
 		// If this isn't the status button or the "Me" item and we're not
 		// subscribed, add a subscribe button.

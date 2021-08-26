@@ -54,10 +54,6 @@ func newXMPPHandler(c *Client) xmpp.Handler {
 
 func newPresenceHandler(c *Client) mux.PresenceHandlerFunc {
 	return func(p stanza.Presence, t xmlstream.TokenReadEncoder) error {
-		if !p.From.Equal(c.LocalAddr()) {
-			return nil
-		}
-
 		// Throw away the start presence token.
 		_, err := t.Token()
 		if err != nil {
@@ -101,11 +97,11 @@ func newPresenceHandler(c *Client) mux.PresenceHandlerFunc {
 		// See https://tools.ietf.org/html/rfc6121#section-4.7.2.1
 		switch status {
 		case "away", "xa":
-			c.handler(event.StatusAway{})
+			c.handler(event.StatusAway(p.From))
 		case "chat", "":
-			c.handler(event.StatusOnline{})
+			c.handler(event.StatusOnline(p.From))
 		case "dnd":
-			c.handler(event.StatusBusy{})
+			c.handler(event.StatusBusy(p.From))
 		}
 		return nil
 	}
