@@ -31,7 +31,7 @@ type (
 	StatusBusy jid.JID
 
 	// LoadingCommands is sent by the UI when the ad-hoc command window opens.
-	LoadingCommands struct{}
+	LoadingCommands jid.JID
 
 	// ExecCommand is sent by the UI when an ad-hoc command should be executed.
 	ExecCommand commands.Command

@@ -43,7 +43,7 @@ func newUIHandler(configPath string, pane *ui.UI, db *storage.DB, c *client.Clie
 			go func() {
 				ctx, cancel := context.WithTimeout(context.Background(), c.Timeout())
 				defer cancel()
-				j := pane.GetRosterJID()
+				j := jid.JID(e)
 				iter := commands.Fetch(ctx, j, c.Session)
 				var cmd []commands.Command
 				for iter.Next() {

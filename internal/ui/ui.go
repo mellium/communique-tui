@@ -283,7 +283,11 @@ func New(opts ...Option) *UI {
 			app.SetFocus(buffers)
 			return nil
 		case eventRune == '!':
-			ui.ShowLoadCmd()
+			ui.PickResource(func(j jid.JID, ok bool) {
+				if ok {
+					ui.ShowLoadCmd(j)
+				}
+			})
 			return nil
 		case eventRune == 'c':
 			ui.ShowAddRoster()
@@ -472,7 +476,7 @@ func (ui *UI) ShowAddRoster() {
 }
 
 // ShowLoadCmd shows available ad-hoc commands for the selected JID.
-func (ui *UI) ShowLoadCmd() {
+func (ui *UI) ShowLoadCmd(j jid.JID) {
 	ui.cmdPane.Form().SetButtonsAlign(tview.AlignLeft)
 	ui.cmdPane.SetText("Commands", "Loading commands…")
 	ui.cmdPane.Form().Clear(true).
@@ -481,7 +485,7 @@ func (ui *UI) ShowLoadCmd() {
 		})
 	ui.buffers.SwitchToPage(cmdPageName)
 	ui.app.SetFocus(ui.buffers)
-	ui.handler(event.LoadingCommands{})
+	ui.handler(event.LoadingCommands(j))
 }
 
 // ShowForm displays an ad-hoc commands form.
@@ -526,7 +530,7 @@ func (ui *UI) ShowForm(formData *form.Data, buttons []string, onDone func(string
 		//box.AddButton("Hidden: "+field.Label, nil)
 		case form.TypeJIDMulti:
 			jids, _ := formData.GetJIDs(field.Var)
-			opts := make([]string, 0, len(jids))
+			opts := make([]string, len(jids), 0)
 			for _, j := range jids {
 				opts = append(opts, j.String())
 			}
@@ -630,7 +634,7 @@ func (ui *UI) SetCommands(j jid.JID, c []commands.Command) {
 
 	if len(c) == 0 {
 		ui.cmdPane.Form().SetButtonsAlign(tview.AlignCenter)
-		ui.cmdPane.SetText("Commands", "No commands found!")
+		ui.cmdPane.SetText("Commands", fmt.Sprintf("No commands found for %v!", j))
 		return
 	}
 
@@ -690,6 +694,67 @@ func formatPresence(p []presence) string {
 	/* #nosec */
 	tabWriter.Flush()
 	return buf.String()
+}
+
+// PickResource shows a modal with the currently selected roster items resources
+// and lets the user pick one.
+// It hten calls f with the full JID and whether or not picking a resource was
+// successful.
+func (ui *UI) PickResource(f func(jid.JID, bool)) {
+	const pageName = "resource_picker"
+	item, ok := ui.roster.GetSelected()
+	if !ok {
+		ui.pages.HidePage(pageName)
+		f(jid.JID{}, false)
+		return
+	}
+	if len(item.presences) == 0 {
+		ui.pages.HidePage(pageName)
+		f(item.JID, true)
+		return
+	}
+	opts := make([]string, 0, len(item.presences))
+	bare := item.JID.String()
+	var foundBare bool
+	for _, p := range item.presences {
+		addr := p.From.String()
+		if addr == bare {
+			foundBare = true
+		}
+		opts = append(opts, addr)
+	}
+	if !foundBare {
+		opts = append(opts, bare)
+	}
+	if len(opts) == 1 {
+		ui.pages.HidePage(pageName)
+		f(item.JID, true)
+		return
+	}
+	var idx int
+	const selectButton = "Select"
+	mod := NewModal().SetText("Pick Address").
+		AddButtons([]string{selectButton})
+	mod.Form().AddDropDown("Address", opts, 0, func(_ string, optionIndex int) {
+		idx = optionIndex
+	})
+	mod.SetDoneFunc(func(_ int, label string) {
+		ui.pages.HidePage(pageName)
+		if label != selectButton {
+			return
+		}
+		ui.pages.RemovePage(pageName)
+		if idx >= len(item.presences) {
+			f(item.JID, true)
+			return
+		}
+		f(item.presences[idx].From, true)
+	})
+
+	ui.pages.AddPage(pageName, mod, false, true)
+	ui.pages.ShowPage(pageName)
+	ui.pages.SendToFront(pageName)
+	ui.app.SetFocus(ui.pages)
 }
 
 // ShowRosterInfo displays more info about the currently selected roster item.
