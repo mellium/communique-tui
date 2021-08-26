@@ -8,7 +8,6 @@ import (
 	"github.com/gdamore/tcell/v2"
 	"github.com/rivo/tview"
 
-	"mellium.im/xmpp/commands"
 	"mellium.im/xmpp/jid"
 )
 
@@ -23,17 +22,6 @@ func modalClose(onEsc func()) func(event *tcell.EventKey) *tcell.EventKey {
 			onEsc()
 		}
 		return event
-	}
-}
-
-type commandsModal struct {
-	*Modal
-	c []commands.Command
-}
-
-func cmdModal(onEsc func(), onExecute func(commands.Command)) *commandsModal {
-	return &commandsModal{
-		Modal: NewModal(),
 	}
 }
 

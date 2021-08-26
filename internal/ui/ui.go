@@ -72,7 +72,7 @@ type UI struct {
 	chatsOpen      *syncBool
 	infoModal      *tview.Modal
 	addRosterModal *Modal
-	cmdModal       *commandsModal
+	cmdPane        *commandsPane
 	debug          *log.Logger
 }
 
@@ -206,11 +206,7 @@ func New(opts ...Option) *UI {
 	ui.infoModal = infoModal(func() {
 		ui.pages.HidePage(infoPageName)
 	})
-	ui.cmdModal = cmdModal(func() {
-		ui.pages.HidePage(cmdPageName)
-	}, func(c commands.Command) {
-		ui.handler(event.ExecCommand(c))
-	})
+	ui.cmdPane = cmdPane()
 	ui.addRosterModal = addRosterModal(func(s string) []string {
 		idx := strings.IndexByte(s, '@')
 		if idx < 0 {
@@ -253,7 +249,15 @@ func New(opts ...Option) *UI {
 
 	logs := newLogs(app, func(event *tcell.EventKey) *tcell.EventKey {
 		switch event.Key() {
-		case tcell.KeyESC, tcell.KeyTAB, tcell.KeyBacktab:
+		case tcell.KeyTAB, tcell.KeyBacktab:
+			name, _ := ui.buffers.GetFrontPage()
+			if name == logsPageName {
+				ui.chatsOpen.Set(false)
+				ui.SelectRoster()
+				return nil
+			}
+			return event
+		case tcell.KeyESC:
 			ui.chatsOpen.Set(false)
 			ui.SelectRoster()
 			return nil
@@ -334,7 +338,7 @@ func New(opts ...Option) *UI {
 		ui.pages.HidePage(helpPageName)
 	}), true, false)
 	ui.pages.AddPage(addRosterPageName, ui.addRosterModal, true, false)
-	ui.pages.AddPage(cmdPageName, ui.cmdModal, true, false)
+	buffers.AddPage(cmdPageName, ui.cmdPane, true, false)
 	ui.pages.AddPage(delRosterPageName, delRosterModal(func() {
 		ui.pages.HidePage(delRosterPageName)
 	}, func() {
@@ -451,35 +455,31 @@ func (ui *UI) ShowAddRoster() {
 
 // ShowLoadCmd shows available ad-hoc commands for the selected JID.
 func (ui *UI) ShowLoadCmd() {
-	ui.pages.ShowPage(cmdPageName)
-	ui.pages.SendToFront(cmdPageName)
-	ui.cmdModal.SetText(`Loading commands…`)
-	ui.cmdModal.Form().Clear(true)
-	ui.cmdModal.AddButtons([]string{cancelButton}).SetDoneFunc(func(_ int, buttonLabel string) {
-		ui.HideForm()
-	})
+	ui.cmdPane.Form().SetButtonsAlign(tview.AlignLeft)
+	ui.cmdPane.SetText("Commands", "Loading commands…")
+	ui.cmdPane.Form().Clear(true).
+		AddButton(cancelButton, func() {
+			ui.SelectRoster()
+		})
+	ui.buffers.SwitchToPage(cmdPageName)
+	ui.app.SetFocus(ui.buffers)
 	ui.handler(event.LoadingCommands{})
-	ui.app.SetFocus(ui.pages)
 }
 
 // ShowForm displays an ad-hoc commands form.
-func (ui *UI) ShowForm(formData *form.Data, buttons []string, onDone func(int, string)) {
-	ui.pages.ShowPage(cmdPageName)
-	ui.pages.SendToFront(cmdPageName)
+func (ui *UI) ShowForm(formData *form.Data, buttons []string, onDone func(string)) {
 	defer func() {
-		ui.app.SetFocus(ui.pages)
+		ui.buffers.SwitchToPage(cmdPageName)
+		ui.app.SetFocus(ui.buffers)
 		ui.Redraw()
 	}()
+	ui.cmdPane.Form().SetButtonsAlign(tview.AlignLeft)
 	title := "Data Form"
 	if t := formData.Title(); t != "" {
 		title = t
 	}
-	if instructions := formData.Instructions(); instructions != "" {
-		title += "\n\n" + instructions
-	}
-	ui.cmdModal.SetText(title)
-	ui.cmdModal.Form().Clear(true)
-	box := ui.cmdModal.Form()
+	ui.cmdPane.SetText(title, formData.Instructions())
+	box := ui.cmdPane.Form().Clear(true)
 	formData.ForFields(func(field form.FieldData) {
 		switch field.Type {
 		case form.TypeBoolean:
@@ -564,38 +564,39 @@ func (ui *UI) ShowForm(formData *form.Data, buttons []string, onDone func(int, s
 			})
 		}
 	})
-	ui.cmdModal.AddButtons(buttons)
-	ui.cmdModal.SetDoneFunc(onDone)
+	for _, button := range buttons {
+		ui.cmdPane.Form().AddButton(button, func() {
+			onDone(button)
+		})
+	}
 }
 
 // ShowNote shows a text note from an ad-hoc command.
-func (ui *UI) ShowNote(note commands.Note, buttons []string, onDone func(int, string)) {
-	ui.pages.ShowPage(cmdPageName)
-	ui.pages.SendToFront(cmdPageName)
+func (ui *UI) ShowNote(note commands.Note, buttons []string, onDone func(string)) {
 	defer func() {
-		ui.app.SetFocus(ui.pages)
+		ui.buffers.SwitchToPage(cmdPageName)
+		ui.app.SetFocus(ui.buffers)
 		ui.Redraw()
 	}()
 	var symbol string
 	switch note.Type {
 	case commands.NoteInfo:
-		symbol = "ℹ️\n\n"
+		symbol = "ℹ️\n"
 	case commands.NoteWarn:
-		symbol = "⚠️\n\n"
+		symbol = "⚠️\n"
 	case commands.NoteError:
-		symbol = "❌\n\n"
+		symbol = "❌\n"
 	default:
 		symbol = "⁉️\n"
 	}
-	ui.cmdModal.SetText(symbol + note.Value)
-	ui.cmdModal.Form().Clear(true)
-	ui.cmdModal.AddButtons(buttons)
-	ui.cmdModal.SetDoneFunc(onDone)
-}
-
-// HideForm hides the ad-hoc form commands window.
-func (ui *UI) HideForm() {
-	ui.pages.HidePage(cmdPageName)
+	ui.cmdPane.SetText(symbol, note.Value)
+	ui.cmdPane.Form().Clear(true)
+	for _, button := range buttons {
+		ui.cmdPane.Form().AddButton(button, func() {
+			onDone(button)
+		})
+	}
+	ui.cmdPane.Form().SetButtonsAlign(tview.AlignCenter)
 }
 
 // SetCommands populates the list of ad-hoc commands in the list commands
@@ -604,34 +605,37 @@ func (ui *UI) HideForm() {
 // a loading indicator).
 func (ui *UI) SetCommands(j jid.JID, c []commands.Command) {
 	defer func() {
-		ui.app.SetFocus(ui.pages)
+		ui.buffers.SwitchToPage(cmdPageName)
+		ui.app.SetFocus(ui.buffers)
 		ui.Redraw()
 	}()
 
 	if len(c) == 0 {
-		ui.cmdModal.SetText(fmt.Sprintf("No Commands Found for\n%s", j))
+		ui.cmdPane.Form().SetButtonsAlign(tview.AlignCenter)
+		ui.cmdPane.SetText("Commands", "No commands found!")
 		return
 	}
 
+	ui.cmdPane.Form().SetButtonsAlign(tview.AlignLeft)
 	var cmds []string
 	for _, name := range c {
 		cmds = append(cmds, name.Name)
 	}
-	ui.cmdModal.SetText(fmt.Sprintf("Commands for\n%s", j))
-	ui.cmdModal.c = c
-	ui.cmdModal.Form().
+	ui.cmdPane.SetText("Commands", j.String())
+	var idx int
+	ui.cmdPane.Form().
 		Clear(true).
-		AddDropDown(commandsLabel, cmds, 0, nil)
-	ui.cmdModal.AddButtons([]string{cancelButton, execButton})
-	ui.cmdModal.SetDoneFunc(func(_ int, buttonLabel string) {
-		if buttonLabel == execButton {
-			idx, _ := ui.cmdModal.Form().GetFormItemByLabel(commandsLabel).(*tview.DropDown).GetCurrentOption()
-			ui.HideForm()
-			ui.handler(event.ExecCommand(ui.cmdModal.c[idx]))
-			return
-		}
-		ui.HideForm()
+		AddDropDown(commandsLabel, cmds, 0, func(option string, optionIndex int) {
+			idx = optionIndex
+		})
+	ui.cmdPane.Form().AddButton(cancelButton, func() {
+		ui.SelectRoster()
 	})
+	ui.cmdPane.Form().AddButton(execButton, func() {
+		ui.SelectRoster()
+		ui.handler(event.ExecCommand(c[idx]))
+	})
+	ui.app.SetFocus(ui.buffers)
 }
 
 // ShowHelpPrompt shows a list of keyboard shortcuts..
@@ -701,9 +705,11 @@ Groups: %v
 // SelectRoster moves the input selection back to the roster and shows the logs
 // view.
 func (ui *UI) SelectRoster() {
-	item, ok := ui.roster.GetSelected()
-	if ok {
-		ui.handler(event.CloseChat(item.Item))
+	if ui.ChatsOpen() {
+		item, ok := ui.roster.GetSelected()
+		if ok {
+			ui.handler(event.CloseChat(item.Item))
+		}
 	}
 	ui.buffers.SwitchToPage(logsPageName)
 	ui.app.SetFocus(ui.roster)

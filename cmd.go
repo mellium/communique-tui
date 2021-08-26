@@ -101,8 +101,8 @@ func showCmd(pane *ui.UI, client *client.Client, resp commands.Response, payload
 	}
 	buttons = append(buttons, cancelBtn)
 
-	onDone := func(_ int, label string) {
-		pane.HideForm()
+	onDone := func(label string) {
+		pane.SelectRoster()
 
 		var nextCmd commands.Command
 		switch label {
