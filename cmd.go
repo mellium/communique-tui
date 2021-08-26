@@ -102,6 +102,8 @@ func showCmd(pane *ui.UI, client *client.Client, resp commands.Response, payload
 	buttons = append(buttons, cancelBtn)
 
 	onDone := func(_ int, label string) {
+		pane.HideForm()
+
 		var nextCmd commands.Command
 		switch label {
 		case prevBtn:
@@ -127,8 +129,6 @@ func showCmd(pane *ui.UI, client *client.Client, resp commands.Response, payload
 			}
 			return
 		}
-
-		pane.HideForm()
 
 		ctx, cancel := context.WithTimeout(context.Background(), client.Timeout())
 		defer cancel()
