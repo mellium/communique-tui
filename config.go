@@ -35,8 +35,6 @@ func printConfig(w io.Writer) error {
 	e := toml.NewEncoder(w)
 	e.Indent = "\t"
 	defConfig := config{
-		JID:     "me@example.net",
-		PassCmd: "",
 		Timeout: "30s",
 		Theme: []theme{{
 			Name:                        "default",
@@ -88,14 +86,19 @@ type theme struct {
 	ContrastSecondaryTextColor  string `toml:"contrast_secondary_text"`
 }
 
-type config struct {
+type account struct {
 	JID     string `toml:"jid"`
 	PassCmd string `toml:"password_eval"`
 	KeyLog  string `toml:"keylog_file"`
-	Timeout string `toml:"timeout"`
 	DB      string `toml:"db_file"`
 	NoSRV   bool   `toml:"disable_srv"`
 	NoTLS   bool   `toml:"disable_tls"`
+}
+
+type config struct {
+	JID     string    `toml:"jid"`
+	Timeout string    `toml:"timeout"`
+	Account []account `toml:"account"`
 
 	Log struct {
 		Verbose bool `toml:"verbose"`

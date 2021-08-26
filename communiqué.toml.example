@@ -1,4 +1,18 @@
-# The Jabber ID (JID) to log in as.
+# The Jabber ID (JID) of the account to use when logging in.
+# It must match the JID specified on one of the accounts.
+# jid=""
+
+# The timeout to use when creating a connection (eg. 1m or 30s).
+# For more information on the format see:
+# https://golang.org/pkg/time/#ParseDuration
+#
+# timeout = "30s"
+
+[[account]]
+
+# The JID to log in as.
+# If it matches the global jid option the settings from this account will be
+# used when logging in.
 # jid=""
 
 # Gets the password by executing the given command and reading from its standard
@@ -30,12 +44,6 @@
 # so you can use echo(1):
 #
 #     password_eval="echo -n password"
-
-# The timeout to use when creating a connection (eg. 1m or 30s).
-# For more information on the format see:
-# https://golang.org/pkg/time/#ParseDuration
-#
-# timeout = "30s"
 
 # The path to the sqlite3 database. If left empty the following files are
 # attempted, falling back in this order:

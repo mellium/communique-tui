@@ -121,6 +121,17 @@ Try running '%s -config' to generate a default config file.`, err, os.Args[0])
 		debug.SetOutput(io.MultiWriter(earlyLogs, os.Stderr))
 	}
 
+	var acct account
+	for _, a := range cfg.Account {
+		if a.JID == cfg.JID {
+			acct = a
+			break
+		}
+	}
+	if acct.JID == "" {
+		logger.Fatalf("account %q not found in config file", cfg.JID)
+	}
+
 	// Open the database
 	dbCtx, cancel := context.WithTimeout(context.Background(), 1*time.Second)
 	defer cancel()
@@ -128,7 +139,7 @@ Try running '%s -config' to generate a default config file.`, err, os.Args[0])
 	if err != nil {
 		logger.Fatalf("error parsing main account as XMPP address: %v", err)
 	}
-	db, err := storage.OpenDB(dbCtx, appName, account.Bare().String(), cfg.DB, schema, debug)
+	db, err := storage.OpenDB(dbCtx, appName, account.Bare().String(), acct.DB, schema, debug)
 	if err != nil {
 		logger.Fatalf("error opening database: %v", err)
 	}
@@ -199,9 +210,9 @@ Go %s %s
 	}
 
 	pass := &bytes.Buffer{}
-	if len(cfg.PassCmd) > 0 {
-		args := strings.Fields(cfg.PassCmd)
-		debug.Printf("running command: %q", cfg.PassCmd)
+	if len(acct.PassCmd) > 0 {
+		args := strings.Fields(acct.PassCmd)
+		debug.Printf("running command: %q", acct.PassCmd)
 		// The config file is considered a safe source since it is never written
 		// except by the user, so consider this use of exec to be safe.
 		/* #nosec */
@@ -245,8 +256,8 @@ Go %s %s
 	}
 	// cfg.KeyLog
 	var keylog io.Writer
-	if cfg.KeyLog != "" {
-		keylog, err = os.OpenFile(cfg.KeyLog, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, 0400)
+	if acct.KeyLog != "" {
+		keylog, err = os.OpenFile(acct.KeyLog, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, 0400)
 		if err != nil {
 			logger.Printf("error creating keylog file: %q", err)
 		}
@@ -256,8 +267,8 @@ Go %s %s
 			ServerName:   j.Domain().String(),
 			KeyLogWriter: keylog,
 		},
-		NoLookup: cfg.NoSRV,
-		NoTLS:    cfg.NoTLS,
+		NoLookup: acct.NoSRV,
+		NoTLS:    acct.NoTLS,
 	}
 	configPath = path.Dir(fpath)
 	var rosterVer string
@@ -273,7 +284,7 @@ Go %s %s
 		j, logger, debug,
 		client.Timeout(timeout),
 		client.Dialer(dialer),
-		client.NoTLS(cfg.NoTLS),
+		client.NoTLS(acct.NoTLS),
 		client.Tee(logwriter.New(xmlInLog), logwriter.New(xmlOutLog)),
 		client.Password(getPass),
 		client.RosterVer(rosterVer),
