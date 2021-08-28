@@ -31,7 +31,6 @@ const (
 	quitPageName        = "quit"
 	helpPageName        = "help"
 	delRosterPageName   = "del_roster"
-	addRosterPageName   = "add_roster"
 	cmdPageName         = "list_cmd"
 	infoPageName        = "info"
 	setStatusPageName   = "set_status"
@@ -62,24 +61,23 @@ func (b *syncBool) Get() bool {
 
 // UI is a widget that combines other widgets to make the main UI.
 type UI struct {
-	app            *tview.Application
-	flex           *tview.Flex
-	pages          *tview.Pages
-	buffers        *tview.Pages
-	history        *ConversationView
-	statusBar      *tview.TextView
-	roster         *Roster
-	rosterWidth    int
-	logWriter      *tview.TextView
-	handler        func(interface{})
-	redraw         func() *tview.Application
-	addr           string
-	passPrompt     chan string
-	chatsOpen      *syncBool
-	infoModal      *tview.Modal
-	addRosterModal *Modal
-	cmdPane        *commandsPane
-	debug          *log.Logger
+	app         *tview.Application
+	flex        *tview.Flex
+	pages       *tview.Pages
+	buffers     *tview.Pages
+	history     *ConversationView
+	statusBar   *tview.TextView
+	roster      *Roster
+	rosterWidth int
+	logWriter   *tview.TextView
+	handler     func(interface{})
+	redraw      func() *tview.Application
+	addr        string
+	passPrompt  chan string
+	chatsOpen   *syncBool
+	infoModal   *tview.Modal
+	cmdPane     *commandsPane
+	debug       *log.Logger
 }
 
 // Run starts the application event loop.
@@ -213,38 +211,6 @@ func New(opts ...Option) *UI {
 		ui.pages.HidePage(infoPageName)
 	})
 	ui.cmdPane = cmdPane()
-	ui.addRosterModal = addRosterModal(func(s string) []string {
-		idx := strings.IndexByte(s, '@')
-		if idx < 0 {
-			return nil
-		}
-		search := s[idx+1:]
-		entriesSet := make(map[string]struct{})
-		for _, item := range ui.roster.items {
-			domainpart := item.JID.Domainpart()
-			entry := strings.TrimPrefix(domainpart, search)
-			if entry == domainpart {
-				continue
-			}
-			entriesSet[entry] = struct{}{}
-		}
-		var entries []string
-		for entry := range entriesSet {
-			entries = append(entries, s+entry)
-		}
-		return entries
-	}, func() {
-		ui.pages.HidePage(addRosterPageName)
-	}, func(j jid.JID) {
-		// add to roster
-		go func() {
-			ui.UpdateRoster(RosterItem{
-				Item: roster.Item{
-					JID: j,
-				},
-			})
-		}()
-	})
 	for _, o := range opts {
 		o(ui)
 	}
@@ -347,7 +313,6 @@ func New(opts ...Option) *UI {
 	ui.pages.AddPage(helpPageName, helpModal(func() {
 		ui.pages.HidePage(helpPageName)
 	}), true, false)
-	ui.pages.AddPage(addRosterPageName, ui.addRosterModal, true, false)
 	buffers.AddPage(cmdPageName, ui.cmdPane, true, false)
 	ui.pages.AddPage(delRosterPageName, delRosterModal(func() {
 		ui.pages.HidePage(delRosterPageName)
@@ -470,8 +435,64 @@ func (ui *UI) ShowQuitPrompt() {
 
 // ShowAddRoster asks the user for a new JID.
 func (ui *UI) ShowAddRoster() {
-	ui.pages.ShowPage(addRosterPageName)
-	ui.pages.SendToFront(addRosterPageName)
+	const (
+		pageName  = "add_roster"
+		addButton = "Add"
+	)
+	mod := NewModal().
+		SetText(`Start Chat`)
+	var inputJID jid.JID
+	jidInput := tview.NewInputField().SetPlaceholder("me@example.net")
+	mod.Form().AddFormItem(jidInput)
+	jidInput.SetChangedFunc(func(text string) {
+		var err error
+		inputJID, err = jid.Parse(text)
+		if err == nil {
+			jidInput.SetLabel("✅")
+		} else {
+			jidInput.SetLabel("❌")
+		}
+	}).SetAutocompleteFunc(func(s string) []string {
+		idx := strings.IndexByte(s, '@')
+		if idx < 0 {
+			return nil
+		}
+		search := s[idx+1:]
+		entriesSet := make(map[string]struct{})
+		for _, item := range ui.roster.items {
+			domainpart := item.JID.Domainpart()
+			entry := strings.TrimPrefix(domainpart, search)
+			if entry == domainpart {
+				continue
+			}
+			entriesSet[entry] = struct{}{}
+		}
+		var entries []string
+		for entry := range entriesSet {
+			entries = append(entries, s+entry)
+		}
+		return entries
+	})
+	mod.SetBackgroundColor(tview.Styles.PrimitiveBackgroundColor).
+		AddButtons([]string{cancelButton, addButton}).
+		SetDoneFunc(func(_ int, buttonLabel string) {
+			if buttonLabel == addButton {
+				// add to roster
+				go func() {
+					ui.UpdateRoster(RosterItem{
+						Item: roster.Item{
+							JID: inputJID.Bare(),
+						},
+					})
+				}()
+			}
+			ui.pages.HidePage(pageName)
+			ui.pages.RemovePage(pageName)
+		})
+
+	ui.pages.AddPage(pageName, mod, true, true)
+	ui.pages.ShowPage(pageName)
+	ui.pages.SendToFront(pageName)
 	ui.app.SetFocus(ui.pages)
 }
 
