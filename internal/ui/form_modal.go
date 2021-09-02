@@ -211,6 +211,8 @@ func (m *Modal) AddInputField(label, value string, fieldWidth int, accept func(t
 	m.form.AddInputField(label, value, fieldWidth, accept, changed)
 }
 
+// Form returns the internal form used to add buttons and other elements to the
+// modal.
 func (m *Modal) Form() *tview.Form {
 	return m.form
 }
