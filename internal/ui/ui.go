@@ -74,7 +74,6 @@ type UI struct {
 	addr        string
 	passPrompt  chan string
 	chatsOpen   *syncBool
-	infoModal   *tview.Modal
 	cmdPane     *commandsPane
 	debug       *log.Logger
 }
@@ -206,9 +205,6 @@ func New(opts ...Option) *UI {
 		chatsOpen:   &syncBool{},
 		debug:       log.New(io.Discard, "", 0),
 	}
-	ui.infoModal = infoModal(func() {
-		ui.pages.HidePage(infoPageName)
-	})
 	ui.cmdPane = cmdPane()
 	for _, o := range opts {
 		o(ui)
@@ -323,7 +319,6 @@ func New(opts ...Option) *UI {
 		}
 	}), true, false)
 
-	ui.pages.AddPage(infoPageName, ui.infoModal, true, false)
 	ui.pages.AddPage(getPasswordPageName, getPasswordPage, true, false)
 
 	return ui
@@ -786,11 +781,23 @@ func (ui *UI) PickResource(f func(jid.JID, bool)) {
 
 // ShowRosterInfo displays more info about the currently selected roster item.
 func (ui *UI) ShowRosterInfo() {
+	onEsc := func() {
+		ui.pages.HidePage(infoPageName)
+		ui.pages.RemovePage(infoPageName)
+	}
+	mod := tview.NewModal().
+		SetText(`Roster info:`).
+		SetDoneFunc(func(int, string) {
+			onEsc()
+		}).
+		SetBackgroundColor(tview.Styles.PrimitiveBackgroundColor)
+	mod.SetInputCapture(modalClose(onEsc))
+
 	item, ok := ui.roster.GetSelected()
 	idx := ui.roster.list.GetCurrentItem()
 	if !ok {
 		main, secondary := ui.roster.list.GetItemText(idx)
-		ui.infoModal.SetText(fmt.Sprintf(`%s
+		mod.SetText(fmt.Sprintf(`%s
 %s
 `, main, secondary))
 	} else {
@@ -807,7 +814,7 @@ func (ui *UI) ShowRosterInfo() {
 		if name == "" {
 			name = item.JID.Localpart()
 		}
-		ui.infoModal.SetText(fmt.Sprintf(`🛈
+		mod.SetText(fmt.Sprintf(`🛈
 
 %s
 %s
@@ -823,7 +830,7 @@ Resources:
 		// subscribed, add a subscribe button.
 		if idx > 1 && item.Subscription != "to" && item.Subscription != "both" {
 			const subscribeBtn = "Subscribe"
-			ui.infoModal.AddButtons([]string{subscribeBtn}).
+			mod.AddButtons([]string{subscribeBtn}).
 				SetDoneFunc(func(_ int, buttonLabel string) {
 					switch buttonLabel {
 					case subscribeBtn:
@@ -833,6 +840,7 @@ Resources:
 				})
 		}
 	}
+	ui.pages.AddPage(infoPageName, mod, true, false)
 	ui.pages.ShowPage(infoPageName)
 	ui.pages.SendToFront(infoPageName)
 	ui.app.SetFocus(ui.pages)

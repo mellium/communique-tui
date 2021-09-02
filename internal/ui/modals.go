@@ -41,17 +41,6 @@ func delRosterModal(onEsc func(), onDel func()) *tview.Modal {
 	return mod
 }
 
-func infoModal(onEsc func()) *tview.Modal {
-	mod := tview.NewModal().
-		SetText(`Roster info:`).
-		SetDoneFunc(func(int, string) {
-			onEsc()
-		}).
-		SetBackgroundColor(tview.Styles.PrimitiveBackgroundColor)
-	mod.SetInputCapture(modalClose(onEsc))
-	return mod
-}
-
 func helpModal(onEsc func()) *tview.Modal {
 	// U+20E3 COMBINING ENCLOSING KEYCAP
 	mod := tview.NewModal().
