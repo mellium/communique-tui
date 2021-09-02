@@ -70,12 +70,14 @@ func main() {
 
 	var (
 		configPath string
+		defAcct    string
 		h          bool
 		help       bool
 		genConfig  bool
 	)
 	flags := flag.NewFlagSet(appName, flag.ContinueOnError)
 	flags.StringVar(&configPath, "f", configPath, "the config file to load")
+	flags.StringVar(&defAcct, "account", defAcct, "override the account set in the config file")
 	flags.BoolVar(&h, "h", h, "print this help message")
 	flags.BoolVar(&help, "help", help, "print this help message")
 	flags.BoolVar(&genConfig, "config", genConfig, "print a default config file to stdout")
@@ -121,21 +123,25 @@ Try running '%s -config' to generate a default config file.`, err, os.Args[0])
 		debug.SetOutput(io.MultiWriter(earlyLogs, os.Stderr))
 	}
 
+	if defAcct != "" {
+		cfg.DefaultAcct = defAcct
+	}
+
 	var acct account
 	for _, a := range cfg.Account {
-		if a.JID == cfg.JID {
+		if a.Address == cfg.DefaultAcct {
 			acct = a
 			break
 		}
 	}
-	if acct.JID == "" {
-		logger.Fatalf("account %q not found in config file", cfg.JID)
+	if acct.Address == "" {
+		logger.Fatalf("account %q not found in config file", cfg.DefaultAcct)
 	}
 
 	// Open the database
 	dbCtx, cancel := context.WithTimeout(context.Background(), 1*time.Second)
 	defer cancel()
-	account, err := jid.Parse(cfg.JID)
+	account, err := jid.Parse(acct.Address)
 	if err != nil {
 		logger.Fatalf("error parsing main account as XMPP address: %v", err)
 	}
@@ -172,7 +178,7 @@ Try running '%s -config' to generate a default config file.`, err, os.Args[0])
 
 	pane := ui.New(
 		ui.Debug(debug),
-		ui.Addr(cfg.JID),
+		ui.Addr(acct.Address),
 		ui.ShowStatus(!cfg.UI.HideStatus),
 		ui.RosterWidth(cfg.UI.Width),
 		ui.InputCapture(func(event *tcell.EventKey) *tcell.EventKey {
@@ -234,15 +240,15 @@ Go %s %s
 	}
 
 	var j jid.JID
-	if cfg.JID == "" {
+	if cfg.DefaultAcct == "" {
 		logger.Printf(`no user address specified, edit %q and add:
 
 	jid="me@example.com"
 
 `, fpath)
 	} else {
-		logger.Printf("user address: %q", cfg.JID)
-		j, err = jid.Parse(cfg.JID)
+		logger.Printf("user address: %q", cfg.DefaultAcct)
+		j, err = jid.Parse(cfg.DefaultAcct)
 		if err != nil {
 			logger.Printf("error parsing user address: %q", err)
 		}

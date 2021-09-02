@@ -1,6 +1,6 @@
-# The Jabber ID (JID) of the account to use when logging in.
-# It must match the JID specified on one of the accounts.
-# jid=""
+# The address, historically called the Jabber ID (JID), of the account to use
+# when logging in. It must match the address specified on one of the accounts.
+# default_account=""
 
 # The timeout to use when creating a connection (eg. 1m or 30s).
 # For more information on the format see:
@@ -10,10 +10,10 @@
 
 [[account]]
 
-# The JID to log in as.
-# If it matches the global jid option the settings from this account will be
-# used when logging in.
-# jid=""
+# The address to log in as.
+# If it matches the global default_account option the settings from this account
+# will be used when logging in.
+# address=""
 
 # Gets the password by executing the given command and reading from its standard
 # output. This lets you use a keyring or password manager instead of writing
@@ -29,16 +29,16 @@
 # managers:
 #
 #     # https://wiki.gnome.org/Projects/Libsecret
-#     password_eval="secret-tool lookup jabber myjid@example.com"
+#     password_eval="secret-tool lookup jabber me@example.com"
 #
 #     # https://keepassxc.org/
 #     password_eval="keepassxc-cli show -a Password secrets.kdbx Communication/xmpp.example.com"
 #
 #     # https://www.passwordstore.org/
-#     password_eval="pass jabber/myjid@example.com"
+#     password_eval="pass jabber/me@example.com"
 #
 #     # https://bitwarden.com
-#     password_eval="bw get password xmpp:myjid@example.com"
+#     password_eval="bw get password xmpp:me@example.com"
 #
 # You shouldn't put your password in a plaintext config file, but if you must do
 # so you can use echo(1):

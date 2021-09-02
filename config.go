@@ -87,7 +87,7 @@ type theme struct {
 }
 
 type account struct {
-	JID     string `toml:"jid"`
+	Address string `toml:"address"`
 	PassCmd string `toml:"password_eval"`
 	KeyLog  string `toml:"keylog_file"`
 	DB      string `toml:"db_file"`
@@ -96,9 +96,9 @@ type account struct {
 }
 
 type config struct {
-	JID     string    `toml:"jid"`
-	Timeout string    `toml:"timeout"`
-	Account []account `toml:"account"`
+	DefaultAcct string    `toml:"default_account"`
+	Timeout     string    `toml:"timeout"`
+	Account     []account `toml:"account"`
 
 	Log struct {
 		Verbose bool `toml:"verbose"`
