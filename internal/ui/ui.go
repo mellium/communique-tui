@@ -28,7 +28,6 @@ const (
 	getPasswordPageName = "get_password"
 	logsPageName        = "logs"
 	chatPageName        = "chat"
-	quitPageName        = "quit"
 	helpPageName        = "help"
 	delRosterPageName   = "del_roster"
 	cmdPageName         = "list_cmd"
@@ -304,12 +303,6 @@ func New(opts ...Option) *UI {
 
 	ui.pages.AddPage(setStatusPageName, setStatusPage, true, false)
 	ui.pages.AddPage(uiPageName, ui.flex, true, true)
-	ui.pages.AddPage(quitPageName, quitModal(func(buttonIndex int, _ string) {
-		if buttonIndex == 0 {
-			app.Stop()
-		}
-		ui.pages.HidePage(quitPageName)
-	}), true, false)
 	ui.pages.AddPage(helpPageName, helpModal(func() {
 		ui.pages.HidePage(helpPageName)
 	}), true, false)
@@ -428,6 +421,19 @@ func (ui *UI) ShowPasswordPrompt() string {
 
 // ShowQuitPrompt asks if the user wants to quit the application.
 func (ui *UI) ShowQuitPrompt() {
+	const quitPageName = "quit"
+	quitModal := tview.NewModal().
+		SetText("Are you sure you want to quit?").
+		AddButtons([]string{"Quit", "Cancel"}).
+		SetDoneFunc(func(buttonIndex int, _ string) {
+			if buttonIndex == 0 {
+				ui.Stop()
+			}
+			ui.pages.HidePage(quitPageName)
+			ui.pages.RemovePage(quitPageName)
+		}).
+		SetBackgroundColor(tview.Styles.PrimitiveBackgroundColor)
+	ui.pages.AddPage(quitPageName, quitModal, true, false)
 	ui.pages.ShowPage(quitPageName)
 	ui.pages.SendToFront(quitPageName)
 	ui.app.SetFocus(ui.pages)
