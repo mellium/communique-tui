@@ -299,9 +299,6 @@ func New(opts ...Option) *UI {
 
 	ui.pages.AddPage(setStatusPageName, setStatusPage, true, false)
 	ui.pages.AddPage(uiPageName, ui.flex, true, true)
-	ui.pages.AddPage(helpPageName, helpModal(func() {
-		ui.pages.HidePage(helpPageName)
-	}), true, false)
 	buffers.AddPage(cmdPageName, ui.cmdPane, true, false)
 	ui.pages.AddPage(delRosterPageName, delRosterModal(func() {
 		ui.pages.HidePage(delRosterPageName)
@@ -684,6 +681,53 @@ func (ui *UI) SetCommands(j jid.JID, c []commands.Command) {
 
 // ShowHelpPrompt shows a list of keyboard shortcuts..
 func (ui *UI) ShowHelpPrompt() {
+	onEsc := func() {
+		ui.pages.HidePage(helpPageName)
+		ui.pages.RemovePage(helpPageName)
+	}
+	// U+20E3 COMBINING ENCLOSING KEYCAP
+	mod := tview.NewModal().
+		SetText(`Global :
+
+q⃣: quit or close
+⎋⃣: close
+K⃣: help
+
+
+Navigation:
+
+⇥⃣, ⇤⃣ focus to next/prev
+g⃣ g⃣, ⇱⃣ scroll to top
+G⃣, ⇲⃣ scroll to bottom
+h⃣, ←⃣ move left
+j⃣, ↓⃣ move down
+k⃣, ↑⃣ move up
+l⃣, →⃣ move right
+⇞⃣, ⇟⃣ move up/down one page
+1⃣ 0⃣ k⃣ move 10 lines up
+1⃣ 0⃣ j⃣ move 10 lines down
+/⃣ search forward
+?⃣ search backward
+n⃣ next search result
+N⃣ previous search result
+
+
+Roster:
+
+c⃣ start chat
+i⃣, ⏎⃣ open chat
+I⃣ more info
+o⃣, O⃣ open next/prev unread
+d⃣ d⃣ remove contact
+!⃣ execute command
+`).
+		SetDoneFunc(func(int, string) {
+			onEsc()
+		}).
+		SetBackgroundColor(tview.Styles.PrimitiveBackgroundColor)
+	mod.SetInputCapture(modalClose(onEsc))
+
+	ui.pages.AddPage(helpPageName, mod, true, false)
 	ui.pages.ShowPage(helpPageName)
 	ui.pages.SendToFront(helpPageName)
 	ui.app.SetFocus(ui.pages)
