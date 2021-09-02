@@ -138,6 +138,7 @@ func newUIHandler(configPath string, pane *ui.UI, db *storage.DB, c *client.Clie
 				historyPane := pane.History()
 				historyPane.ScrollToEnd()
 				pane.Roster().MarkRead(e.JID.Bare().String())
+				pane.Redraw()
 			}()
 		case event.CloseChat:
 			history := pane.History()
