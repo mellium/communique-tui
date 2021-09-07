@@ -11,6 +11,7 @@ import (
 	"fmt"
 	"io"
 	"log"
+	"sync"
 	"time"
 
 	"mellium.im/communique/internal/client/event"
@@ -20,6 +21,7 @@ import (
 	"mellium.im/xmpp/carbons"
 	"mellium.im/xmpp/dial"
 	"mellium.im/xmpp/jid"
+	"mellium.im/xmpp/muc"
 	"mellium.im/xmpp/receipts"
 	"mellium.im/xmpp/roster"
 	"mellium.im/xmpp/stanza"
@@ -46,6 +48,9 @@ func New(j jid.JID, logger, debug *log.Logger, opts ...Option) *Client {
 		receiptsHandler: &receipts.Handler{
 			Unhandled: func(id string) { c.handler(event.Receipt(id)) },
 		},
+		// TODO: mediated muc invitations
+		mucClient: &muc.Client{},
+		channels:  make(map[string]*muc.Channel),
 	}
 
 	for _, opt := range opts {
@@ -176,6 +181,9 @@ type Client struct {
 	receiptsHandler *receipts.Handler
 	rosterVer       string
 	noTLS           bool
+	mucClient       *muc.Client
+	chanM           sync.Mutex
+	channels        map[string]*muc.Channel
 }
 
 // Online sets the status to online.
@@ -334,4 +342,38 @@ func encodeMessage(e event.ChatMessage) xml.TokenReader {
 		omitEmpty(e.Body, xml.Name{Local: "body"}),
 		e.OriginID.TokenReader(),
 	))
+}
+
+// JoinMUC joins a multi-user chat, or rejoins it if it was already joined.
+func (c *Client) JoinMUC(ctx context.Context, room jid.JID) error {
+	s := room.Bare().String()
+	c.chanM.Lock()
+	defer c.chanM.Unlock()
+	mucChan, ok := c.channels[s]
+	if ok {
+		return mucChan.Join(ctx)
+	}
+	mucChan, err := c.mucClient.Join(ctx, room, c.Session, muc.MaxHistory(100))
+	if err != nil {
+		return err
+	}
+	c.channels[s] = mucChan
+	return nil
+}
+
+// LeaveMUC exits the given multi-user chat..
+func (c *Client) LeaveMUC(ctx context.Context, room jid.JID, reason string) error {
+	s := room.Bare().String()
+	c.chanM.Lock()
+	defer c.chanM.Unlock()
+	mucChan, ok := c.channels[s]
+	if !ok {
+		return nil
+	}
+	err := mucChan.Leave(ctx, reason)
+	if err != nil {
+		return err
+	}
+	delete(c.channels, s)
+	return nil
 }

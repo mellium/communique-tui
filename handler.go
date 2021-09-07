@@ -22,7 +22,7 @@ import (
 
 // newUIHandler returns a handler for events that are emitted by the UI that
 // need to modify the client state.
-func newUIHandler(configPath string, pane *ui.UI, db *storage.DB, c *client.Client, logger, debug *log.Logger) func(interface{}) {
+func newUIHandler(configPath string, acct account, pane *ui.UI, db *storage.DB, c *client.Client, logger, debug *log.Logger) func(interface{}) {
 	return func(ev interface{}) {
 		switch e := ev.(type) {
 		case event.ExecCommand:
@@ -99,7 +99,22 @@ func newUIHandler(configPath string, pane *ui.UI, db *storage.DB, c *client.Clie
 				}
 			}()
 		case event.UpdateRoster:
-			// TODO:
+			if !e.Room {
+				return
+			}
+			go func() {
+				ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+				defer cancel()
+				j, err := e.JID.WithResource(acct.Name)
+				if err != nil {
+					logger.Printf("invalid nick %s in config: %v", acct.Name, err)
+					return
+				}
+				err = c.JoinMUC(ctx, j)
+				if err != nil {
+					logger.Printf("error joining room %s: %v", e.JID, err)
+				}
+			}()
 		case event.ChatMessage:
 			go func() {
 				ctx, cancel := context.WithTimeout(context.Background(), 60*time.Second)
@@ -135,8 +150,7 @@ func newUIHandler(configPath string, pane *ui.UI, db *storage.DB, c *client.Clie
 					logger.Printf("error loading chat: %v", err)
 					return
 				}
-				historyPane := pane.History()
-				historyPane.ScrollToEnd()
+				pane.History().ScrollToEnd()
 				pane.Roster().MarkRead(e.JID.Bare().String())
 				pane.Redraw()
 			}()
@@ -287,7 +301,7 @@ func newClientHandler(configPath string, client *client.Client, pane *ui.UI, db 
 				logger.Printf("error iterating over roster items: %v", err)
 			}
 		case event.UpdateRoster:
-			pane.UpdateRoster(ui.RosterItem{Item: e.Item})
+			pane.UpdateRoster(ui.RosterItem{Item: e.Item, Room: e.Room})
 			ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
 			defer cancel()
 			db.UpdateRoster(ctx, e.Ver, e)

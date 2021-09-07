@@ -15,6 +15,7 @@ import (
 	"mellium.im/xmpp/disco"
 	"mellium.im/xmpp/history"
 	"mellium.im/xmpp/jid"
+	"mellium.im/xmpp/muc"
 	"mellium.im/xmpp/mux"
 	"mellium.im/xmpp/receipts"
 	"mellium.im/xmpp/roster"
@@ -25,6 +26,8 @@ func newXMPPHandler(c *Client) xmpp.Handler {
 	msgHandler := newMessageHandler(c)
 	return mux.New(
 		disco.Handle(),
+		muc.HandleClient(c.mucClient),
+		// TODO: direct muc invitations.
 		roster.Handle(roster.Handler{
 			Push: func(ver string, item roster.Item) error {
 				c.rosterVer = ver
@@ -47,6 +50,7 @@ func newXMPPHandler(c *Client) xmpp.Handler {
 		mux.Presence("", xml.Name{}, newPresenceHandler(c)),
 		mux.Message(stanza.NormalMessage, xml.Name{Local: "body"}, msgHandler),
 		mux.Message(stanza.ChatMessage, xml.Name{Local: "body"}, msgHandler),
+		mux.Message(stanza.GroupChatMessage, xml.Name{Local: "body"}, msgHandler),
 		receipts.Handle(c.receiptsHandler),
 		history.Handle(history.NewHandler(newHistoryHandler(c))),
 	)

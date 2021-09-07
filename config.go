@@ -88,6 +88,7 @@ type theme struct {
 
 type account struct {
 	Address string `toml:"address"`
+	Name    string `toml:"name"`
 	PassCmd string `toml:"password_eval"`
 	KeyLog  string `toml:"keylog_file"`
 	DB      string `toml:"db_file"`

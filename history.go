@@ -13,6 +13,7 @@ import (
 	"time"
 
 	"github.com/gdamore/tcell/v2"
+	"github.com/rivo/tview"
 	"golang.org/x/text/transform"
 
 	"mellium.im/communique/internal/client/event"
@@ -20,6 +21,7 @@ import (
 	"mellium.im/communique/internal/storage"
 	"mellium.im/communique/internal/ui"
 	"mellium.im/xmpp/roster"
+	"mellium.im/xmpp/stanza"
 )
 
 func writeMessage(pane *ui.UI, configPath string, msg event.ChatMessage, notNew bool) error {
@@ -34,7 +36,16 @@ func writeMessage(pane *ui.UI, configPath string, msg event.ChatMessage, notNew 
 		arrow = "→"
 	}
 
-	historyLine := fmt.Sprintf("%s %s %s\n", time.Now().UTC().Format(time.RFC3339), arrow, msg.Body)
+	var historyLine string
+	if msg.Type == stanza.GroupChatMessage {
+		j := msg.From
+		if msg.Sent {
+			j = msg.To
+		}
+		historyLine = tview.Escape(fmt.Sprintf("%s %s [%s] %s\n", time.Now().UTC().Format(time.RFC3339), arrow, j.Resourcepart(), msg.Body))
+	} else {
+		historyLine = fmt.Sprintf("%s %s %s\n", time.Now().UTC().Format(time.RFC3339), arrow, msg.Body)
+	}
 
 	history := pane.History()
 

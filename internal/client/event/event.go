@@ -50,7 +50,8 @@ type (
 	// roster push).
 	UpdateRoster struct {
 		roster.Item
-		Ver string
+		Ver  string
+		Room bool
 	}
 
 	// ChatMessage is sent when messages of type "chat" or "normal" are received

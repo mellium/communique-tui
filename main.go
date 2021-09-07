@@ -296,7 +296,7 @@ Go %s %s
 		client.RosterVer(rosterVer),
 	)
 	c.Handler(newClientHandler(configPath, c, pane, db, logger, debug))
-	pane.Handle(newUIHandler(configPath, pane, db, c, logger, debug))
+	pane.Handle(newUIHandler(configPath, acct, pane, db, c, logger, debug))
 
 	// Hopefully nothing ever panics, but in case it does ensure that we exit
 	// TUI mode so that we don't hose the users terminal.

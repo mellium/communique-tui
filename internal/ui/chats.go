@@ -124,10 +124,16 @@ func (cv *ConversationView) InputHandler() func(event *tcell.EventKey, setFocus 
 			if !ok {
 				return
 			}
+			typ := stanza.ChatMessage
+			to := item.Item.JID
+			if item.Room {
+				typ = stanza.GroupChatMessage
+				to = to.Bare()
+			}
 			cv.ui.handler(event.ChatMessage{
 				Message: stanza.Message{
-					To:   item.Item.JID,
-					Type: stanza.ChatMessage,
+					To:   to,
+					Type: typ,
 				},
 				Body: body,
 				Sent: true,

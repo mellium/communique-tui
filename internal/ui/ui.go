@@ -338,7 +338,7 @@ func (ui *UI) UpdateRoster(item RosterItem) {
 		ui.app.SetFocus(ui.buffers)
 	})
 	ui.redraw()
-	ui.handler(event.UpdateRoster{Item: item.Item})
+	ui.handler(event.UpdateRoster{Item: item.Item, Room: item.Room})
 }
 
 // Write writes to the logging text view.
@@ -435,13 +435,18 @@ func (ui *UI) ShowQuitPrompt() {
 func (ui *UI) ShowAddRoster() {
 	const (
 		pageName  = "add_roster"
-		addButton = "Add"
+		addButton = "Chat"
 	)
 	mod := NewModal().
-		SetText(`Start Chat`)
+		SetText(`Open Chat`)
 	var inputJID jid.JID
 	jidInput := tview.NewInputField().SetPlaceholder("me@example.net")
-	mod.Form().AddFormItem(jidInput)
+	modForm := mod.Form()
+	modForm.AddFormItem(jidInput)
+	var joinRoom bool
+	modForm.AddCheckbox("Chat room", false, func(checked bool) {
+		joinRoom = checked
+	})
 	jidInput.SetChangedFunc(func(text string) {
 		var err error
 		inputJID, err = jid.Parse(text)
@@ -475,12 +480,12 @@ func (ui *UI) ShowAddRoster() {
 		AddButtons([]string{cancelButton, addButton}).
 		SetDoneFunc(func(_ int, buttonLabel string) {
 			if buttonLabel == addButton {
-				// add to roster
 				go func() {
 					ui.UpdateRoster(RosterItem{
 						Item: roster.Item{
 							JID: inputJID.Bare(),
 						},
+						Room: joinRoom,
 					})
 				}()
 			}
@@ -754,8 +759,11 @@ func formatPresence(p []presence) string {
 		case statusOffline:
 			icon = "◯"
 		}
-		/* #nosec */
-		fmt.Fprintf(tabWriter, "%s\t%s\t\n", icon, pres.From.Resourcepart())
+		resPart := pres.From.Resourcepart()
+		if resPart != "" {
+			/* #nosec */
+			fmt.Fprintf(tabWriter, "%s\t%s\t\n", icon, resPart)
+		}
 	}
 	/* #nosec */
 	tabWriter.Flush()

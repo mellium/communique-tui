@@ -28,6 +28,7 @@ type RosterItem struct {
 	idx         int
 	firstUnread string
 	presences   []presence
+	Room        bool
 }
 
 // FirstUnread returns the ID of the first unread message.
