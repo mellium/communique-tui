@@ -103,17 +103,17 @@ func (c *Client) reconnect(ctx context.Context) error {
 		saslFeature.Necessary &^= xmpp.Secure
 	}
 
-	negotiator := xmpp.NewNegotiator(xmpp.StreamConfig{
-		Features: func(*xmpp.Session, ...xmpp.StreamFeature) []xmpp.StreamFeature {
-			return []xmpp.StreamFeature{
+	negotiator := xmpp.NewNegotiator(func(*xmpp.Session, *xmpp.StreamConfig) xmpp.StreamConfig {
+		return xmpp.StreamConfig{
+			Features: []xmpp.StreamFeature{
 				xmpp.StartTLS(c.dialer.TLSConfig),
 				saslFeature,
 				roster.Versioning(),
 				xmpp.BindResource(),
-			}
-		},
-		TeeIn:  c.win,
-		TeeOut: c.wout,
+			},
+			TeeIn:  c.win,
+			TeeOut: c.wout,
+		}
 	})
 	c.Session, err = xmpp.NewSession(ctx, c.addr.Domain(), c.addr, conn, 0, negotiator)
 	if err != nil {

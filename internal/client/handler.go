@@ -25,6 +25,7 @@ import (
 func newXMPPHandler(c *Client) xmpp.Handler {
 	msgHandler := newMessageHandler(c)
 	return mux.New(
+		c.In().XMLNS,
 		disco.Handle(),
 		muc.HandleClient(c.mucClient),
 		// TODO: direct muc invitations.
