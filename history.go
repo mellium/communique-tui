@@ -22,7 +22,31 @@ import (
 	"mellium.im/communique/internal/ui"
 	"mellium.im/xmpp/roster"
 	"mellium.im/xmpp/stanza"
+	"mellium.im/xmpp/styling"
 )
+
+/* #nosec */
+func writeMask(buf *strings.Builder, mask styling.Style) {
+	// Reset all styles, then rewrite the one we want.
+	buf.WriteString("[::-]")
+	if mask&styling.BlockEndDirective != 0 {
+		return
+	}
+	buf.WriteString("[::")
+	if mask&styling.SpanEmph == styling.SpanEmph {
+		buf.WriteString("i")
+	}
+	if mask&styling.SpanStrong == styling.SpanStrong {
+		buf.WriteString("b")
+	}
+	if mask&styling.SpanStrike == styling.SpanStrike {
+		buf.WriteString("s")
+	}
+	if mask&styling.Directive != 0 || mask&styling.SpanPre == styling.SpanPre {
+		buf.WriteString("d")
+	}
+	buf.WriteString("]")
+}
 
 func writeMessage(pane *ui.UI, configPath string, msg event.ChatMessage, notNew bool) error {
 	if msg.Body == "" {
@@ -36,15 +60,32 @@ func writeMessage(pane *ui.UI, configPath string, msg event.ChatMessage, notNew 
 		arrow = "→"
 	}
 
+	var buf strings.Builder
+	var prevEnd bool
+	d := styling.NewDecoder(strings.NewReader(msg.Body))
+	for d.Next() {
+		tok := d.Token()
+		if prevEnd || tok.Mask != 0 {
+			prevEnd = false
+			writeMask(&buf, tok.Mask)
+		}
+		/* #nosec */
+		buf.Write(tok.Data)
+		if tok.Mask&styling.SpanEndDirective != 0 {
+			prevEnd = true
+		}
+	}
+	buf.WriteString("[::-]")
+
 	var historyLine string
 	if msg.Type == stanza.GroupChatMessage {
 		j := msg.From
 		if msg.Sent {
 			j = msg.To
 		}
-		historyLine = tview.Escape(fmt.Sprintf("%s %s [%s] %s\n", time.Now().UTC().Format(time.RFC3339), arrow, j.Resourcepart(), msg.Body))
+		historyLine = tview.Escape(fmt.Sprintf("%s %s [%s] %s\n", time.Now().UTC().Format(time.RFC3339), arrow, j.Resourcepart(), buf.String()))
 	} else {
-		historyLine = fmt.Sprintf("%s %s %s\n", time.Now().UTC().Format(time.RFC3339), arrow, msg.Body)
+		historyLine = fmt.Sprintf("%s %s %s\n", time.Now().UTC().Format(time.RFC3339), arrow, buf.String())
 	}
 
 	history := pane.History()
