@@ -5,9 +5,7 @@
 package ui
 
 import (
-	"bytes"
 	"fmt"
-	"strconv"
 	"strings"
 	"sync"
 
@@ -47,15 +45,12 @@ const (
 
 // Roster is a tview.Primitive that draws a roster pane.
 type Roster struct {
-	items      map[string]RosterItem
-	itemLock   *sync.Mutex
-	list       *tview.List
-	Width      int
-	search     *tview.InputField
-	flex       *tview.Flex
-	searching  bool
-	lastSearch string
-	searchDir  SearchDir
+	items    map[string]RosterItem
+	itemLock *sync.Mutex
+	list     *tview.List
+	Width    int
+	flex     *tview.Flex
+	onDelete func()
 }
 
 // newRoster creates a new roster widget with the provided options.
@@ -64,178 +59,14 @@ func newRoster(onStatus func(), onDelete func()) *Roster {
 		items:    make(map[string]RosterItem),
 		itemLock: &sync.Mutex{},
 		list:     tview.NewList(),
-		search:   tview.NewInputField(),
 		flex:     tview.NewFlex(),
+		onDelete: onDelete,
 	}
 	r.flex.SetBorder(true).
 		SetBorderPadding(0, 0, 1, 0)
 	r.flex.AddItem(r.list, 0, 1, true).
 		SetDirection(tview.FlexRow)
 	r.list.SetTitle("Roster")
-
-	events := &bytes.Buffer{}
-	m := &sync.Mutex{}
-	r.search.SetPlaceholder("Search").
-		SetFieldBackgroundColor(tview.Styles.PrimitiveBackgroundColor).
-		SetDoneFunc(func(key tcell.Key) {
-			switch key {
-			case tcell.KeyTab, tcell.KeyBacktab:
-				return
-			case tcell.KeyESC:
-			case tcell.KeyEnter:
-				r.Search(r.search.GetText(), r.searchDir)
-			}
-			m.Lock()
-			defer m.Unlock()
-			events.Reset()
-			r.searching = false
-			r.search.SetText("")
-			r.flex.RemoveItem(r.search)
-		})
-	r.list.SetInputCapture(func(event *tcell.EventKey) *tcell.EventKey {
-		if event == nil || event.Key() != tcell.KeyRune {
-			return event
-		}
-
-		m.Lock()
-		defer m.Unlock()
-		/* #nosec */
-		events.WriteRune(event.Rune())
-
-		// TODO: this is not going to be very maintainable. Figure out a better way
-		// to handle keyboard shortcuts.
-		switch event.Rune() {
-		case 'i':
-			events.Reset()
-			return tcell.NewEventKey(tcell.KeyCR, 0, tcell.ModNone)
-		case 'o':
-			events.Reset()
-			for i := 0; i < r.list.GetItemCount(); i++ {
-				idx := (i + r.list.GetCurrentItem()) % r.list.GetItemCount()
-				main, _ := r.list.GetItemText(idx)
-				if strings.HasPrefix(main, highlightTag) {
-					r.list.SetCurrentItem(idx)
-					return tcell.NewEventKey(tcell.KeyCR, 0, tcell.ModNone)
-				}
-			}
-			idx := (r.list.GetCurrentItem() + 1) % r.list.GetItemCount()
-			r.list.SetCurrentItem(idx)
-			return tcell.NewEventKey(tcell.KeyCR, 0, tcell.ModNone)
-		case 'O':
-			events.Reset()
-			// -1 because we ignore the online indicator
-			count := r.list.GetItemCount()
-			currentItem := r.list.GetCurrentItem()
-			for i := 0; i < count; i++ {
-				// Least positive remainder
-				idx := ((currentItem-i)%count + count) % count
-				main, _ := r.list.GetItemText(idx)
-				if strings.HasPrefix(main, highlightTag) {
-					r.list.SetCurrentItem(idx)
-					return tcell.NewEventKey(tcell.KeyCR, 0, tcell.ModNone)
-				}
-			}
-			idx := ((currentItem-1)%count + count) % count
-			r.list.SetCurrentItem(idx)
-			return tcell.NewEventKey(tcell.KeyCR, 0, tcell.ModNone)
-		case 'k':
-			if events.Len() > 1 {
-				n, err := strconv.Atoi(events.String()[0 : events.Len()-1])
-				if err == nil {
-					n = r.list.GetCurrentItem() - n
-					if m := r.list.GetItemCount() - 1; n > m {
-						n = m
-					}
-					if n < 0 {
-						n = 0
-					}
-					r.list.SetCurrentItem(n)
-
-					events.Reset()
-					return nil
-				}
-			}
-
-			events.Reset()
-			cur := r.list.GetCurrentItem()
-			if cur <= 0 {
-				return event
-			}
-			r.list.SetCurrentItem(cur - 1)
-			return nil
-		case 'j':
-			if events.Len() > 1 {
-				n, err := strconv.Atoi(events.String()[0 : events.Len()-1])
-				if err == nil {
-					n = r.list.GetCurrentItem() + n
-					if m := r.list.GetItemCount() - 1; n > m {
-						n = m
-					}
-					if n < 0 {
-						n = 0
-					}
-					r.list.SetCurrentItem(n)
-
-					events.Reset()
-					return nil
-				}
-			}
-
-			events.Reset()
-			cur := r.list.GetCurrentItem()
-			if cur >= r.list.GetItemCount()-1 {
-				return event
-			}
-			r.list.SetCurrentItem(cur + 1)
-			return nil
-		case 'G':
-			events.Reset()
-			r.list.SetCurrentItem(r.list.GetItemCount() - 1)
-			return nil
-		case 'g':
-			if events.String() == "gg" {
-				events.Reset()
-				r.list.SetCurrentItem(0)
-			}
-			return nil
-		case 'd':
-			if events.String() == "dd" {
-				events.Reset()
-				onDelete()
-			}
-			return nil
-		case '1', '2', '3', '4', '5', '6', '7', '8', '9', '0':
-			return nil
-		case '/':
-			if events.String() == "/" {
-				r.searching = true
-				r.searchDir = SearchDown
-				r.flex.AddItem(r.search, 1, 0, true)
-			}
-			return event
-		case '?':
-			if events.String() == "?" {
-				r.searching = true
-				r.searchDir = SearchUp
-				r.flex.AddItem(r.search, 1, 0, true)
-			}
-			return event
-		case 'n':
-			events.Reset()
-			if r.lastSearch != "" {
-				r.Search(r.lastSearch, r.searchDir)
-			}
-			return nil
-		case 'N':
-			events.Reset()
-			if r.lastSearch != "" {
-				r.Search(r.lastSearch, !r.searchDir)
-			}
-			return nil
-		}
-
-		return event
-	})
 
 	// Add default status indicator.
 	r.Upsert(RosterItem{idx: 0}, onStatus)
@@ -344,9 +175,6 @@ func (r Roster) SetRect(x, y, width, height int) {
 
 // InputHandler implements tview.Primitive for Roster.
 func (r Roster) InputHandler() func(event *tcell.EventKey, setFocus func(p tview.Primitive)) {
-	if r.searching {
-		return r.search.InputHandler()
-	}
 	return r.flex.InputHandler()
 }
 
@@ -506,36 +334,6 @@ func (r Roster) Unread(j string) bool {
 	}
 	primary, _ := r.list.GetItemText(item.idx)
 	return strings.HasPrefix(primary, highlightTag)
-}
-
-// Search looks forward in the roster trying to find items that match s.
-// It is case insensitive and looks in the primary or secondary texts.
-// If a match is found after the current selection, we jump to the match,
-// wrapping at the end of the list.
-func (r *Roster) Search(s string, dir SearchDir) bool {
-	r.lastSearch = s
-	items := r.list.FindItems(s, s, false, true)
-	if len(items) == 0 {
-		return false
-	}
-	if dir == SearchDown {
-		for _, item := range items {
-			if item > r.list.GetCurrentItem() {
-				r.list.SetCurrentItem(item)
-				return true
-			}
-		}
-		r.list.SetCurrentItem(items[0])
-	} else {
-		for i := len(items) - 1; i >= 0; i-- {
-			if items[i] < r.list.GetCurrentItem() {
-				r.list.SetCurrentItem(items[i])
-				return true
-			}
-		}
-		r.list.SetCurrentItem(items[len(items)-1])
-	}
-	return true
 }
 
 // Len returns the length of the roster.

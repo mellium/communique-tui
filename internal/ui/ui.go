@@ -60,22 +60,22 @@ func (b *syncBool) Get() bool {
 
 // UI is a widget that combines other widgets to make the main UI.
 type UI struct {
-	app         *tview.Application
-	flex        *tview.Flex
-	pages       *tview.Pages
-	buffers     *tview.Pages
-	history     *ConversationView
-	statusBar   *tview.TextView
-	roster      *Roster
-	rosterWidth int
-	logWriter   *tview.TextView
-	handler     func(interface{})
-	redraw      func() *tview.Application
-	addr        string
-	passPrompt  chan string
-	chatsOpen   *syncBool
-	cmdPane     *commandsPane
-	debug       *log.Logger
+	app          *tview.Application
+	flex         *tview.Flex
+	pages        *tview.Pages
+	buffers      *tview.Pages
+	history      *ConversationView
+	statusBar    *tview.TextView
+	sidebar      *Sidebar
+	sidebarWidth int
+	logWriter    *tview.TextView
+	handler      func(interface{})
+	redraw       func() *tview.Application
+	addr         string
+	passPrompt   chan string
+	chatsOpen    *syncBool
+	cmdPane      *commandsPane
+	debug        *log.Logger
 }
 
 // Run starts the application event loop.
@@ -99,7 +99,7 @@ type Option func(*UI)
 // contacts in the roster.
 func ShowStatus(show bool) Option {
 	return func(ui *UI) {
-		ui.roster.ShowStatus(show)
+		ui.sidebar.ShowStatus(show)
 	}
 }
 
@@ -143,22 +143,22 @@ func Handle(handler func(event interface{})) Option {
 func RosterWidth(width int) Option {
 	return func(ui *UI) {
 		if width == 0 {
-			ui.roster.Width = 25
-			ui.rosterWidth = 25
+			ui.sidebar.SetWidth(25)
+			ui.sidebarWidth = 25
 			return
 		}
 		if width < 2 {
-			ui.roster.Width = 2
-			ui.rosterWidth = 2
+			ui.sidebar.SetWidth(2)
+			ui.sidebarWidth = 2
 			return
 		}
 		if width > 50 {
-			ui.roster.Width = 50
-			ui.rosterWidth = 50
+			ui.sidebar.SetWidth(50)
+			ui.sidebarWidth = 50
 			return
 		}
-		ui.roster.Width = width
-		ui.rosterWidth = width
+		ui.sidebar.SetWidth(width)
+		ui.sidebarWidth = width
 	}
 }
 
@@ -191,19 +191,23 @@ func New(opts ...Option) *UI {
 		main = strings.TrimPrefix(main, highlightTag)
 		statusBar.SetText(fmt.Sprintf("Chat: %q (%s)", main, secondary))
 	})
+	sidebarBox := newSidebar(SidebarPane{
+		Name: "Contacts",
+		Pane: rosterBox,
+	})
 
 	ui := &UI{
-		app:         app,
-		roster:      rosterBox,
-		rosterWidth: 25,
-		statusBar:   statusBar,
-		handler:     func(interface{}) {},
-		redraw:      app.Draw,
-		buffers:     buffers,
-		pages:       pages,
-		passPrompt:  make(chan string),
-		chatsOpen:   &syncBool{},
-		debug:       log.New(io.Discard, "", 0),
+		app:          app,
+		sidebar:      sidebarBox,
+		sidebarWidth: 25,
+		statusBar:    statusBar,
+		handler:      func(interface{}) {},
+		redraw:       app.Draw,
+		buffers:      buffers,
+		pages:        pages,
+		passPrompt:   make(chan string),
+		chatsOpen:    &syncBool{},
+		debug:        log.New(io.Discard, "", 0),
 	}
 	ui.cmdPane = cmdPane()
 	for _, o := range opts {
@@ -234,8 +238,8 @@ func New(opts ...Option) *UI {
 	buffers.AddPage(logsPageName, logs, true, true)
 	ui.logWriter = logs
 
-	innerCapture := rosterBox.GetInputCapture()
-	rosterBox.SetInputCapture(func(event *tcell.EventKey) *tcell.EventKey {
+	innerCapture := sidebarBox.GetInputCapture()
+	sidebarBox.SetInputCapture(func(event *tcell.EventKey) *tcell.EventKey {
 		key := event.Key()
 		eventRune := event.Rune()
 		switch {
@@ -291,7 +295,7 @@ func New(opts ...Option) *UI {
 	})
 
 	ltrFlex := tview.NewFlex().
-		AddItem(rosterBox, ui.rosterWidth, 1, true).
+		AddItem(sidebarBox, ui.sidebarWidth, 1, true).
 		AddItem(buffers, 0, 1, false)
 	ui.flex = tview.NewFlex().SetDirection(tview.FlexRow).
 		AddItem(ltrFlex, 0, 1, true).
@@ -303,12 +307,16 @@ func New(opts ...Option) *UI {
 	ui.pages.AddPage(delRosterPageName, delRosterModal(func() {
 		ui.pages.HidePage(delRosterPageName)
 	}, func() {
-		cur := ui.roster.list.GetCurrentItem()
+		roster := ui.sidebar.GetFrontPage()
+		if roster == nil {
+			return
+		}
+		cur := roster.list.GetCurrentItem()
 		if cur == 0 {
 			// we can't delete the status selector.
 			return
 		}
-		for _, item := range ui.roster.items {
+		for _, item := range roster.items {
 			if item.idx == cur {
 				ui.handler(event.DeleteRosterItem(item.Item))
 				break
@@ -321,17 +329,25 @@ func New(opts ...Option) *UI {
 	return ui
 }
 
-// RosterLen returns the length of the roster.
+// RosterLen returns the length of the currently visible roster.
 func (ui *UI) RosterLen() int {
-	return ui.roster.Len()
+	roster := ui.sidebar.GetFrontPage()
+	if roster == nil {
+		return 0
+	}
+	return roster.Len()
 }
 
 // UpdateRoster adds an item to the roster.
 func (ui *UI) UpdateRoster(item RosterItem) {
-	ui.roster.Upsert(item, func() {
+	roster := ui.sidebar.GetFrontPage()
+	if roster == nil {
+		return
+	}
+	roster.Upsert(item, func() {
 		ui.buffers.SwitchToPage(chatPageName)
 		ui.chatsOpen.Set(true)
-		item, ok := ui.roster.GetSelected()
+		item, ok := roster.GetSelected()
 		if ok {
 			ui.handler(event.OpenChat(item.Item))
 		}
@@ -348,7 +364,7 @@ func (ui *UI) Write(p []byte) (n int, err error) {
 
 // Roster returns the underlying roster pane widget.
 func (ui *UI) Roster() *Roster {
-	return ui.roster
+	return ui.sidebar.GetFrontPage()
 }
 
 // ChatsOpen returns true if the chat pane is open.
@@ -358,38 +374,54 @@ func (ui *UI) ChatsOpen() bool {
 
 // Offline sets the state of the roster to show the user as offline.
 func (ui *UI) Offline(j jid.JID, self bool) {
+	roster := ui.sidebar.GetFrontPage()
+	if roster == nil {
+		return
+	}
 	if self {
-		ui.roster.Offline()
+		roster.Offline()
 		ui.redraw()
 	}
-	ui.roster.UpsertPresence(j, statusOffline)
+	roster.UpsertPresence(j, statusOffline)
 }
 
 // Online sets the state of the roster to show the user as online.
 func (ui *UI) Online(j jid.JID, self bool) {
+	roster := ui.sidebar.GetFrontPage()
+	if roster == nil {
+		return
+	}
 	if self {
-		ui.roster.Online()
+		roster.Online()
 		ui.redraw()
 	}
-	ui.roster.UpsertPresence(j, statusOnline)
+	roster.UpsertPresence(j, statusOnline)
 }
 
 // Away sets the state of the roster to show the user as away.
 func (ui *UI) Away(j jid.JID, self bool) {
+	roster := ui.sidebar.GetFrontPage()
+	if roster == nil {
+		return
+	}
 	if self {
-		ui.roster.Away()
+		roster.Away()
 		ui.redraw()
 	}
-	ui.roster.UpsertPresence(j, statusAway)
+	roster.UpsertPresence(j, statusAway)
 }
 
 // Busy sets the state of the roster to show the user as busy.
 func (ui *UI) Busy(j jid.JID, self bool) {
+	roster := ui.sidebar.GetFrontPage()
+	if roster == nil {
+		return
+	}
 	if self {
-		ui.roster.Busy()
+		roster.Busy()
 		ui.redraw()
 	}
-	ui.roster.UpsertPresence(j, statusBusy)
+	roster.UpsertPresence(j, statusBusy)
 }
 
 // Handle configures an event handler which will be called when the user
@@ -433,6 +465,10 @@ func (ui *UI) ShowQuitPrompt() {
 
 // ShowAddRoster asks the user for a new JID.
 func (ui *UI) ShowAddRoster() {
+	rosterPage := ui.sidebar.GetFrontPage()
+	if rosterPage == nil {
+		return
+	}
 	const (
 		pageName  = "add_roster"
 		addButton = "Chat"
@@ -462,7 +498,7 @@ func (ui *UI) ShowAddRoster() {
 		}
 		search := s[idx+1:]
 		entriesSet := make(map[string]struct{})
-		for _, item := range ui.roster.items {
+		for _, item := range rosterPage.items {
 			domainpart := item.JID.Domainpart()
 			entry := strings.TrimPrefix(domainpart, search)
 			if entry == domainpart {
@@ -740,7 +776,11 @@ d⃣ d⃣ remove contact
 
 // GetRosterJID gets the currently selected roster JID.
 func (ui *UI) GetRosterJID() jid.JID {
-	item, _ := ui.roster.GetSelected()
+	roster := ui.sidebar.GetFrontPage()
+	if roster == nil {
+		return jid.JID{}
+	}
+	item, _ := roster.GetSelected()
 	return item.JID
 }
 
@@ -775,8 +815,12 @@ func formatPresence(p []presence) string {
 // It hten calls f with the full JID and whether or not picking a resource was
 // successful.
 func (ui *UI) PickResource(f func(jid.JID, bool)) {
+	roster := ui.sidebar.GetFrontPage()
+	if roster == nil {
+		return
+	}
 	const pageName = "resource_picker"
-	item, ok := ui.roster.GetSelected()
+	item, ok := roster.GetSelected()
 	if !ok {
 		ui.pages.HidePage(pageName)
 		f(jid.JID{}, false)
@@ -833,6 +877,10 @@ func (ui *UI) PickResource(f func(jid.JID, bool)) {
 
 // ShowRosterInfo displays more info about the currently selected roster item.
 func (ui *UI) ShowRosterInfo() {
+	roster := ui.sidebar.GetFrontPage()
+	if roster == nil {
+		return
+	}
 	onEsc := func() {
 		ui.pages.HidePage(infoPageName)
 		ui.pages.RemovePage(infoPageName)
@@ -845,10 +893,10 @@ func (ui *UI) ShowRosterInfo() {
 		SetBackgroundColor(tview.Styles.PrimitiveBackgroundColor)
 	mod.SetInputCapture(modalClose(onEsc))
 
-	item, ok := ui.roster.GetSelected()
-	idx := ui.roster.list.GetCurrentItem()
+	item, ok := roster.GetSelected()
+	idx := roster.list.GetCurrentItem()
 	if !ok {
-		main, secondary := ui.roster.list.GetItemText(idx)
+		main, secondary := roster.list.GetItemText(idx)
 		mod.SetText(fmt.Sprintf(`%s
 %s
 `, main, secondary))
@@ -901,14 +949,18 @@ Resources:
 // SelectRoster moves the input selection back to the roster and shows the logs
 // view.
 func (ui *UI) SelectRoster() {
+	roster := ui.sidebar.GetFrontPage()
+	if roster == nil {
+		return
+	}
 	if ui.ChatsOpen() {
-		item, ok := ui.roster.GetSelected()
+		item, ok := roster.GetSelected()
 		if ok {
 			ui.handler(event.CloseChat(item.Item))
 		}
 	}
 	ui.buffers.SwitchToPage(logsPageName)
-	ui.app.SetFocus(ui.roster)
+	ui.app.SetFocus(ui.sidebar)
 }
 
 // History returns the chat history view.

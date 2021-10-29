@@ -52,7 +52,7 @@ func checkScroll(cv *ConversationView, f func()) {
 	f()
 	newRow, _ := cv.TextView.GetScrollOffset()
 	if newRow == 0 && oldRow != newRow {
-		item, ok := cv.ui.roster.GetSelected()
+		item, ok := cv.ui.sidebar.GetSelected()
 		if ok {
 			cv.ui.handler(event.PullToRefreshChat(item.Item))
 		}
@@ -120,7 +120,7 @@ func (cv *ConversationView) InputHandler() func(event *tcell.EventKey, setFocus 
 			if body == "" {
 				return
 			}
-			item, ok := cv.ui.roster.GetSelected()
+			item, ok := cv.ui.sidebar.GetSelected()
 			if !ok {
 				return
 			}
