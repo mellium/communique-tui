@@ -40,3 +40,21 @@ func delRosterModal(onEsc func(), onDel func()) *tview.Modal {
 	mod.SetInputCapture(modalClose(onEsc))
 	return mod
 }
+
+func delBookmarkModal(onEsc func(), onDel func()) *tview.Modal {
+	const (
+		removeButton = "Remove"
+	)
+	mod := tview.NewModal().
+		SetText(`Remove this channel?`).
+		SetBackgroundColor(tview.Styles.PrimitiveBackgroundColor).
+		AddButtons([]string{cancelButton, removeButton}).
+		SetDoneFunc(func(_ int, buttonLabel string) {
+			if buttonLabel == removeButton {
+				onDel()
+			}
+			onEsc()
+		})
+	mod.SetInputCapture(modalClose(onEsc))
+	return mod
+}

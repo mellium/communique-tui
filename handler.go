@@ -15,8 +15,10 @@ import (
 
 	"mellium.im/communique/internal/client"
 	"mellium.im/communique/internal/client/event"
+	"mellium.im/communique/internal/legacybookmarks"
 	"mellium.im/communique/internal/storage"
 	"mellium.im/communique/internal/ui"
+	"mellium.im/xmpp/bookmarks"
 	"mellium.im/xmpp/commands"
 	"mellium.im/xmpp/crypto"
 	"mellium.im/xmpp/disco"
@@ -102,6 +104,37 @@ func newUIHandler(configPath string, acct account, pane *ui.UI, db *storage.DB, 
 				err := roster.Delete(ctx, c.Session, e.JID)
 				if err != nil {
 					logger.Printf("error removing roster item %s: %v", e.JID, err)
+				}
+			}()
+		case event.DeleteBookmark:
+			go func() {
+				ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+				defer cancel()
+				info, err := c.Disco(c.LocalAddr().Bare())
+				if err != nil {
+					debug.Printf("error discovering bookmarks support: %v", err)
+				}
+				var bookmarkSync = false
+				for _, feature := range info.Features {
+					if feature.Var == bookmarks.NSCompat {
+						bookmarkSync = true
+						break
+					}
+				}
+				if !bookmarkSync {
+					err = legacybookmarks.Delete(ctx, c.Session, e.JID)
+					if err != nil {
+						logger.Printf("error removing legacy bookmark %s: %v", e.JID, err)
+					}
+				}
+				// Always try to delete the bookmark from PEP bookmarks in case we're
+				// using a client that only supports those in addition to this one.
+				err = bookmarks.Delete(ctx, c.Session, e.JID)
+				// Only report the error if we're actually using PEP native bookmarks
+				// though (otherwise we'll most likely report "item-not-found" every
+				// single time).
+				if err != nil && bookmarkSync {
+					logger.Printf("error removing bookmark %s: %v", e.JID, err)
 				}
 			}()
 		case event.UpdateRoster:
@@ -233,6 +266,10 @@ func newClientHandler(configPath string, client *client.Client, pane *ui.UI, db 
 			pane.Online(jid.JID(e), jid.JID(e).Equal(client.LocalAddr()))
 		case event.StatusOffline:
 			pane.Offline(jid.JID(e), jid.JID(e).Equal(client.LocalAddr()))
+		case event.FetchBookmarks:
+			for bookmark := range e.Items {
+				pane.UpdateBookmarks(bookmarks.Channel(bookmark))
+			}
 		case event.FetchRoster:
 			ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 			defer cancel()

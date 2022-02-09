@@ -17,6 +17,7 @@ import (
 	"github.com/rivo/tview"
 
 	"mellium.im/communique/internal/client/event"
+	"mellium.im/xmpp/bookmarks"
 	"mellium.im/xmpp/commands"
 	"mellium.im/xmpp/form"
 	"mellium.im/xmpp/jid"
@@ -30,6 +31,7 @@ const (
 	chatPageName        = "chat"
 	helpPageName        = "help"
 	delRosterPageName   = "del_roster"
+	delBookmarkPageName = "del_bookmark"
 	cmdPageName         = "list_cmd"
 	infoPageName        = "info"
 	setStatusPageName   = "set_status"
@@ -68,6 +70,7 @@ type UI struct {
 	statusBar    *tview.TextView
 	sidebar      *Sidebar
 	rosterBox    *Roster
+	bookmarksBox *Bookmarks
 	sidebarWidth int
 	logWriter    *tview.TextView
 	handler      func(interface{})
@@ -192,13 +195,9 @@ func New(opts ...Option) *UI {
 		main = strings.TrimPrefix(main, highlightTag)
 		statusBar.SetText(fmt.Sprintf("Chat: %q (%s)", main, secondary))
 	})
-	bookmarksBox := newRoster(func() {
-		pages.ShowPage(setStatusPageName)
-		pages.SendToFront(setStatusPageName)
-		app.SetFocus(pages)
-	}, func() {
-		pages.ShowPage(delRosterPageName)
-		pages.SendToFront(delRosterPageName)
+	bookmarksBox := newBookmarks(func() {
+		pages.ShowPage(delBookmarkPageName)
+		pages.SendToFront(delBookmarkPageName)
 		app.SetFocus(pages)
 	})
 	bookmarksBox.OnChanged(func(idx int, main string, secondary string, shortcut rune) {
@@ -209,15 +208,13 @@ func New(opts ...Option) *UI {
 		main = strings.TrimPrefix(main, highlightTag)
 		statusBar.SetText(fmt.Sprintf("Chat: %q (%s)", main, secondary))
 	})
-	sidebarBox := newSidebar(SidebarPane{
-		Name: "Contacts",
-		Pane: rosterBox,
-	})
+	sidebarBox := newSidebar(rosterBox, bookmarksBox)
 
 	ui := &UI{
 		app:          app,
 		sidebar:      sidebarBox,
 		rosterBox:    rosterBox,
+		bookmarksBox: bookmarksBox,
 		sidebarWidth: 25,
 		statusBar:    statusBar,
 		handler:      func(interface{}) {},
@@ -326,18 +323,25 @@ func New(opts ...Option) *UI {
 	ui.pages.AddPage(delRosterPageName, delRosterModal(func() {
 		ui.pages.HidePage(delRosterPageName)
 	}, func() {
-		roster := ui.sidebar.GetFrontPage()
-		if roster == nil {
-			return
-		}
-		cur := roster.list.GetCurrentItem()
+		cur := ui.sidebar.roster.list.GetCurrentItem()
 		if cur == 0 {
 			// we can't delete the status selector.
 			return
 		}
-		for _, item := range roster.items {
+		for _, item := range ui.sidebar.roster.items {
 			if item.idx == cur {
 				ui.handler(event.DeleteRosterItem(item.Item))
+				break
+			}
+		}
+	}), true, false)
+	ui.pages.AddPage(delBookmarkPageName, delBookmarkModal(func() {
+		ui.pages.HidePage(delBookmarkPageName)
+	}, func() {
+		cur := ui.sidebar.bookmarks.list.GetCurrentItem()
+		for _, item := range ui.sidebar.bookmarks.items {
+			if item.idx == cur {
+				ui.handler(event.DeleteBookmark(item.Channel))
 				break
 			}
 		}
@@ -350,11 +354,11 @@ func New(opts ...Option) *UI {
 
 // RosterLen returns the length of the currently visible roster.
 func (ui *UI) RosterLen() int {
-	roster := ui.sidebar.GetFrontPage()
+	roster := ui.sidebar.getFrontList()
 	if roster == nil {
 		return 0
 	}
-	return roster.Len()
+	return roster.GetItemCount()
 }
 
 // UpdateRoster adds an item to the roster.
@@ -372,6 +376,14 @@ func (ui *UI) UpdateRoster(item RosterItem) {
 	ui.handler(event.UpdateRoster{Item: item.Item, Room: item.Room})
 }
 
+// UpdateBookmarks adds an item to the bookmarks sidebar.
+func (ui *UI) UpdateBookmarks(item bookmarks.Channel) {
+	ui.bookmarksBox.Upsert(item, func() {
+		panic("NOT YET IMPLEMENTED")
+	})
+	ui.redraw()
+}
+
 // Write writes to the logging text view.
 func (ui *UI) Write(p []byte) (n int, err error) {
 	return ui.logWriter.Write(p)
@@ -379,7 +391,7 @@ func (ui *UI) Write(p []byte) (n int, err error) {
 
 // Roster returns the underlying roster pane widget.
 func (ui *UI) Roster() *Roster {
-	return ui.sidebar.GetFrontPage()
+	return ui.sidebar.roster
 }
 
 // ChatsOpen returns true if the chat pane is open.
@@ -464,10 +476,7 @@ func (ui *UI) ShowQuitPrompt() {
 
 // ShowAddRoster asks the user for a new JID.
 func (ui *UI) ShowAddRoster() {
-	rosterPage := ui.sidebar.GetFrontPage()
-	if rosterPage == nil {
-		return
-	}
+	rosterPage := ui.sidebar.roster
 	const (
 		pageName  = "add_roster"
 		addButton = "Chat"
@@ -775,11 +784,7 @@ d⃣ d⃣ remove contact
 
 // GetRosterJID gets the currently selected roster JID.
 func (ui *UI) GetRosterJID() jid.JID {
-	roster := ui.sidebar.GetFrontPage()
-	if roster == nil {
-		return jid.JID{}
-	}
-	item, _ := roster.GetSelected()
+	item, _ := ui.sidebar.roster.GetSelected()
 	return item.JID
 }
 
@@ -811,15 +816,11 @@ func formatPresence(p []presence) string {
 
 // PickResource shows a modal with the currently selected roster items resources
 // and lets the user pick one.
-// It hten calls f with the full JID and whether or not picking a resource was
+// It then calls f with the full JID and whether or not picking a resource was
 // successful.
 func (ui *UI) PickResource(f func(jid.JID, bool)) {
-	roster := ui.sidebar.GetFrontPage()
-	if roster == nil {
-		return
-	}
 	const pageName = "resource_picker"
-	item, ok := roster.GetSelected()
+	item, ok := ui.sidebar.roster.GetSelected()
 	if !ok {
 		ui.pages.HidePage(pageName)
 		f(jid.JID{}, false)
@@ -876,10 +877,6 @@ func (ui *UI) PickResource(f func(jid.JID, bool)) {
 
 // ShowRosterInfo displays more info about the currently selected roster item.
 func (ui *UI) ShowRosterInfo() {
-	roster := ui.sidebar.GetFrontPage()
-	if roster == nil {
-		return
-	}
 	onEsc := func() {
 		ui.pages.HidePage(infoPageName)
 		ui.pages.RemovePage(infoPageName)
@@ -892,10 +889,10 @@ func (ui *UI) ShowRosterInfo() {
 		SetBackgroundColor(tview.Styles.PrimitiveBackgroundColor)
 	mod.SetInputCapture(modalClose(onEsc))
 
-	item, ok := roster.GetSelected()
-	idx := roster.list.GetCurrentItem()
+	item, ok := ui.sidebar.roster.GetSelected()
+	idx := ui.sidebar.roster.list.GetCurrentItem()
 	if !ok {
-		main, secondary := roster.list.GetItemText(idx)
+		main, secondary := ui.sidebar.roster.list.GetItemText(idx)
 		mod.SetText(fmt.Sprintf(`%s
 %s
 `, main, secondary))
@@ -948,12 +945,8 @@ Resources:
 // SelectRoster moves the input selection back to the roster and shows the logs
 // view.
 func (ui *UI) SelectRoster() {
-	roster := ui.sidebar.GetFrontPage()
-	if roster == nil {
-		return
-	}
 	if ui.ChatsOpen() {
-		item, ok := roster.GetSelected()
+		item, ok := ui.sidebar.roster.GetSelected()
 		if ok {
 			ui.handler(event.CloseChat(item.Item))
 		}

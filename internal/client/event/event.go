@@ -6,6 +6,7 @@
 package event // import "mellium.im/communique/internal/client/event"
 
 import (
+	"mellium.im/xmpp/bookmarks"
 	"mellium.im/xmpp/commands"
 	"mellium.im/xmpp/delay"
 	"mellium.im/xmpp/disco"
@@ -43,6 +44,11 @@ type (
 		Items <-chan UpdateRoster
 	}
 
+	// FetchBookmarks is sent when the full list of bookmarks is fetched.
+	FetchBookmarks struct {
+		Items <-chan UpdateBookmark
+	}
+
 	// DeleteRosterItem is sent when a roster item has been removed (eg. after
 	// UpdateRoster triggers a removal or it is removed in the UI).
 	DeleteRosterItem roster.Item
@@ -54,6 +60,13 @@ type (
 		Ver  string
 		Room bool
 	}
+
+	// UpdateBookmark is sent when a bookmark should be updated (eg. if you have
+	// subscribed to bookmark updates and received a push).
+	UpdateBookmark bookmarks.Channel
+
+	// DeleteBookmark is sent when a bookmark has been removed.
+	DeleteBookmark bookmarks.Channel
 
 	// ChatMessage is sent when messages of type "chat" or "normal" are received
 	// or sent.

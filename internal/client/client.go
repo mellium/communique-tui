@@ -11,13 +11,16 @@ import (
 	"fmt"
 	"io"
 	"log"
+	"strings"
 	"sync"
 	"time"
 
 	"mellium.im/communique/internal/client/event"
+	"mellium.im/communique/internal/legacybookmarks"
 	"mellium.im/sasl"
 	"mellium.im/xmlstream"
 	"mellium.im/xmpp"
+	"mellium.im/xmpp/bookmarks"
 	"mellium.im/xmpp/carbons"
 	"mellium.im/xmpp/dial"
 	"mellium.im/xmpp/disco"
@@ -26,6 +29,7 @@ import (
 	"mellium.im/xmpp/receipts"
 	"mellium.im/xmpp/roster"
 	"mellium.im/xmpp/stanza"
+	"mellium.im/xmpp/version"
 )
 
 func noopHandler(interface{}) {}
@@ -181,11 +185,20 @@ func (c *Client) reconnect(ctx context.Context) error {
 		return err
 	}
 
+	// Fetch the roster
 	rosterCtx, rosterCancel := context.WithTimeout(context.Background(), c.timeout)
 	defer rosterCancel()
 	err = c.Roster(rosterCtx)
 	if err != nil {
 		c.logger.Printf("error fetching roster: %q", err)
+	}
+
+	// Fetch the bookmarks
+	bookmarksCtx, bookmarksCancel := context.WithTimeout(context.Background(), c.timeout)
+	defer bookmarksCancel()
+	err = c.Bookmarks(bookmarksCtx)
+	if err != nil {
+		c.logger.Printf("error fetching bookmarks: %q", err)
 	}
 
 	return nil
@@ -227,6 +240,79 @@ func (c *Client) Online(ctx context.Context) error {
 		return err
 	}
 	return nil
+}
+
+// Bookmarks fetches the users list of bookmarked chat rooms.
+func (c *Client) Bookmarks(ctx context.Context) error {
+	var iter interface {
+		Next() bool
+		Err() error
+		Bookmark() bookmarks.Channel
+		io.Closer
+	}
+
+	info, err := c.Disco(c.LocalAddr().Bare())
+	if err != nil {
+		c.debug.Printf("error discovering bookmarks support: %v", err)
+	}
+
+	useLegacyBookmarks := true
+	for _, feature := range info.Features {
+		if feature.Var == bookmarks.NSCompat {
+			useLegacyBookmarks = false
+			break
+		}
+	}
+
+	if useLegacyBookmarks {
+		query, err := version.Get(ctx, c.Session, c.Session.LocalAddr().Domain())
+		if err != nil {
+			c.debug.Printf(`error fetching version information: %v`, err)
+		}
+		var bookmarksErr string
+		if query.Name == "Prosody" {
+			switch {
+			case strings.HasPrefix(query.Version, "trunk"):
+				bookmarksErr = `
+To fix this, contact your server administrator and ask them to enable "mod_bookmarks".`
+			case strings.HasPrefix(query.Version, "0.11"):
+				bookmarksErr = `
+To fix this, contact your server administrator and ask them to enable "mod_bookmarks2".`
+			}
+		}
+		c.logger.Printf(`
+
+	--
+Your server does not support bookmark unification, an important feature that stops newer clients from seeing a different list of chat rooms than older clients that do not yet support the latest features.%s
+	--
+
+`, bookmarksErr)
+		iter = legacybookmarks.Fetch(ctx, c.Session)
+	} else {
+		iter = bookmarks.Fetch(ctx, c.Session)
+	}
+
+	defer func() {
+		e := iter.Close()
+		if e != nil {
+			c.debug.Printf("error closing bookmarks stream: %v", e)
+		}
+	}()
+	items := make(chan event.UpdateBookmark)
+	go func() {
+		defer close(items)
+		for iter.Next() {
+			items <- event.UpdateBookmark(iter.Bookmark())
+		}
+	}()
+	c.handler(event.FetchBookmarks{
+		Items: items,
+	})
+	err = iter.Err()
+	if err == io.EOF {
+		err = nil
+	}
+	return err
 }
 
 // Roster requests the users contact list.
