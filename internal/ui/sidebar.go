@@ -8,6 +8,8 @@ import (
 
 	"github.com/gdamore/tcell/v2"
 	"github.com/rivo/tview"
+
+	"mellium.im/xmpp/jid"
 )
 
 // Sidebar is a tview.Primitive that draws a sidebar containing multiple lists
@@ -21,6 +23,7 @@ type Sidebar struct {
 	searching  bool
 	lastSearch string
 	searchDir  SearchDir
+	panes      []SidebarPane
 }
 
 // SidebarPane represents an option that can be selected in the sidebar.
@@ -39,6 +42,7 @@ func newSidebar(panes ...SidebarPane) *Sidebar {
 
 	var options []string
 	for i, p := range panes {
+		r.panes = append(r.panes, p)
 		options = append(options, p.Name)
 		if i == 0 {
 			r.pages.AddAndSwitchToPage(p.Name, p.Pane, true)
@@ -346,4 +350,44 @@ func (s *Sidebar) ShowStatus(show bool) {
 	if roster != nil {
 		roster.list.ShowSecondaryText(show)
 	}
+}
+
+// Offline sets the state of the roster to show the user as offline.
+func (s Sidebar) Offline() {
+	for _, p := range s.panes {
+		p.Pane.Offline()
+	}
+}
+
+// Online sets the state of the roster to show the user as online.
+func (s Sidebar) Online() {
+	for _, p := range s.panes {
+		p.Pane.Online()
+	}
+}
+
+// Away sets the state of the roster to show the user as away.
+func (s Sidebar) Away() {
+	for _, p := range s.panes {
+		p.Pane.Away()
+	}
+}
+
+// Busy sets the state of the roster to show the user as busy.
+func (s Sidebar) Busy() {
+	for _, p := range s.panes {
+		p.Pane.Busy()
+	}
+}
+
+// UpsertPresence updates an existing roster item or bookmark with a newly seen
+// resource or presence change.
+// If the item is not in any roster, false is returned.
+func (s Sidebar) UpsertPresence(j jid.JID, status string) bool {
+	for _, p := range s.panes {
+		if ok := p.Pane.UpsertPresence(j, status); ok {
+			return true
+		}
+	}
+	return false
 }

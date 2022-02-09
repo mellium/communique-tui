@@ -8,13 +8,13 @@ require (
 	github.com/mattn/go-runewidth v0.0.13 // indirect
 	github.com/mpvl/textutil v0.1.0
 	github.com/rivo/tview v0.0.0-20211001102648-5508f4b00266
-	golang.org/x/crypto v0.0.0-20220214200702-86341886e292 // indirect
+	golang.org/x/crypto v0.0.0-20220131195533-30dcbda58838 // indirect
 	golang.org/x/mod v0.5.1 // indirect
 	golang.org/x/net v0.0.0-20220127200216-cd36cc0744dd // indirect
-	golang.org/x/sys v0.0.0-20220209214540-3681064d5158 // indirect
+	golang.org/x/sys v0.0.0-20220128215802-99c3d69c2c27 // indirect
 	golang.org/x/term v0.0.0-20210927222741-03fcf44c2211 // indirect
 	golang.org/x/text v0.3.7
-	golang.org/x/tools v0.1.5 // indirect
+	golang.org/x/tools v0.1.9 // indirect
 	mellium.im/sasl v0.2.1
 	mellium.im/xmlstream v0.15.4-0.20211023152852-0ca80a938137
 	mellium.im/xmpp v0.21.2-0.20220223141332-c00e9125dd66

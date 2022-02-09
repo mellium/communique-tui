@@ -67,6 +67,7 @@ type UI struct {
 	history      *ConversationView
 	statusBar    *tview.TextView
 	sidebar      *Sidebar
+	rosterBox    *Roster
 	sidebarWidth int
 	logWriter    *tview.TextView
 	handler      func(interface{})
@@ -191,6 +192,23 @@ func New(opts ...Option) *UI {
 		main = strings.TrimPrefix(main, highlightTag)
 		statusBar.SetText(fmt.Sprintf("Chat: %q (%s)", main, secondary))
 	})
+	bookmarksBox := newRoster(func() {
+		pages.ShowPage(setStatusPageName)
+		pages.SendToFront(setStatusPageName)
+		app.SetFocus(pages)
+	}, func() {
+		pages.ShowPage(delRosterPageName)
+		pages.SendToFront(delRosterPageName)
+		app.SetFocus(pages)
+	})
+	bookmarksBox.OnChanged(func(idx int, main string, secondary string, shortcut rune) {
+		if idx == 0 {
+			statusBar.SetText("Status: " + main)
+			return
+		}
+		main = strings.TrimPrefix(main, highlightTag)
+		statusBar.SetText(fmt.Sprintf("Chat: %q (%s)", main, secondary))
+	})
 	sidebarBox := newSidebar(SidebarPane{
 		Name: "Contacts",
 		Pane: rosterBox,
@@ -199,6 +217,7 @@ func New(opts ...Option) *UI {
 	ui := &UI{
 		app:          app,
 		sidebar:      sidebarBox,
+		rosterBox:    rosterBox,
 		sidebarWidth: 25,
 		statusBar:    statusBar,
 		handler:      func(interface{}) {},
@@ -340,14 +359,10 @@ func (ui *UI) RosterLen() int {
 
 // UpdateRoster adds an item to the roster.
 func (ui *UI) UpdateRoster(item RosterItem) {
-	roster := ui.sidebar.GetFrontPage()
-	if roster == nil {
-		return
-	}
-	roster.Upsert(item, func() {
+	ui.rosterBox.Upsert(item, func() {
 		ui.buffers.SwitchToPage(chatPageName)
 		ui.chatsOpen.Set(true)
-		item, ok := roster.GetSelected()
+		item, ok := ui.rosterBox.GetSelected()
 		if ok {
 			ui.handler(event.OpenChat(item.Item))
 		}
@@ -374,54 +389,38 @@ func (ui *UI) ChatsOpen() bool {
 
 // Offline sets the state of the roster to show the user as offline.
 func (ui *UI) Offline(j jid.JID, self bool) {
-	roster := ui.sidebar.GetFrontPage()
-	if roster == nil {
-		return
-	}
 	if self {
-		roster.Offline()
+		ui.sidebar.Offline()
 		ui.redraw()
 	}
-	roster.UpsertPresence(j, statusOffline)
+	ui.sidebar.UpsertPresence(j, statusOffline)
 }
 
 // Online sets the state of the roster to show the user as online.
 func (ui *UI) Online(j jid.JID, self bool) {
-	roster := ui.sidebar.GetFrontPage()
-	if roster == nil {
-		return
-	}
 	if self {
-		roster.Online()
+		ui.sidebar.Online()
 		ui.redraw()
 	}
-	roster.UpsertPresence(j, statusOnline)
+	ui.sidebar.UpsertPresence(j, statusOnline)
 }
 
 // Away sets the state of the roster to show the user as away.
 func (ui *UI) Away(j jid.JID, self bool) {
-	roster := ui.sidebar.GetFrontPage()
-	if roster == nil {
-		return
-	}
 	if self {
-		roster.Away()
+		ui.sidebar.Away()
 		ui.redraw()
 	}
-	roster.UpsertPresence(j, statusAway)
+	ui.sidebar.UpsertPresence(j, statusAway)
 }
 
 // Busy sets the state of the roster to show the user as busy.
 func (ui *UI) Busy(j jid.JID, self bool) {
-	roster := ui.sidebar.GetFrontPage()
-	if roster == nil {
-		return
-	}
 	if self {
-		roster.Busy()
+		ui.sidebar.Busy()
 		ui.redraw()
 	}
-	roster.UpsertPresence(j, statusBusy)
+	ui.sidebar.UpsertPresence(j, statusBusy)
 }
 
 // Handle configures an event handler which will be called when the user
