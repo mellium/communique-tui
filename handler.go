@@ -6,6 +6,7 @@ package main
 
 import (
 	"context"
+	"fmt"
 	"log"
 	"time"
 
@@ -14,6 +15,7 @@ import (
 	"mellium.im/communique/internal/storage"
 	"mellium.im/communique/internal/ui"
 	"mellium.im/xmpp/commands"
+	"mellium.im/xmpp/disco"
 	"mellium.im/xmpp/history"
 	"mellium.im/xmpp/jid"
 	"mellium.im/xmpp/roster"
@@ -335,6 +337,25 @@ func newClientHandler(configPath string, client *client.Client, pane *ui.UI, db 
 			if err := db.InsertMsg(ctx, true, e.Result.Forward.Msg, client.LocalAddr()); err != nil {
 				logger.Printf("error writing history to database: %v", err)
 			}
+		case event.NewCaps:
+			go func() {
+				ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+				defer cancel()
+				err := db.UpdateDisco(ctx, e.Caps, func(ctx context.Context) (disco.Info, error) {
+					info, err := disco.GetInfo(ctx, e.Caps.Node+"#"+e.Caps.Ver, e.From, client.Session)
+					if err != nil {
+						return info, err
+					}
+					h := info.Hash(e.Caps.Hash.New())
+					if h != e.Caps.Ver {
+						return info, fmt.Errorf("hash mismatch: got=%q, want=%q", h, e.Caps.Ver)
+					}
+					return info, nil
+				})
+				if err != nil {
+					logger.Printf("error updating service disco cache: %v", err)
+				}
+			}()
 		default:
 			debug.Printf("unrecognized client event: %q", e)
 		}

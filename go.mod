@@ -8,16 +8,16 @@ require (
 	github.com/mattn/go-runewidth v0.0.13 // indirect
 	github.com/mpvl/textutil v0.1.0
 	github.com/rivo/tview v0.0.0-20211001102648-5508f4b00266
-	golang.org/x/crypto v0.0.0-20210817164053-32db794688a5 // indirect
-	golang.org/x/mod v0.5.0 // indirect
-	golang.org/x/net v0.0.0-20210813160813-60bc85c4be6d // indirect
-	golang.org/x/sys v0.0.0-20210817190340-bfb29a6856f2 // indirect
-	golang.org/x/term v0.0.0-20210615171337-6886f2dfbf5b // indirect
+	golang.org/x/crypto v0.0.0-20220214200702-86341886e292 // indirect
+	golang.org/x/mod v0.5.1 // indirect
+	golang.org/x/net v0.0.0-20220127200216-cd36cc0744dd // indirect
+	golang.org/x/sys v0.0.0-20220209214540-3681064d5158 // indirect
+	golang.org/x/term v0.0.0-20210927222741-03fcf44c2211 // indirect
 	golang.org/x/text v0.3.7
 	golang.org/x/tools v0.1.5 // indirect
 	mellium.im/sasl v0.2.1
-	mellium.im/xmlstream v0.15.3
-	mellium.im/xmpp v0.20.0
+	mellium.im/xmlstream v0.15.4-0.20211023152852-0ca80a938137
+	mellium.im/xmpp v0.21.2-0.20220216141012-bf94ceb836fe
 	modernc.org/sqlite v1.12.0
 )
 

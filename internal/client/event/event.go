@@ -8,6 +8,7 @@ package event // import "mellium.im/communique/internal/client/event"
 import (
 	"mellium.im/xmpp/commands"
 	"mellium.im/xmpp/delay"
+	"mellium.im/xmpp/disco"
 	"mellium.im/xmpp/forward"
 	"mellium.im/xmpp/jid"
 	"mellium.im/xmpp/roster"
@@ -103,4 +104,10 @@ type (
 	// PullToRefreshChat is sent when we scroll up while already at the top of
 	// the history or when we simply scroll to the top of the history.
 	PullToRefreshChat roster.Item
+
+	// NewCaps is sent when new capabilities have been discovered.
+	NewCaps struct {
+		From jid.JID
+		Caps disco.Caps
+	}
 )

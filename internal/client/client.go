@@ -20,6 +20,7 @@ import (
 	"mellium.im/xmpp"
 	"mellium.im/xmpp/carbons"
 	"mellium.im/xmpp/dial"
+	"mellium.im/xmpp/disco"
 	"mellium.im/xmpp/jid"
 	"mellium.im/xmpp/muc"
 	"mellium.im/xmpp/receipts"
@@ -106,6 +107,7 @@ func (c *Client) reconnect(ctx context.Context) error {
 	negotiator := xmpp.NewNegotiator(func(*xmpp.Session, *xmpp.StreamConfig) xmpp.StreamConfig {
 		return xmpp.StreamConfig{
 			Features: []xmpp.StreamFeature{
+				disco.StreamFeature(),
 				xmpp.StartTLS(c.dialer.TLSConfig),
 				saslFeature,
 				roster.Versioning(),
@@ -137,6 +139,15 @@ func (c *Client) reconnect(ctx context.Context) error {
 			c.logger.Printf("Error closing the connection: %q", err)
 		}
 	}()
+
+	// If the stream contained entity capabilities, go ahead and send an alert so
+	// that we can fetch the disco
+	if caps, ok := disco.ServerCaps(c.Session); ok {
+		c.handler(event.NewCaps{
+			From: c.Session.In().From,
+			Caps: caps,
+		})
+	}
 
 	// Put a special case in the roster so we can send notes to ourselves easily.
 	c.handler(event.UpdateRoster{

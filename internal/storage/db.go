@@ -13,12 +13,14 @@ import (
 	"log"
 	"os"
 	"path/filepath"
+	"strings"
 	"sync"
 	"time"
 
 	_ "modernc.org/sqlite"
 
 	"mellium.im/communique/internal/client/event"
+	"mellium.im/xmpp/disco"
 	"mellium.im/xmpp/jid"
 	"mellium.im/xmpp/stanza"
 )
@@ -26,20 +28,25 @@ import (
 // DB represents a SQL database with common pre-prepared statements.
 type DB struct {
 	*sql.DB
-	txM             sync.Mutex
-	truncateRoster  *sql.Stmt
-	delRoster       *sql.Stmt
-	insertRoster    *sql.Stmt
-	insertGroup     *sql.Stmt
-	insertRosterVer *sql.Stmt
-	selectRosterVer *sql.Stmt
-	selectRoster    *sql.Stmt
-	insertMsg       *sql.Stmt
-	markRecvd       *sql.Stmt
-	queryMsg        *sql.Stmt
-	afterID         *sql.Stmt
-	beforeID        *sql.Stmt
-	debug           *log.Logger
+	txM               sync.Mutex
+	truncateRoster    *sql.Stmt
+	delRoster         *sql.Stmt
+	insertRoster      *sql.Stmt
+	insertGroup       *sql.Stmt
+	insertRosterVer   *sql.Stmt
+	selectRosterVer   *sql.Stmt
+	selectRoster      *sql.Stmt
+	insertMsg         *sql.Stmt
+	markRecvd         *sql.Stmt
+	queryMsg          *sql.Stmt
+	afterID           *sql.Stmt
+	beforeID          *sql.Stmt
+	insertCaps        *sql.Stmt
+	insertIdent       *sql.Stmt
+	insertIdentCaps   *sql.Stmt
+	insertFeature     *sql.Stmt
+	insertFeatureCaps *sql.Stmt
+	debug             *log.Logger
 }
 
 // OpenDB attempts to open the database at dbFile.
@@ -207,6 +214,45 @@ SELECT archiveID, MIN(delay) AS mindelay
 	if err != nil {
 		return nil, err
 	}
+
+	wrapDB.insertCaps, err = db.PrepareContext(ctx, `
+INSERT INTO entityCaps (hash, ver)
+	VALUES ($1, $2)
+	ON CONFLICT (hash, ver) DO NOTHING
+	RETURNING (id)`)
+	if err != nil {
+		return nil, err
+	}
+	wrapDB.insertIdent, err = db.PrepareContext(ctx, `
+INSERT INTO discoIdentity (cat, name, typ)
+	VALUES ($1, $2, $3)
+	ON CONFLICT (cat, name, typ) DO UPDATE SET cat=$1, name=$2, typ=$3
+	RETURNING (id)`)
+	if err != nil {
+		return nil, err
+	}
+	wrapDB.insertIdentCaps, err = db.PrepareContext(ctx, `
+INSERT INTO discoIdentityCaps (caps, ident)
+	VALUES ($1, $2)
+	ON CONFLICT (caps, ident) DO NOTHING`)
+	if err != nil {
+		return nil, err
+	}
+	wrapDB.insertFeature, err = db.PrepareContext(ctx, `
+INSERT INTO discoFeatures (var)
+	VALUES ($1)
+	ON CONFLICT (var) DO UPDATE SET var=$1
+	RETURNING (id)`)
+	if err != nil {
+		return nil, err
+	}
+	wrapDB.insertFeatureCaps, err = db.PrepareContext(ctx, `
+INSERT INTO discoFeatureCaps (caps, feat)
+	VALUES ($1, $2)
+	ON CONFLICT(caps, feat) DO NOTHING`)
+	if err != nil {
+		return nil, err
+	}
 	return wrapDB, nil
 }
 
@@ -223,20 +269,25 @@ func execTx(ctx context.Context, db *DB, f func(context.Context, *sql.Tx) error)
 	if err != nil {
 		return err
 	}
+	var commit bool
 	defer func() {
-		if e != nil {
-			if e == errRollback {
-				e = tx.Rollback()
-			} else {
-				/* #nosec */
-				tx.Rollback()
-			}
+		if commit {
+			return
+		}
+		switch e {
+		case errRollback:
+			e = tx.Rollback()
+		case nil:
+		default:
+			/* #nosec */
+			tx.Rollback()
 		}
 	}()
 	err = f(ctx, tx)
 	if err != nil {
 		return err
 	}
+	commit = true
 	return tx.Commit()
 }
 
@@ -548,4 +599,57 @@ func (db *DB) BeforeID(ctx context.Context, j jid.JID) (string, time.Time, error
 		t = time.Unix(timestamp, 0)
 	}
 	return id, t, err
+}
+
+// UpdateDisco checks if the entity capabilities have previously been seen and
+// if not stores them and calls f to fetch and store new disco features.
+func (db *DB) UpdateDisco(ctx context.Context, caps disco.Caps, f func(ctx context.Context) (disco.Info, error)) error {
+	return execTx(ctx, db, func(ctx context.Context, tx *sql.Tx) error {
+		var rowID int64
+		err := tx.Stmt(db.insertCaps).QueryRowContext(ctx, strings.ToLower(caps.Hash.String()), caps.Ver).Scan(&rowID)
+		if err == sql.ErrNoRows {
+			err = nil
+		}
+		if rowID == 0 {
+			// Cache hit, no need to update anything!
+			return nil
+		}
+
+		info, err := f(ctx)
+		if err != nil {
+			return err
+		}
+		insertIdent := tx.Stmt(db.insertIdent)
+		insertIdentCaps := tx.Stmt(db.insertIdentCaps)
+		insertFeatures := tx.Stmt(db.insertFeature)
+		insertFeatureCaps := tx.Stmt(db.insertFeatureCaps)
+		for _, ident := range info.Identity {
+			var identID int64
+			err = insertIdent.QueryRowContext(ctx, ident.Category, ident.Name, ident.Type).Scan(&identID)
+			if err != nil {
+				return err
+			}
+			if identID != 0 {
+				_, err = insertIdentCaps.ExecContext(ctx, rowID, identID)
+				if err != nil {
+					return err
+				}
+			}
+		}
+		for _, feat := range info.Features {
+			var featID int64
+			err = insertFeatures.QueryRowContext(ctx, feat.Var).Scan(&featID)
+			if err != nil {
+				return err
+			}
+			if featID != 0 {
+				_, err = insertFeatureCaps.ExecContext(ctx, rowID, featID)
+				if err != nil {
+					return err
+				}
+			}
+		}
+
+		return nil
+	})
 }

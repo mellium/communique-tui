@@ -49,3 +49,50 @@ CREATE TABLE IF NOT EXISTS rosterGroups (
 	FOREIGN KEY (jid) REFERENCES rosterJIDs(jid) ON DELETE CASCADE,
 	UNIQUE (jid, name)
 );
+
+
+-- Service Discovery (disco) and Entity Capabilities (caps)
+
+CREATE TABLE IF NOT EXISTS entityCaps (
+	id   INTEGER  PRIMARY KEY NOT NULL,
+	hash TEXT                 NOT NULL,
+	ver  TEXT                 NOT NULL,
+
+	UNIQUE (hash, ver)
+);
+
+CREATE TABLE IF NOT EXISTS discoFeatures (
+	id  INTEGER  PRIMARY KEY NOT NULL,
+	var TEXT                 NOT NULL,
+
+	UNIQUE (var)
+);
+
+CREATE TABLE IF NOT EXISTS discoIdentity (
+	id   INTEGER  PRIMARY KEY NOT NULL,
+	cat  TEXT                 NOT NULL,
+	name TEXT                 NOT NULL,
+	typ  TEXT                 NOT NULL,
+
+	UNIQUE (cat, name, typ)
+);
+
+CREATE TABLE IF NOT EXISTS discoFeatureCaps (
+	id   INTEGER  PRIMARY KEY NOT NULL,
+	caps INTEGER              NOT NULL,
+	feat INTEGER              NOT NULL,
+
+	FOREIGN KEY (caps) REFERENCES entityCaps(id)    ON DELETE CASCADE,
+	FOREIGN KEY (feat) REFERENCES discoFeatures(id) ON DELETE CASCADE,
+	UNIQUE (caps, feat)
+);
+
+CREATE TABLE IF NOT EXISTS discoIdentityCaps (
+	id    INTEGER  PRIMARY KEY NOT NULL,
+	caps  INTEGER              NOT NULL,
+	ident INTEGER              NOT NULL,
+
+	FOREIGN KEY (caps)  REFERENCES entityCaps(id)    ON DELETE CASCADE,
+	FOREIGN KEY (ident) REFERENCES discoIdentity(id) ON DELETE CASCADE,
+	UNIQUE (caps, ident)
+);

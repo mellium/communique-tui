@@ -27,6 +27,12 @@ func newXMPPHandler(c *Client) xmpp.Handler {
 	return mux.New(
 		c.In().XMLNS,
 		disco.Handle(),
+		disco.HandleCaps(func(p stanza.Presence, caps disco.Caps) {
+			c.handler(event.NewCaps{
+				From: p.From,
+				Caps: caps,
+			})
+		}),
 		muc.HandleClient(c.mucClient),
 		// TODO: direct muc invitations.
 		roster.Handle(roster.Handler{
