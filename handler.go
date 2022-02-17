@@ -341,7 +341,7 @@ func newClientHandler(configPath string, client *client.Client, pane *ui.UI, db 
 			go func() {
 				ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 				defer cancel()
-				err := db.UpdateDisco(ctx, e.Caps, func(ctx context.Context) (disco.Info, error) {
+				err := db.UpdateDisco(ctx, e.From, e.Caps, func(ctx context.Context) (disco.Info, error) {
 					info, err := disco.GetInfo(ctx, e.Caps.Node+"#"+e.Caps.Ver, e.From, client.Session)
 					if err != nil {
 						return info, err

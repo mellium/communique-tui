@@ -96,3 +96,12 @@ CREATE TABLE IF NOT EXISTS discoIdentityCaps (
 	FOREIGN KEY (ident) REFERENCES discoIdentity(id) ON DELETE CASCADE,
 	UNIQUE (caps, ident)
 );
+
+CREATE TABLE IF NOT EXISTS discoJIDCaps (
+	id   INTEGER  PRIMARY KEY NOT NULL,
+	jid  TEXT                 NOT NULL,
+	caps INTEGER              NOT NULL,
+
+	FOREIGN KEY (caps) REFERENCES entityCaps(id) ON DELETE CASCADE,
+	UNIQUE (jid)
+);

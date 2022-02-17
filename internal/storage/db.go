@@ -42,6 +42,7 @@ type DB struct {
 	afterID           *sql.Stmt
 	beforeID          *sql.Stmt
 	insertCaps        *sql.Stmt
+	insertJIDCaps     *sql.Stmt
 	insertIdent       *sql.Stmt
 	insertIdentCaps   *sql.Stmt
 	insertFeature     *sql.Stmt
@@ -220,6 +221,16 @@ INSERT INTO entityCaps (hash, ver)
 	VALUES ($1, $2)
 	ON CONFLICT (hash, ver) DO NOTHING
 	RETURNING (id)`)
+	if err != nil {
+		return nil, err
+	}
+	wrapDB.insertJIDCaps, err = db.PrepareContext(ctx, `
+INSERT INTO discoJIDCaps (jid, caps)
+	SELECT $1, entityCaps.id
+		FROM entityCaps
+		WHERE entityCaps.ver=$2
+	ON CONFLICT (jid) DO UPDATE SET caps=excluded.caps
+	RETURNING (discoJIDCaps.id)`)
 	if err != nil {
 		return nil, err
 	}
@@ -603,15 +614,19 @@ func (db *DB) BeforeID(ctx context.Context, j jid.JID) (string, time.Time, error
 
 // UpdateDisco checks if the entity capabilities have previously been seen and
 // if not stores them and calls f to fetch and store new disco features.
-func (db *DB) UpdateDisco(ctx context.Context, caps disco.Caps, f func(ctx context.Context) (disco.Info, error)) error {
+func (db *DB) UpdateDisco(ctx context.Context, j jid.JID, caps disco.Caps, f func(ctx context.Context) (disco.Info, error)) error {
 	return execTx(ctx, db, func(ctx context.Context, tx *sql.Tx) error {
 		var rowID int64
 		err := tx.Stmt(db.insertCaps).QueryRowContext(ctx, strings.ToLower(caps.Hash.String()), caps.Ver).Scan(&rowID)
-		if err == sql.ErrNoRows {
-			err = nil
+		if err != nil && err != sql.ErrNoRows {
+			return err
+		}
+		_, err = tx.Stmt(db.insertJIDCaps).ExecContext(ctx, j.String(), caps.Ver)
+		if err != nil {
+			return err
 		}
 		if rowID == 0 {
-			// Cache hit, no need to update anything!
+			// Cache hit, no need to update anything else!
 			return nil
 		}
 
