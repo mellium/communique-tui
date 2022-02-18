@@ -47,6 +47,7 @@ type DB struct {
 	insertIdentCaps   *sql.Stmt
 	insertFeature     *sql.Stmt
 	insertFeatureCaps *sql.Stmt
+	checkFeature      *sql.Stmt
 	debug             *log.Logger
 }
 
@@ -261,6 +262,17 @@ INSERT INTO discoFeatures (var)
 INSERT INTO discoFeatureCaps (caps, feat)
 	VALUES ($1, $2)
 	ON CONFLICT(caps, feat) DO NOTHING`)
+	if err != nil {
+		return nil, err
+	}
+	wrapDB.checkFeature, err = db.PrepareContext(ctx, `
+SELECT EXISTS(
+	SELECT 1
+		FROM discoFeatures AS f
+			INNER JOIN discoFeatureCaps AS fc ON fc.feat=f.id
+			INNER JOIN entityCaps       AS c  ON fc.caps=c.id
+			INNER JOIN discoJIDCaps     AS jc ON jc.caps=c.id
+		WHERE jc.jid=$1 AND f.var=$2)`)
 	if err != nil {
 		return nil, err
 	}
@@ -610,6 +622,15 @@ func (db *DB) BeforeID(ctx context.Context, j jid.JID) (string, time.Time, error
 		t = time.Unix(timestamp, 0)
 	}
 	return id, t, err
+}
+
+// CheckFeature checks if the given JID has advertised a feature.
+// It does not distinguish between no features having been received at all and
+// the specific feature not being advertised.
+func (db *DB) CheckFeature(ctx context.Context, j jid.JID, v string) (bool, error) {
+	var res bool
+	err := db.checkFeature.QueryRowContext(ctx, j.String(), v).Scan(&res)
+	return res, err
 }
 
 // UpdateDisco checks if the entity capabilities have previously been seen and
