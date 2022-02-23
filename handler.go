@@ -215,7 +215,7 @@ func newUIHandler(configPath string, acct account, pane *ui.UI, db *storage.DB, 
 				// our position.
 			}()
 		default:
-			debug.Printf("unrecognized ui event: %q", e)
+			debug.Printf("unrecognized ui event: %T(%[1]q)", e)
 		}
 	}
 }
