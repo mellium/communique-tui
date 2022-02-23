@@ -8,6 +8,7 @@ package storage // import "mellium.im/communique/internal/storage"
 import (
 	"context"
 	"database/sql"
+	"encoding/xml"
 	"errors"
 	"fmt"
 	"log"
@@ -20,7 +21,10 @@ import (
 	_ "modernc.org/sqlite"
 
 	"mellium.im/communique/internal/client/event"
+	"mellium.im/xmpp/crypto"
 	"mellium.im/xmpp/disco"
+	"mellium.im/xmpp/disco/info"
+	"mellium.im/xmpp/form"
 	"mellium.im/xmpp/jid"
 	"mellium.im/xmpp/stanza"
 )
@@ -42,12 +46,16 @@ type DB struct {
 	afterID           *sql.Stmt
 	beforeID          *sql.Stmt
 	insertCaps        *sql.Stmt
+	getCaps           *sql.Stmt
+	getIdent          *sql.Stmt
+	getFeature        *sql.Stmt
+	getForms          *sql.Stmt
 	insertJIDCaps     *sql.Stmt
+	insertJIDCapsForm *sql.Stmt
 	insertIdent       *sql.Stmt
-	insertIdentCaps   *sql.Stmt
+	insertIdentJID    *sql.Stmt
 	insertFeature     *sql.Stmt
-	insertFeatureCaps *sql.Stmt
-	checkFeature      *sql.Stmt
+	insertFeatureJID  *sql.Stmt
 	debug             *log.Logger
 }
 
@@ -217,6 +225,10 @@ SELECT archiveID, MIN(delay) AS mindelay
 		return nil, err
 	}
 
+	////
+	// Service Discovery (disco) and Entity Capabilities (caps)
+	////
+
 	wrapDB.insertCaps, err = db.PrepareContext(ctx, `
 INSERT INTO entityCaps (hash, ver)
 	VALUES ($1, $2)
@@ -225,28 +237,70 @@ INSERT INTO entityCaps (hash, ver)
 	if err != nil {
 		return nil, err
 	}
+	wrapDB.getCaps, err = db.PrepareContext(ctx, `
+SELECT hash, ver FROM entityCaps AS c
+	INNER JOIN discoJID AS j ON (j.caps=c.id)
+	WHERE j.jid=$1`)
+	if err != nil {
+		return nil, err
+	}
+	wrapDB.getIdent, err = db.PrepareContext(ctx, `
+SELECT cat, name, typ, lang
+	FROM discoIdentity AS i
+	INNER JOIN discoIdentityJID AS ij ON (ij.ident=i.id)
+	INNER JOIN discoJID AS j ON (j.id=ij.jid)
+	WHERE j.jid=$1`)
+	if err != nil {
+		return nil, err
+	}
+	wrapDB.getFeature, err = db.PrepareContext(ctx, `
+SELECT var
+	FROM discoFeatures AS f
+	INNER JOIN discoFeatureJID AS fj ON (fj.feat=f.id)
+	INNER JOIN discoJID AS j ON (j.id=fj.jid)
+	WHERE j.jid=$1`)
+	if err != nil {
+		return nil, err
+	}
+	wrapDB.getForms, err = db.PrepareContext(ctx, `
+SELECT forms FROM discoJID AS j
+	WHERE j.jid=$1
+`)
+	if err != nil {
+		return nil, err
+	}
 	wrapDB.insertJIDCaps, err = db.PrepareContext(ctx, `
-INSERT INTO discoJIDCaps (jid, caps)
+INSERT INTO discoJID (jid, caps)
 	SELECT $1, entityCaps.id
 		FROM entityCaps
 		WHERE entityCaps.ver=$2
 	ON CONFLICT (jid) DO UPDATE SET caps=excluded.caps
-	RETURNING (discoJIDCaps.id)`)
-	if err != nil {
-		return nil, err
-	}
-	wrapDB.insertIdent, err = db.PrepareContext(ctx, `
-INSERT INTO discoIdentity (cat, name, typ)
-	VALUES ($1, $2, $3)
-	ON CONFLICT (cat, name, typ) DO UPDATE SET cat=$1, name=$2, typ=$3
 	RETURNING (id)`)
 	if err != nil {
 		return nil, err
 	}
-	wrapDB.insertIdentCaps, err = db.PrepareContext(ctx, `
-INSERT INTO discoIdentityCaps (caps, ident)
+	wrapDB.insertJIDCapsForm, err = db.PrepareContext(ctx, `
+INSERT INTO discoJID (jid, caps, forms)
+	SELECT $1, entityCaps.id, $3
+		FROM entityCaps
+		WHERE entityCaps.ver=$2
+	ON CONFLICT (jid) DO UPDATE SET caps=excluded.caps, forms=$3
+	RETURNING (id)`)
+	if err != nil {
+		return nil, err
+	}
+	wrapDB.insertIdent, err = db.PrepareContext(ctx, `
+INSERT INTO discoIdentity (cat, name, typ, lang)
+	VALUES ($1, $2, $3, $4)
+	ON CONFLICT (cat, name, typ, lang) DO UPDATE SET cat=$1, name=$2, typ=$3, lang=$4
+	RETURNING (id)`)
+	if err != nil {
+		return nil, err
+	}
+	wrapDB.insertIdentJID, err = db.PrepareContext(ctx, `
+INSERT INTO discoIdentityJID (jid, ident)
 	VALUES ($1, $2)
-	ON CONFLICT (caps, ident) DO NOTHING`)
+	ON CONFLICT (jid, ident) DO NOTHING`)
 	if err != nil {
 		return nil, err
 	}
@@ -258,21 +312,10 @@ INSERT INTO discoFeatures (var)
 	if err != nil {
 		return nil, err
 	}
-	wrapDB.insertFeatureCaps, err = db.PrepareContext(ctx, `
-INSERT INTO discoFeatureCaps (caps, feat)
+	wrapDB.insertFeatureJID, err = db.PrepareContext(ctx, `
+INSERT INTO discoFeatureJID (jid, feat)
 	VALUES ($1, $2)
-	ON CONFLICT(caps, feat) DO NOTHING`)
-	if err != nil {
-		return nil, err
-	}
-	wrapDB.checkFeature, err = db.PrepareContext(ctx, `
-SELECT EXISTS(
-	SELECT 1
-		FROM discoFeatures AS f
-			INNER JOIN discoFeatureCaps AS fc ON fc.feat=f.id
-			INNER JOIN entityCaps       AS c  ON fc.caps=c.id
-			INNER JOIN discoJIDCaps     AS jc ON jc.caps=c.id
-		WHERE jc.jid=$1 AND f.var=$2)`)
+	ON CONFLICT(jid, feat) DO NOTHING`)
 	if err != nil {
 		return nil, err
 	}
@@ -624,64 +667,167 @@ func (db *DB) BeforeID(ctx context.Context, j jid.JID) (string, time.Time, error
 	return id, t, err
 }
 
-// CheckFeature checks if the given JID has advertised a feature.
-// It does not distinguish between no features having been received at all and
-// the specific feature not being advertised.
-func (db *DB) CheckFeature(ctx context.Context, j jid.JID, v string) (bool, error) {
-	var res bool
-	err := db.checkFeature.QueryRowContext(ctx, j.String(), v).Scan(&res)
-	return res, err
-}
-
-// UpdateDisco checks if the entity capabilities have previously been seen and
-// if not stores them and calls f to fetch and store new disco features.
-func (db *DB) UpdateDisco(ctx context.Context, j jid.JID, caps disco.Caps, f func(ctx context.Context) (disco.Info, error)) error {
+// InsertCaps adds a newly seen entity capbailities hash to the databsae.
+func (db *DB) InsertCaps(ctx context.Context, j jid.JID, caps disco.Caps) error {
 	return execTx(ctx, db, func(ctx context.Context, tx *sql.Tx) error {
-		var rowID int64
-		err := tx.Stmt(db.insertCaps).QueryRowContext(ctx, strings.ToLower(caps.Hash.String()), caps.Ver).Scan(&rowID)
+		_, err := tx.Stmt(db.insertCaps).ExecContext(ctx, caps.Hash.String(), caps.Ver)
 		if err != nil && err != sql.ErrNoRows {
 			return err
 		}
 		_, err = tx.Stmt(db.insertJIDCaps).ExecContext(ctx, j.String(), caps.Ver)
+		return err
+	})
+}
+
+// GetInfo queries for service discovery information and entity caps.
+//
+// The stored caps value does not necessarily match the caps value as calculated
+// from the returned disco info. The info is populated whenever we fetch it, the
+// caps value is populated whenever we see a new value advertised for a JID. By
+// comparing the two we can see if a newer version has been advertised and then
+// go fetch the latest version, but only when we need it (not when the new
+// version is advertised).
+func (db *DB) GetInfo(ctx context.Context, j jid.JID) (disco.Info, disco.Caps, error) {
+	var discoInfo disco.Info
+	var caps disco.Caps
+	err := execTx(ctx, db, func(ctx context.Context, tx *sql.Tx) error {
+		queryJID := j.String()
+		var hash string
+		err := tx.Stmt(db.getCaps).QueryRowContext(ctx, queryJID).Scan(&hash, &caps.Ver)
 		if err != nil {
-			return err
+			return fmt.Errorf("error getting caps: %w", err)
 		}
-		if rowID == 0 {
-			// Cache hit, no need to update anything else!
-			return nil
+		h, err := crypto.Parse(hash)
+		if err != nil {
+			db.debug.Printf("bad hash type found in database: %v", err)
+		}
+		caps.Hash = h
+
+		// Query disco identities.
+		rows, err := tx.Stmt(db.getIdent).QueryContext(ctx, queryJID)
+		if err != nil {
+			return fmt.Errorf("error getting identities: %w", err)
+		}
+		for rows.Next() {
+			var ident info.Identity
+			err = rows.Scan(&ident.Category, &ident.Name, &ident.Type, &ident.Lang)
+			if err != nil {
+				return fmt.Errorf("error scanning identity: %w", err)
+			}
+			discoInfo.Identity = append(discoInfo.Identity, ident)
+		}
+		if err = rows.Err(); err != nil {
+			return fmt.Errorf("error iterating over identity rows: %w", err)
+		}
+		if err = rows.Close(); err != nil {
+			return fmt.Errorf("error closing identity rows: %w", err)
 		}
 
-		info, err := f(ctx)
+		// Query disco features.
+		rows, err = tx.Stmt(db.getFeature).QueryContext(ctx, queryJID)
 		if err != nil {
-			return err
+			return fmt.Errorf("error getting features: %w", err)
 		}
+		for rows.Next() {
+			var feat info.Feature
+			err = rows.Scan(&feat.Var)
+			if err != nil {
+				return fmt.Errorf("error scanning feature row: %w", err)
+			}
+			discoInfo.Features = append(discoInfo.Features, feat)
+		}
+		if err = rows.Err(); err != nil {
+			return fmt.Errorf("error iterating over feature rows: %w", err)
+		}
+		if err = rows.Close(); err != nil {
+			return fmt.Errorf("error closing feature rows: %w", err)
+		}
+
+		// Query disco forms.
+		var forms string
+		err = tx.Stmt(db.getForms).QueryRowContext(ctx, queryJID).Scan(&forms)
+		if err != nil && err != sql.ErrNoRows {
+			return fmt.Errorf("error querying for disco forms: %w", err)
+		}
+		if forms != "" {
+			s := struct {
+				XMLName xml.Name    `xml:"forms"`
+				Forms   []form.Data `xml:"jabber:x:data x"`
+			}{}
+			err = xml.NewDecoder(strings.NewReader(forms)).Decode(&s)
+			if err != nil {
+				return fmt.Errorf("error decoding forms: %w", err)
+			}
+			discoInfo.Form = s.Forms
+		}
+
+		return nil
+	})
+	return discoInfo, caps, err
+}
+
+// UpsertDisco saves the service discovery information to the database.
+func (db *DB) UpsertDisco(ctx context.Context, j jid.JID, caps disco.Caps, info disco.Info) error {
+	return execTx(ctx, db, func(ctx context.Context, tx *sql.Tx) error {
+		_, err := tx.Stmt(db.insertCaps).ExecContext(ctx, caps.Hash.String(), caps.Ver)
+		if err != nil && err != sql.ErrNoRows {
+			return fmt.Errorf("error inserting caps: %w", err)
+		}
+
+		var buf strings.Builder
+		e := xml.NewEncoder(&buf)
+		err = e.EncodeToken(xml.StartElement{Name: xml.Name{Local: "forms"}})
+		if err != nil {
+			return fmt.Errorf("encoding root forms start element failed: %v", err)
+		}
+		for _, f := range info.Form {
+			err = e.Encode(&f)
+			if err != nil {
+				return fmt.Errorf("encoding form failed: %w", err)
+			}
+		}
+		err = e.EncodeToken(xml.EndElement{Name: xml.Name{Local: "forms"}})
+		if err != nil {
+			return fmt.Errorf("encoding root forms end element failed: %v", err)
+		}
+		err = e.Flush()
+		if err != nil {
+			return fmt.Errorf("flushing encoded form failed: %w", err)
+		}
+
+		var jidID int64
+		err = tx.Stmt(db.insertJIDCapsForm).QueryRowContext(ctx, j.String(), caps.Ver, buf.String()).Scan(&jidID)
+		if err != nil && err != sql.ErrNoRows {
+			return fmt.Errorf("error inserting JIDCapsForm: %w", err)
+		}
+
 		insertIdent := tx.Stmt(db.insertIdent)
-		insertIdentCaps := tx.Stmt(db.insertIdentCaps)
+		insertIdentJID := tx.Stmt(db.insertIdentJID)
 		insertFeatures := tx.Stmt(db.insertFeature)
-		insertFeatureCaps := tx.Stmt(db.insertFeatureCaps)
+		insertFeatureJID := tx.Stmt(db.insertFeatureJID)
 		for _, ident := range info.Identity {
 			var identID int64
-			err = insertIdent.QueryRowContext(ctx, ident.Category, ident.Name, ident.Type).Scan(&identID)
+			err := insertIdent.QueryRowContext(ctx, ident.Category, ident.Name, ident.Type, ident.Lang).Scan(&identID)
 			if err != nil {
-				return err
+				return fmt.Errorf("error inserting identity %v: %v", ident, err)
 			}
 			if identID != 0 {
-				_, err = insertIdentCaps.ExecContext(ctx, rowID, identID)
+				_, err = insertIdentJID.ExecContext(ctx, jidID, identID)
 				if err != nil {
-					return err
+					return fmt.Errorf("error inserting identity caps joiner: %v", err)
 				}
 			}
 		}
 		for _, feat := range info.Features {
 			var featID int64
-			err = insertFeatures.QueryRowContext(ctx, feat.Var).Scan(&featID)
+			err := insertFeatures.QueryRowContext(ctx, feat.Var).Scan(&featID)
 			if err != nil {
-				return err
+				return fmt.Errorf("error inserting feature %s: %v", feat.Var, err)
 			}
 			if featID != 0 {
-				_, err = insertFeatureCaps.ExecContext(ctx, rowID, featID)
+				_, err = insertFeatureJID.ExecContext(ctx, jidID, featID)
 				if err != nil {
-					return err
+					return fmt.Errorf("error inserting feature caps joiner: %v", err)
 				}
 			}
 		}

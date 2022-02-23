@@ -61,6 +61,21 @@ func New(j jid.JID, logger, debug *log.Logger, opts ...Option) *Client {
 	return c
 }
 
+// Disco fetches the service discovery information associated with the provided
+// JID by sending an event capable of returning the results over a channel.
+func (c *Client) Disco(j jid.JID) (disco.Info, error) {
+	infoChan := make(chan struct {
+		Info disco.Info
+		Err  error
+	})
+	c.handler(event.NewFeatures{
+		To:   j,
+		Info: infoChan,
+	})
+	result := <-infoChan
+	return result.Info, result.Err
+}
+
 // Handler configures a handler function to be used for events emitted by the
 // client.
 //

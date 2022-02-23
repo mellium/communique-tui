@@ -6,15 +6,19 @@ package main
 
 import (
 	"context"
-	"fmt"
 	"log"
 	"time"
+
+	/* #nosec */
+	_ "crypto/sha1"
+	_ "crypto/sha256"
 
 	"mellium.im/communique/internal/client"
 	"mellium.im/communique/internal/client/event"
 	"mellium.im/communique/internal/storage"
 	"mellium.im/communique/internal/ui"
 	"mellium.im/xmpp/commands"
+	"mellium.im/xmpp/crypto"
 	"mellium.im/xmpp/disco"
 	"mellium.im/xmpp/history"
 	"mellium.im/xmpp/jid"
@@ -341,20 +345,61 @@ func newClientHandler(configPath string, client *client.Client, pane *ui.UI, db 
 			go func() {
 				ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 				defer cancel()
-				err := db.UpdateDisco(ctx, e.From, e.Caps, func(ctx context.Context) (disco.Info, error) {
-					info, err := disco.GetInfo(ctx, e.Caps.Node+"#"+e.Caps.Ver, e.From, client.Session)
-					if err != nil {
-						return info, err
-					}
-					h := info.Hash(e.Caps.Hash.New())
-					if h != e.Caps.Ver {
-						return info, fmt.Errorf("hash mismatch: got=%q, want=%q", h, e.Caps.Ver)
-					}
-					return info, nil
-				})
+				err := db.InsertCaps(ctx, e.From, e.Caps)
 				if err != nil {
-					logger.Printf("error updating service disco cache: %v", err)
+					logger.Printf("error inserting entity capbailities hash: %v", err)
 				}
+			}()
+		case event.NewFeatures:
+			go func() {
+				ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+				defer cancel()
+				result := struct {
+					Info disco.Info
+					Err  error
+				}{}
+				discoInfo, caps, err := db.GetInfo(ctx, e.To)
+				if err != nil {
+					logger.Printf("error fetching info from cache: %v", err)
+					logger.Print("falling back to network query…")
+				}
+				// If we have previously fetched disco info (and have a valid caps to
+				// compare against), check that it's up to date.
+				if (len(discoInfo.Features) != 0 || len(discoInfo.Identity) != 0 || len(discoInfo.Form) != 0) && caps.Hash.Available() {
+					dbHash := discoInfo.Hash(caps.Hash.New())
+					if caps.Ver != "" && dbHash == caps.Ver {
+						// Cache !
+						debug.Printf("caps cache hit for %s: %s:%s", e.To, caps.Hash, dbHash)
+						result.Info = discoInfo
+						e.Info <- result
+						return
+					}
+					debug.Printf("caps cache miss for %s: %s:%s, %[2]s:%[4]s", e.To, caps.Hash, dbHash, caps.Ver)
+				}
+
+				// If we do not have any previously fetched info, or we had a cache miss
+				// and need to update it, go ahead and fetch it the long way…
+				discoInfo, err = disco.GetInfo(ctx, "", e.To, client.Session)
+				if err != nil {
+					result.Err = err
+					e.Info <- result
+					return
+				}
+				// If no caps were found in the database already, add a sha1 hash string
+				// to save us a lookup later in the most common case where a client is
+				// already using SHA1.
+				if caps.Ver == "" {
+					caps = disco.Caps{
+						Hash: crypto.SHA1,
+						Ver:  discoInfo.Hash(crypto.SHA1.New()),
+					}
+				}
+				err = db.UpsertDisco(ctx, e.To, caps, discoInfo)
+				if err != nil {
+					logger.Printf("error saving entity caps to the database: %v", err)
+				}
+				result.Info = discoInfo
+				e.Info <- result
 			}()
 		default:
 			debug.Printf("unrecognized client event: %q", e)

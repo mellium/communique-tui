@@ -73,35 +73,42 @@ CREATE TABLE IF NOT EXISTS discoIdentity (
 	cat  TEXT                 NOT NULL,
 	name TEXT                 NOT NULL,
 	typ  TEXT                 NOT NULL,
+	lang TEXT                 NOT NULL,
 
-	UNIQUE (cat, name, typ)
+	UNIQUE (cat, name, typ, lang)
 );
 
-CREATE TABLE IF NOT EXISTS discoFeatureCaps (
-	id   INTEGER  PRIMARY KEY NOT NULL,
-	caps INTEGER              NOT NULL,
-	feat INTEGER              NOT NULL,
-
-	FOREIGN KEY (caps) REFERENCES entityCaps(id)    ON DELETE CASCADE,
-	FOREIGN KEY (feat) REFERENCES discoFeatures(id) ON DELETE CASCADE,
-	UNIQUE (caps, feat)
-);
-
-CREATE TABLE IF NOT EXISTS discoIdentityCaps (
-	id    INTEGER  PRIMARY KEY NOT NULL,
-	caps  INTEGER              NOT NULL,
-	ident INTEGER              NOT NULL,
-
-	FOREIGN KEY (caps)  REFERENCES entityCaps(id)    ON DELETE CASCADE,
-	FOREIGN KEY (ident) REFERENCES discoIdentity(id) ON DELETE CASCADE,
-	UNIQUE (caps, ident)
-);
-
-CREATE TABLE IF NOT EXISTS discoJIDCaps (
+CREATE TABLE IF NOT EXISTS discoJID  (
 	id   INTEGER  PRIMARY KEY NOT NULL,
 	jid  TEXT                 NOT NULL,
 	caps INTEGER              NOT NULL,
 
+	-- We save forms a bit differently since we don't actually use them right now
+	-- except in caps calculations. Instead of saving each individual form and
+	-- field, just dump all the forms associated with a JID as an XML blob that
+	-- can easily be parsed out into a forms list again later.
+	forms TEXT,
+
 	FOREIGN KEY (caps) REFERENCES entityCaps(id) ON DELETE CASCADE,
 	UNIQUE (jid)
+);
+
+CREATE TABLE IF NOT EXISTS discoFeatureJID (
+	id   INTEGER  PRIMARY KEY NOT NULL,
+	jid  INTEGER              NOT NULL,
+	feat INTEGER              NOT NULL,
+
+	FOREIGN KEY (jid)  REFERENCES discoJID(id)      ON DELETE CASCADE,
+	FOREIGN KEY (feat) REFERENCES discoFeatures(id) ON DELETE CASCADE,
+	UNIQUE (jid, feat)
+);
+
+CREATE TABLE IF NOT EXISTS discoIdentityJID (
+	id    INTEGER  PRIMARY KEY NOT NULL,
+	jid   INTEGER              NOT NULL,
+	ident INTEGER              NOT NULL,
+
+	FOREIGN KEY (jid)   REFERENCES discoJID(id)      ON DELETE CASCADE,
+	FOREIGN KEY (ident) REFERENCES discoIdentity(id) ON DELETE CASCADE,
+	UNIQUE (jid, ident)
 );

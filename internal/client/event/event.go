@@ -110,4 +110,13 @@ type (
 		From jid.JID
 		Caps disco.Caps
 	}
+
+	// NewFeatures is sent when entity features should be refreshed.
+	NewFeatures struct {
+		To   jid.JID
+		Info chan<- struct {
+			Info disco.Info
+			Err  error
+		}
+	}
 )
