@@ -13,6 +13,7 @@ import (
 	"mellium.im/communique/internal/privatexml"
 	"mellium.im/xmlstream"
 	"mellium.im/xmpp"
+	"mellium.im/xmpp/jid"
 	"mellium.im/xmpp/stanza"
 )
 
@@ -46,6 +47,38 @@ func FetchIQ(ctx context.Context, iq stanza.IQ, s *xmpp.Session) *Iter {
 	}
 
 	return &Iter{iter: xmlstream.NewIter(r)}
+}
+
+// Delete removes the provided bookmark if it exists.
+// If the bookmark does not exist, no error is returned.
+func Delete(ctx context.Context, s *xmpp.Session, j jid.JID) error {
+	var c []xml.TokenReader
+	iter := Fetch(ctx, s)
+	var found bool
+	for iter.Next() {
+		cur := iter.Bookmark()
+		if j.Equal(cur.JID) {
+			found = true
+			continue
+		}
+		c = append(c, channel{C: cur}.TokenReader())
+	}
+	err := iter.Err()
+	if err != nil {
+		return err
+	}
+	err = iter.Close()
+	if err != nil {
+		return err
+	}
+	if !found {
+		return nil
+	}
+
+	return privatexml.Set(ctx, s, xmlstream.Wrap(
+		xmlstream.MultiReader(c...),
+		xml.StartElement{Name: xml.Name{Space: NS, Local: "storage"}},
+	))
 }
 
 // // Set adds or updates a bookmark.

@@ -9,7 +9,6 @@ import (
 
 	"mellium.im/xmlstream"
 	"mellium.im/xmpp/bookmarks"
-	"mellium.im/xmpp/jid"
 )
 
 // Iter is an iterator over bookmarks.
@@ -33,46 +32,13 @@ func (i *Iter) Next() bool {
 	if start == nil || start.Name.Local != "conference" {
 		return i.Next()
 	}
-	var bookmarkJID jid.JID
-	// We're decoding the old bookmarks struct into the new one since they're
-	// similar. Instead of duplicating the struct, just change the namespace so it
-	// decodes correctly.
-	transformer := xmlstream.Map(func(t xml.Token) xml.Token {
-		switch tok := t.(type) {
-		case xml.StartElement:
-			if tok.Name.Local == "conference" && tok.Name.Space == NS {
-				tok.Name.Space = bookmarks.NS
-				// Legacy bookmarks store JID as an attribute, unlike PEP Native Bookmarks
-				// which store it as the ID of the PEP item.
-				for _, attr := range start.Attr {
-					if attr.Name.Local == "jid" {
-						j, err := jid.Parse(attr.Value)
-						if err != nil {
-							i.err = err
-							return false
-						}
-						bookmarkJID = j
-						break
-					}
-				}
-			}
-			return tok
-		case xml.EndElement:
-			if tok.Name.Local == "conference" && tok.Name.Space == NS {
-				tok.Name.Space = bookmarks.NS
-			}
-			return tok
-		}
-		return t
-	})(xmlstream.MultiReader(xmlstream.Token(*start), r))
-	d := xml.NewTokenDecoder(transformer)
-	bookmark := bookmarks.Channel{}
+	d := xml.NewTokenDecoder(xmlstream.MultiReader(xmlstream.Token(*start), r))
+	bookmark := channel{}
 	i.err = d.Decode(&bookmark)
 	if i.err != nil {
 		return false
 	}
-	i.current = bookmark
-	i.current.JID = bookmarkJID
+	i.current = bookmark.C
 	return true
 }
 
