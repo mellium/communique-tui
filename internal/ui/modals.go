@@ -7,6 +7,8 @@ package ui
 import (
 	"github.com/gdamore/tcell/v2"
 	"github.com/rivo/tview"
+
+	"mellium.im/xmpp/jid"
 )
 
 const (
@@ -56,5 +58,31 @@ func delBookmarkModal(onEsc func(), onDel func()) *tview.Modal {
 			onEsc()
 		})
 	mod.SetInputCapture(modalClose(onEsc))
+	return mod
+}
+
+// getJID creates a modal that asks for a JID. Eg. to add a bookmark or start a
+// new conversation.
+func getJID(title, addButton string, f func(jid.JID, string), autocomplete func(string) []string) *Modal {
+	mod := NewModal().
+		SetText(title)
+	var inputJID jid.JID
+	jidInput := tview.NewInputField().SetPlaceholder("me@example.net")
+	modForm := mod.Form()
+	modForm.AddFormItem(jidInput)
+	jidInput.SetChangedFunc(func(text string) {
+		var err error
+		inputJID, err = jid.Parse(text)
+		if err == nil {
+			jidInput.SetLabel("✅")
+		} else {
+			jidInput.SetLabel("❌")
+		}
+	})
+	mod.SetBackgroundColor(tview.Styles.PrimitiveBackgroundColor).
+		AddButtons([]string{cancelButton, addButton}).
+		SetDoneFunc(func(_ int, buttonLabel string) {
+			f(inputJID.Bare(), buttonLabel)
+		})
 	return mod
 }

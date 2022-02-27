@@ -73,6 +73,8 @@ func newSidebar(roster *Roster, b *Bookmarks) *Sidebar {
 			r.search.SetText("")
 			r.Flex.RemoveItem(r.search)
 		})
+
+	innerCapture := r.Flex.GetInputCapture()
 	r.Flex.SetInputCapture(func(event *tcell.EventKey) *tcell.EventKey {
 		if event == nil || event.Key() != tcell.KeyRune {
 			return event
@@ -262,6 +264,10 @@ func newSidebar(roster *Roster, b *Bookmarks) *Sidebar {
 			return nil
 		}
 
+		events.Reset()
+		if innerCapture != nil {
+			return innerCapture(event)
+		}
 		return event
 	})
 

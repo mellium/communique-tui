@@ -208,6 +208,7 @@ func New(opts ...Option) *UI {
 		main = strings.TrimPrefix(main, highlightTag)
 		statusBar.SetText(fmt.Sprintf("Chat: %q (%s)", main, secondary))
 	})
+
 	sidebarBox := newSidebar(rosterBox, bookmarksBox)
 
 	ui := &UI{
@@ -270,9 +271,6 @@ func New(opts ...Option) *UI {
 				}
 			})
 			return nil
-		case eventRune == 'c':
-			ui.ShowAddRoster()
-			return nil
 		case eventRune == 'q':
 			ui.ShowQuitPrompt()
 			return nil
@@ -286,6 +284,36 @@ func New(opts ...Option) *UI {
 
 		if innerCapture != nil {
 			return innerCapture(event)
+		}
+
+		return event
+	})
+	rosterInnerCapture := rosterBox.GetInputCapture()
+	rosterBox.SetInputCapture(func(event *tcell.EventKey) *tcell.EventKey {
+		eventRune := event.Rune()
+		switch eventRune {
+		case 'c':
+			ui.ShowAddRoster()
+			return nil
+		}
+
+		if rosterInnerCapture != nil {
+			return rosterInnerCapture(event)
+		}
+
+		return event
+	})
+	bookmarksInnerCapture := bookmarksBox.GetInputCapture()
+	bookmarksBox.SetInputCapture(func(event *tcell.EventKey) *tcell.EventKey {
+		eventRune := event.Rune()
+		switch eventRune {
+		case 'c':
+			ui.ShowAddBookmark()
+			//	return nil
+		}
+
+		if bookmarksInnerCapture != nil {
+			return bookmarksInnerCapture(event)
 		}
 
 		return event
@@ -379,7 +407,13 @@ func (ui *UI) UpdateRoster(item RosterItem) {
 // UpdateBookmarks adds an item to the bookmarks sidebar.
 func (ui *UI) UpdateBookmarks(item bookmarks.Channel) {
 	ui.bookmarksBox.Upsert(item, func() {
-		panic("NOT YET IMPLEMENTED")
+		ui.buffers.SwitchToPage(chatPageName)
+		ui.chatsOpen.Set(true)
+		item, ok := ui.rosterBox.GetSelected()
+		if ok {
+			ui.handler(event.OpenChat(item.Item))
+		}
+		ui.app.SetFocus(ui.buffers)
 	})
 	ui.redraw()
 }
@@ -474,6 +508,55 @@ func (ui *UI) ShowQuitPrompt() {
 	ui.app.SetFocus(ui.pages)
 }
 
+// ShowAddBookmark asks the user for a new JID.
+func (ui *UI) ShowAddBookmark() {
+	bookmarkPage := ui.sidebar.bookmarks
+	const (
+		pageName  = "add_bookmark"
+		addButton = "Join"
+	)
+	mod := getJID("Join Channel", addButton, func(j jid.JID, buttonLabel string) {
+		if buttonLabel == addButton {
+			go func() {
+				// TODO: update bookmark?
+				ui.UpdateRoster(RosterItem{
+					Item: roster.Item{
+						JID: j.Bare(),
+					},
+					Room: true,
+				})
+			}()
+		}
+		ui.pages.HidePage(pageName)
+		ui.pages.RemovePage(pageName)
+	}, func(s string) []string {
+		idx := strings.IndexByte(s, '@')
+		if idx < 0 {
+			return nil
+		}
+		search := s[idx+1:]
+		entriesSet := make(map[string]struct{})
+		for _, item := range bookmarkPage.items {
+			domainpart := item.JID.Domainpart()
+			entry := strings.TrimPrefix(domainpart, search)
+			if entry == domainpart {
+				continue
+			}
+			entriesSet[entry] = struct{}{}
+		}
+		var entries []string
+		for entry := range entriesSet {
+			entries = append(entries, s+entry)
+		}
+		return entries
+	})
+
+	ui.pages.AddPage(pageName, mod, true, true)
+	ui.pages.ShowPage(pageName)
+	ui.pages.SendToFront(pageName)
+	ui.app.SetFocus(ui.pages)
+}
+
 // ShowAddRoster asks the user for a new JID.
 func (ui *UI) ShowAddRoster() {
 	rosterPage := ui.sidebar.roster
@@ -481,25 +564,19 @@ func (ui *UI) ShowAddRoster() {
 		pageName  = "add_roster"
 		addButton = "Chat"
 	)
-	mod := NewModal().
-		SetText(`Open Chat`)
-	var inputJID jid.JID
-	jidInput := tview.NewInputField().SetPlaceholder("me@example.net")
-	modForm := mod.Form()
-	modForm.AddFormItem(jidInput)
-	var joinRoom bool
-	modForm.AddCheckbox("Chat room", false, func(checked bool) {
-		joinRoom = checked
-	})
-	jidInput.SetChangedFunc(func(text string) {
-		var err error
-		inputJID, err = jid.Parse(text)
-		if err == nil {
-			jidInput.SetLabel("✅")
-		} else {
-			jidInput.SetLabel("❌")
+	mod := getJID("Open Chat", addButton, func(j jid.JID, buttonLabel string) {
+		if buttonLabel == addButton {
+			go func() {
+				ui.UpdateRoster(RosterItem{
+					Item: roster.Item{
+						JID: j.Bare(),
+					},
+				})
+			}()
 		}
-	}).SetAutocompleteFunc(func(s string) []string {
+		ui.pages.HidePage(pageName)
+		ui.pages.RemovePage(pageName)
+	}, func(s string) []string {
 		idx := strings.IndexByte(s, '@')
 		if idx < 0 {
 			return nil
@@ -520,22 +597,6 @@ func (ui *UI) ShowAddRoster() {
 		}
 		return entries
 	})
-	mod.SetBackgroundColor(tview.Styles.PrimitiveBackgroundColor).
-		AddButtons([]string{cancelButton, addButton}).
-		SetDoneFunc(func(_ int, buttonLabel string) {
-			if buttonLabel == addButton {
-				go func() {
-					ui.UpdateRoster(RosterItem{
-						Item: roster.Item{
-							JID: inputJID.Bare(),
-						},
-						Room: joinRoom,
-					})
-				}()
-			}
-			ui.pages.HidePage(pageName)
-			ui.pages.RemovePage(pageName)
-		})
 
 	ui.pages.AddPage(pageName, mod, true, true)
 	ui.pages.ShowPage(pageName)
