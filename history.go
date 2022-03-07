@@ -62,6 +62,7 @@ func writeMessage(pane *ui.UI, configPath string, msg event.ChatMessage, notNew 
 
 	var buf strings.Builder
 	var prevEnd bool
+	msg.Body = tview.Escape(msg.Body)
 	d := styling.NewDecoder(strings.NewReader(msg.Body))
 	for d.Next() {
 		tok := d.Token()
@@ -83,7 +84,7 @@ func writeMessage(pane *ui.UI, configPath string, msg event.ChatMessage, notNew 
 		if msg.Sent {
 			j = msg.To
 		}
-		historyLine = tview.Escape(fmt.Sprintf("%s %s [%s] %s\n", time.Now().UTC().Format(time.RFC3339), arrow, j.Resourcepart(), buf.String()))
+		historyLine = fmt.Sprintf("%s %s [%s] %s\n", time.Now().UTC().Format(time.RFC3339), arrow, tview.Escape(j.Resourcepart()), buf.String())
 	} else {
 		historyLine = fmt.Sprintf("%s %s %s\n", time.Now().UTC().Format(time.RFC3339), arrow, buf.String())
 	}
