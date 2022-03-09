@@ -106,6 +106,34 @@ func newUIHandler(configPath string, acct account, pane *ui.UI, db *storage.DB, 
 					logger.Printf("error removing roster item %s: %v", e.JID, err)
 				}
 			}()
+		case event.UpdateBookmark:
+			go func() {
+				ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+				defer cancel()
+				info, err := c.Disco(c.LocalAddr().Bare())
+				if err != nil {
+					debug.Printf("error discovering bookmarks support: %v", err)
+				}
+				var bookmarkSync = false
+				for _, feature := range info.Features {
+					if feature.Var == bookmarks.NSCompat {
+						bookmarkSync = true
+						break
+					}
+				}
+				if !bookmarkSync {
+					err = legacybookmarks.Set(ctx, c.Session, bookmarks.Channel(e))
+					if err != nil {
+						logger.Printf("error publishing legacy bookmark %s: %v", e.JID, err)
+					}
+				}
+				// Always publish the bookmark to PEP bookmarks in case we're using a
+				// client that only supports those in addition to this one.
+				err = bookmarks.Publish(ctx, c.Session, bookmarks.Channel(e))
+				if err != nil {
+					logger.Printf("error publishing bookmark %s: %v", e.JID, err)
+				}
+			}()
 		case event.DeleteBookmark:
 			go func() {
 				ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
