@@ -13,6 +13,7 @@ import (
 	"mellium.im/communique/internal/privatexml"
 	"mellium.im/xmlstream"
 	"mellium.im/xmpp"
+	"mellium.im/xmpp/bookmarks"
 	"mellium.im/xmpp/jid"
 	"mellium.im/xmpp/stanza"
 )
@@ -81,26 +82,33 @@ func Delete(ctx context.Context, s *xmpp.Session, j jid.JID) error {
 	))
 }
 
-// // Set adds or updates a bookmark.
-// // Due to the nature of the legacy boomkarks spec, Set must first fetch the
-// // bookmarks then re-upload the entire list, making it very inefficient.
-// // There is also greater potential for race conditions if multiple cilents try
-// // to upload different bookmark lists at once.
-// func Set(ctx context.Context, s *xmpp.Session, b bookmarks.Bookmark) error {
-// 	return SetIQ(ctx, stanza.IQ{}, s, b)
-// }
-//
-// // SetIQ is like Set but it allows you to customize the IQ.
-// // Changing the type of the provided IQ has no effect.
-// func SetIQ(ctx context.Context, iq stanza.IQ, s *xmpp.Session, b bookmarks.Bookmark) error {
-// 	iq.Type = stanza.SetIQ
-//
-// 	iter := FetchIQ(ctx, iq, s)
-// 	// Normally we would just iterate (and would immediately break and then check
-// 	// the error), but since we need to first open the set IQ before we iterate go
-// 	// ahead and check for errors so that we don't start a query that we can't
-// 	// finish.
-// 	if err := iter.Err(); err != nil {
-// 		return err
-// 	}
-// }
+// Set adds or updates a bookmark.
+// Due to the nature of the legacy boomkarks spec, Set must first fetch the
+// bookmarks then re-upload the entire list, making it very inefficient.
+// There is also greater potential for race conditions if multiple cilents try
+// to upload different bookmark lists at once.
+func Set(ctx context.Context, s *xmpp.Session, b bookmarks.Channel) error {
+	var c []xml.TokenReader
+	iter := Fetch(ctx, s)
+	for iter.Next() {
+		cur := iter.Bookmark()
+		if b.JID.Equal(cur.JID) {
+			continue
+		}
+		c = append(c, channel{C: cur}.TokenReader())
+	}
+	err := iter.Err()
+	if err != nil {
+		return err
+	}
+	err = iter.Close()
+	if err != nil {
+		return err
+	}
+	c = append(c, channel{C: b}.TokenReader())
+
+	return privatexml.Set(ctx, s, xmlstream.Wrap(
+		xmlstream.MultiReader(c...),
+		xml.StartElement{Name: xml.Name{Space: NS, Local: "storage"}},
+	))
+}
