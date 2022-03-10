@@ -65,11 +65,11 @@ func delBookmarkModal(onEsc func(), onDel func()) *tview.Modal {
 
 // getJID creates a modal that asks for a JID. Eg. to add a bookmark or start a
 // new conversation.
-func getJID(title, addButton string, f func(jid.JID, string), autocomplete []jid.JID) *Modal {
+func getJID(title, addButton string, bare bool, f func(jid.JID, string), autocomplete []jid.JID) *Modal {
 	mod := NewModal().
 		SetText(title)
 	var inputJID jid.JID
-	jidInput := jidInput(&inputJID, autocomplete)
+	jidInput := jidInput(&inputJID, bare, autocomplete, nil)
 	modForm := mod.Form()
 	modForm.AddFormItem(jidInput)
 	mod.SetBackgroundColor(tview.Styles.PrimitiveBackgroundColor).
@@ -84,16 +84,23 @@ func getJID(title, addButton string, f func(jid.JID, string), autocomplete []jid
 // As the user types the label will change to indicate if the JID is valid or
 // invalid.
 // If the JID is valid, it is unmarshaled into the intputJID pointer.
-func jidInput(inputJID *jid.JID, autocomplete []jid.JID) *tview.InputField {
+func jidInput(inputJID *jid.JID, bare bool, autocomplete []jid.JID, onChange func(string)) *tview.InputField {
 	jidInput := tview.NewInputField()
 	jidInput.SetPlaceholder("me@example.net")
 	jidInput.SetChangedFunc(func(text string) {
+		if text == "" {
+			jidInput.SetLabel("Address")
+			return
+		}
 		j, err := jid.Parse(text)
-		if err == nil {
+		if err == nil && (!bare || j.Equal(j.Bare())) {
 			jidInput.SetLabel("✅")
 			*inputJID = j
 		} else {
 			jidInput.SetLabel("❌")
+		}
+		if onChange != nil {
+			onChange(text)
 		}
 	})
 	jidInput.SetAutocompleteFunc(func(s string) []string {

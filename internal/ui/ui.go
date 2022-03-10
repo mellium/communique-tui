@@ -572,7 +572,7 @@ func (ui *UI) ShowAddBookmark() {
 		}
 		autocomplete = append(autocomplete, bare)
 	}
-	mod := getJID("Join Channel", addButton, func(j jid.JID, buttonLabel string) {
+	mod := getJID("Join Channel", addButton, false, func(j jid.JID, buttonLabel string) {
 		if buttonLabel == addButton {
 			go func() {
 				ui.UpdateBookmarks(bookmarks.Channel{
