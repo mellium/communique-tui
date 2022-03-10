@@ -27,6 +27,7 @@ type Bookmarks struct {
 	Width    int
 	flex     *tview.Flex
 	onDelete func()
+	changed  func(int, string, string, rune)
 }
 
 // newBookmarks creates a new bookmarks widget with the provided options.
@@ -122,6 +123,11 @@ func (b Bookmarks) InputHandler() func(event *tcell.EventKey, setFocus func(p tv
 
 // Focus implements tview.Primitive.
 func (b Bookmarks) Focus(delegate func(p tview.Primitive)) {
+	if b.changed != nil && b.list.GetItemCount() > 0 {
+		idx := b.list.GetCurrentItem()
+		main, secondary := b.list.GetItemText(idx)
+		b.changed(idx, main, secondary, 0)
+	}
 	b.flex.Focus(delegate)
 }
 
@@ -176,6 +182,7 @@ func (b Bookmarks) Len() int {
 }
 
 // OnChanged sets a callback for when the user navigates to a bookmark.
-func (b Bookmarks) OnChanged(f func(int, string, string, rune)) {
+func (b *Bookmarks) OnChanged(f func(int, string, string, rune)) {
+	b.changed = f
 	b.list.SetChangedFunc(f)
 }

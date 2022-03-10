@@ -168,14 +168,6 @@ func (c *Client) reconnect(ctx context.Context) error {
 		})
 	}
 
-	// Put a special case in the roster so we can send notes to ourselves easily.
-	c.handler(event.UpdateRoster{
-		Item: roster.Item{
-			JID:  c.addr.Bare(),
-			Name: "Me",
-		},
-	})
-
 	// Enable message carbons.
 	carbonsCtx, carbonsCancel := context.WithTimeout(context.Background(), c.timeout)
 	defer carbonsCancel()

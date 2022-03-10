@@ -93,7 +93,7 @@ func writeMessage(pane *ui.UI, configPath string, msg event.ChatMessage, notNew 
 
 	j := historyAddr.Bare()
 	if pane.ChatsOpen() {
-		if item, ok := pane.Roster().GetSelected(); ok && item.Item.JID.Equal(j) {
+		if selected := pane.GetRosterJID(); j.Equal(selected) {
 			// If the message JID is selected and the window is open, write it to the
 			// history window.
 			_, err := io.WriteString(history, historyLine)
@@ -102,20 +102,17 @@ func writeMessage(pane *ui.UI, configPath string, msg event.ChatMessage, notNew 
 	}
 
 	// If it's not selected (or the message window is not open), mark the item as
-	// unread in the roster.
+	// unread in the roster and recent conversations view.
 	// If the message isn't a new one (we're just loading history), skip all this.
 	if !msg.Sent && !notNew {
 		ok := pane.Roster().MarkUnread(j.String(), msg.ID)
 		if !ok {
 			// If the item did not exist, create it then try to mark it as unread
 			// again.
-			pane.UpdateRoster(ui.RosterItem{
-				Item: roster.Item{
-					JID: j,
-					// TODO: get the preferred nickname.
-					Name:         j.Localpart(),
-					Subscription: "none",
-				},
+			pane.UpdateConversations(ui.Conversation{
+				JID: j,
+				// TODO: get the preferred nickname.
+				Name: j.Localpart(),
 			})
 			pane.Roster().MarkUnread(j.String(), msg.ID)
 		}

@@ -5,6 +5,8 @@
 package ui
 
 import (
+	"strings"
+
 	"github.com/gdamore/tcell/v2"
 	"github.com/rivo/tview"
 
@@ -63,26 +65,76 @@ func delBookmarkModal(onEsc func(), onDel func()) *tview.Modal {
 
 // getJID creates a modal that asks for a JID. Eg. to add a bookmark or start a
 // new conversation.
-func getJID(title, addButton string, f func(jid.JID, string), autocomplete func(string) []string) *Modal {
+func getJID(title, addButton string, f func(jid.JID, string), autocomplete []jid.JID) *Modal {
 	mod := NewModal().
 		SetText(title)
 	var inputJID jid.JID
-	jidInput := tview.NewInputField().SetPlaceholder("me@example.net")
+	jidInput := jidInput(&inputJID, autocomplete)
 	modForm := mod.Form()
 	modForm.AddFormItem(jidInput)
-	jidInput.SetChangedFunc(func(text string) {
-		var err error
-		inputJID, err = jid.Parse(text)
-		if err == nil {
-			jidInput.SetLabel("✅")
-		} else {
-			jidInput.SetLabel("❌")
-		}
-	})
 	mod.SetBackgroundColor(tview.Styles.PrimitiveBackgroundColor).
 		AddButtons([]string{cancelButton, addButton}).
 		SetDoneFunc(func(_ int, buttonLabel string) {
 			f(inputJID.Bare(), buttonLabel)
 		})
 	return mod
+}
+
+// jidInput returns a field that asks for a JID and validates it.
+// As the user types the label will change to indicate if the JID is valid or
+// invalid.
+// If the JID is valid, it is unmarshaled into the intputJID pointer.
+func jidInput(inputJID *jid.JID, autocomplete []jid.JID) *tview.InputField {
+	jidInput := tview.NewInputField()
+	jidInput.SetPlaceholder("me@example.net")
+	jidInput.SetChangedFunc(func(text string) {
+		j, err := jid.Parse(text)
+		if err == nil {
+			jidInput.SetLabel("✅")
+			*inputJID = j
+		} else {
+			jidInput.SetLabel("❌")
+		}
+	})
+	jidInput.SetAutocompleteFunc(func(s string) []string {
+		idx := strings.IndexByte(s, '@')
+		if idx < 0 {
+			// If we're still typing the localpart of the JID, filter on all JIDs that
+			// start out with the same local part.
+			if s == "" {
+				return nil
+			}
+			entriesSet := make(map[string]struct{})
+			for _, item := range autocomplete {
+				local := item.Localpart()
+				if strings.HasPrefix(local, s) {
+					entriesSet[item.String()] = struct{}{}
+				}
+			}
+			entries := make([]string, 0, len(entriesSet))
+			for entry := range entriesSet {
+				entries = append(entries, entry)
+			}
+			return entries
+		}
+		// If we're now typing the domainpart of the JID, ignore the local part and
+		// auto-complete the domainpart using the user entered localpart and the
+		// domainparts we know about from existing JIDs.
+		search := s[idx+1:]
+		entriesSet := make(map[string]struct{})
+		for _, item := range autocomplete {
+			domainpart := item.Domainpart()
+			entry := strings.TrimPrefix(domainpart, search)
+			if entry == domainpart {
+				continue
+			}
+			entriesSet[entry] = struct{}{}
+		}
+		var entries []string
+		for entry := range entriesSet {
+			entries = append(entries, s+entry)
+		}
+		return entries
+	})
+	return jidInput
 }

@@ -54,7 +54,10 @@ func checkScroll(cv *ConversationView, f func()) {
 	if newRow == 0 && oldRow != newRow {
 		item, ok := cv.ui.sidebar.GetSelected()
 		if ok {
-			cv.ui.handler(event.PullToRefreshChat(item.Item))
+			// TODO: work with other types?
+			if rosterItem, ok := item.(*RosterItem); ok {
+				cv.ui.handler(event.PullToRefreshChat(rosterItem.Item))
+			}
 		}
 	}
 }
@@ -120,13 +123,13 @@ func (cv *ConversationView) InputHandler() func(event *tcell.EventKey, setFocus 
 			if body == "" {
 				return
 			}
-			item, ok := cv.ui.sidebar.GetSelected()
+			c, ok := cv.ui.sidebar.conversations.GetSelected()
 			if !ok {
 				return
 			}
 			typ := stanza.ChatMessage
-			to := item.Item.JID
-			if item.Room {
+			to := c.JID
+			if c.Room {
 				typ = stanza.GroupChatMessage
 				to = to.Bare()
 			}

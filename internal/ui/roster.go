@@ -26,7 +26,6 @@ type RosterItem struct {
 	idx         int
 	firstUnread string
 	presences   []presence
-	Room        bool
 }
 
 // FirstUnread returns the ID of the first unread message.
@@ -51,10 +50,11 @@ type Roster struct {
 	Width    int
 	flex     *tview.Flex
 	onDelete func()
+	changed  func(int, string, string, rune)
 }
 
 // newRoster creates a new roster widget with the provided options.
-func newRoster(onStatus func(), onDelete func()) *Roster {
+func newRoster(onDelete func()) *Roster {
 	r := &Roster{
 		items:    make(map[string]RosterItem),
 		itemLock: &sync.Mutex{},
@@ -68,39 +68,7 @@ func newRoster(onStatus func(), onDelete func()) *Roster {
 		SetDirection(tview.FlexRow)
 	r.list.SetTitle("Roster")
 
-	// Add default status indicator.
-	r.Upsert(RosterItem{idx: 0}, onStatus)
-	r.Offline()
-
 	return r
-}
-
-// Offline sets the state of the roster to show the user as offline.
-func (r Roster) Offline() {
-	r.setStatus("silver::d", "Offline")
-}
-
-// Online sets the state of the roster to show the user as online.
-func (r Roster) Online() {
-	r.setStatus("green", "Online")
-}
-
-// Away sets the state of the roster to show the user as away.
-func (r Roster) Away() {
-	r.setStatus("orange", "Away")
-}
-
-// Busy sets the state of the roster to show the user as busy.
-func (r Roster) Busy() {
-	r.setStatus("red", "Busy")
-}
-
-func (r Roster) setStatus(color, name string) {
-	var width int
-	if r.Width > 4 {
-		width = r.Width - 4
-	}
-	r.list.SetItemText(0, name, fmt.Sprintf("[%s]%s", color, strings.Repeat("─", width)))
 }
 
 // Delete removes an item from the roster.
@@ -139,23 +107,23 @@ func (r Roster) Upsert(item RosterItem, action func()) {
 		item.Name = item.JID.Localpart()
 	}
 
-	switch item.Subscription {
-	case "remove":
+	if item.Subscription == "remove" {
 		r.deleteItem(bare)
-	default:
-		existing, ok := r.items[bare]
-		if ok {
-			// Update the existing roster item.
-			r.list.SetItemText(existing.idx, item.Name, bare)
-			item.idx = existing.idx
-			item.firstUnread = existing.firstUnread
-			r.items[bare] = item
-			return
-		}
-		r.list.AddItem(item.Name, bare, 0, action)
-		item.idx = r.list.GetItemCount() - 1
-		r.items[bare] = item
+		return
 	}
+
+	existing, ok := r.items[bare]
+	if ok {
+		// Update the existing roster item.
+		r.list.SetItemText(existing.idx, item.Name, bare)
+		item.idx = existing.idx
+		item.firstUnread = existing.firstUnread
+		r.items[bare] = item
+		return
+	}
+	r.list.AddItem(item.Name, bare, 0, action)
+	item.idx = r.list.GetItemCount() - 1
+	r.items[bare] = item
 }
 
 // Draw implements tview.Primitive for Roster.
@@ -180,6 +148,11 @@ func (r Roster) InputHandler() func(event *tcell.EventKey, setFocus func(p tview
 
 // Focus implements tview.Primitive for Roster.
 func (r Roster) Focus(delegate func(p tview.Primitive)) {
+	if r.changed != nil && r.list.GetItemCount() > 0 {
+		idx := r.list.GetCurrentItem()
+		main, secondary := r.list.GetItemText(idx)
+		r.changed(idx, main, secondary, 0)
+	}
 	r.flex.Focus(delegate)
 }
 
@@ -205,6 +178,7 @@ func (r *Roster) ShowStatus(show bool) {
 
 // OnChanged sets a callback for when the user navigates to a roster item.
 func (r *Roster) OnChanged(f func(int, string, string, rune)) {
+	r.changed = f
 	r.list.SetChangedFunc(f)
 }
 
@@ -236,10 +210,6 @@ func (r Roster) UpsertPresence(j jid.JID, status string) bool {
 	if !ok {
 		return ok
 	}
-	//type presence struct {
-	//	From   jid.JID
-	//	Status string
-	//}
 	var found bool
 	filtered := item.presences[:0]
 	for _, p := range item.presences {

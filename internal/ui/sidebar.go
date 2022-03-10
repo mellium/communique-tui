@@ -16,29 +16,33 @@ import (
 // that can be toggled between using a drop down.
 type Sidebar struct {
 	*tview.Flex
-	Width      int
-	dropDown   *tview.DropDown
-	pages      *tview.Pages
-	search     *tview.InputField
-	searching  bool
-	lastSearch string
-	searchDir  SearchDir
-	roster     *Roster
-	bookmarks  *Bookmarks
+	Width         int
+	dropDown      *tview.DropDown
+	pages         *tview.Pages
+	search        *tview.InputField
+	searching     bool
+	lastSearch    string
+	searchDir     SearchDir
+	roster        *Roster
+	bookmarks     *Bookmarks
+	conversations *Conversations
 }
 
 // newSidebar creates a new widget with the provided options.
-func newSidebar(roster *Roster, b *Bookmarks) *Sidebar {
+func newSidebar(roster *Roster, b *Bookmarks, c *Conversations) *Sidebar {
 	r := &Sidebar{
-		pages:     tview.NewPages(),
-		dropDown:  tview.NewDropDown().SetFieldBackgroundColor(tview.Styles.PrimitiveBackgroundColor),
-		search:    tview.NewInputField(),
-		roster:    roster,
-		bookmarks: b,
+		pages:         tview.NewPages(),
+		dropDown:      tview.NewDropDown().SetFieldBackgroundColor(tview.Styles.PrimitiveBackgroundColor),
+		search:        tview.NewInputField(),
+		roster:        roster,
+		bookmarks:     b,
+		conversations: c,
 	}
-	r.pages.AddAndSwitchToPage(r.roster.list.GetTitle(), r.roster, true)
+	r.pages.AddAndSwitchToPage(r.conversations.list.GetTitle(), r.conversations, true)
 	r.pages.AddPage(r.bookmarks.list.GetTitle(), r.bookmarks, true, false)
+	r.pages.AddPage(r.roster.list.GetTitle(), r.roster, true, false)
 	options := []string{
+		r.conversations.list.GetTitle(),
 		r.roster.list.GetTitle(),
 		r.bookmarks.list.GetTitle(),
 	}
@@ -76,7 +80,15 @@ func newSidebar(roster *Roster, b *Bookmarks) *Sidebar {
 
 	innerCapture := r.Flex.GetInputCapture()
 	r.Flex.SetInputCapture(func(event *tcell.EventKey) *tcell.EventKey {
-		if event == nil || event.Key() != tcell.KeyRune {
+		if event == nil {
+			return event
+		}
+		switch event.Key() {
+		case tcell.KeyESC:
+			events.Reset()
+			return event
+		case tcell.KeyRune:
+		default:
 			return event
 		}
 
@@ -232,6 +244,12 @@ func newSidebar(roster *Roster, b *Bookmarks) *Sidebar {
 				i.onDelete()
 			case *Bookmarks:
 				i.onDelete()
+			case *Conversations:
+				c, ok := i.GetSelected()
+				if !ok {
+					break
+				}
+				i.Delete(c.JID.String())
 			}
 			return nil
 		case '1', '2', '3', '4', '5', '6', '7', '8', '9', '0':
@@ -326,6 +344,8 @@ func (s *Sidebar) getFrontList() *tview.List {
 		return i.list
 	case *Bookmarks:
 		return i.list
+	case *Conversations:
+		return i.list
 	}
 	return nil
 }
@@ -336,20 +356,25 @@ func (s *Sidebar) SetWidth(width int) {
 	s.Width = width
 	s.roster.Width = width
 	s.bookmarks.Width = width
+	s.conversations.Width = width
 	if s.dropDown != nil {
 		_, txt := s.dropDown.GetCurrentOption()
 		s.dropDown.SetLabelWidth((width / 2) - (len(txt) / 2))
 	}
 }
 
-// GetSelected returns the currently selected roster item.
-func (s *Sidebar) GetSelected() (RosterItem, bool) {
-	roster := s.getFrontList()
-	if roster == nil {
-		return RosterItem{}, false
+// GetSelected returns the currently selected roster item, bookmark, or
+// conversation.
+func (s *Sidebar) GetSelected() (interface{}, bool) {
+	switch name, _ := s.pages.GetFrontPage(); name {
+	case s.conversations.list.GetTitle():
+		return s.conversations.GetSelected()
+	case s.roster.list.GetTitle():
+		return s.roster.GetSelected()
+	case s.bookmarks.list.GetTitle():
+		return s.bookmarks.GetSelected()
 	}
-	_, j := roster.GetItemText(roster.GetCurrentItem())
-	return s.roster.GetItem(j)
+	return nil, false
 }
 
 // ShowStatus shows or hides the status line under the currently selected list.
@@ -360,27 +385,29 @@ func (s *Sidebar) ShowStatus(show bool) {
 
 // Offline sets the state of the roster to show the user as offline.
 func (s Sidebar) Offline() {
-	s.roster.Offline()
+	s.conversations.Offline()
 }
 
 // Online sets the state of the roster to show the user as online.
 func (s Sidebar) Online() {
-	s.roster.Online()
+	s.conversations.Online()
 }
 
 // Away sets the state of the roster to show the user as away.
 func (s Sidebar) Away() {
-	s.roster.Away()
+	s.conversations.Away()
 }
 
 // Busy sets the state of the roster to show the user as busy.
 func (s Sidebar) Busy() {
-	s.roster.Busy()
+	s.conversations.Busy()
 }
 
 // UpsertPresence updates an existing roster item or bookmark with a newly seen
 // resource or presence change.
 // If the item is not in any roster, false is returned.
 func (s Sidebar) UpsertPresence(j jid.JID, status string) bool {
-	return s.roster.UpsertPresence(j, status)
+	rosterOk := s.roster.UpsertPresence(j, status)
+	conversationOk := s.conversations.UpsertPresence(j, status)
+	return rosterOk || conversationOk
 }

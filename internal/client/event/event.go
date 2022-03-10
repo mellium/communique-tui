@@ -57,8 +57,7 @@ type (
 	// roster push).
 	UpdateRoster struct {
 		roster.Item
-		Ver  string
-		Room bool
+		Ver string
 	}
 
 	// UpdateBookmark is sent when a bookmark should be updated (eg. if you have
@@ -107,6 +106,9 @@ type (
 
 	// OpenChat is sent when a roster item is selected.
 	OpenChat roster.Item
+
+	// OpenChannel is sent when a bookmark is selected.
+	OpenChannel bookmarks.Channel
 
 	// CloseChat is sent when the chat view is closed.
 	CloseChat roster.Item

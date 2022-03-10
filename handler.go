@@ -97,6 +97,15 @@ func newUIHandler(configPath string, acct account, pane *ui.UI, db *storage.DB, 
 					logger.Printf("error going offline: %v", err)
 				}
 			}()
+		case event.UpdateRoster:
+			go func() {
+				ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+				defer cancel()
+				err := roster.Set(ctx, c.Session, e.Item)
+				if err != nil {
+					logger.Printf("error adding roster item %s: %v", e.JID, err)
+				}
+			}()
 		case event.DeleteRosterItem:
 			go func() {
 				ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
@@ -165,23 +174,6 @@ func newUIHandler(configPath string, acct account, pane *ui.UI, db *storage.DB, 
 					logger.Printf("error removing bookmark %s: %v", e.JID, err)
 				}
 			}()
-		case event.UpdateRoster:
-			if !e.Room {
-				return
-			}
-			go func() {
-				ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
-				defer cancel()
-				j, err := e.JID.WithResource(acct.Name)
-				if err != nil {
-					logger.Printf("invalid nick %s in config: %v", acct.Name, err)
-					return
-				}
-				err = c.JoinMUC(ctx, j)
-				if err != nil {
-					logger.Printf("error joining room %s: %v", e.JID, err)
-				}
-			}()
 		case event.ChatMessage:
 			go func() {
 				ctx, cancel := context.WithTimeout(context.Background(), 60*time.Second)
@@ -204,10 +196,29 @@ func newUIHandler(configPath string, acct account, pane *ui.UI, db *storage.DB, 
 					pane.Roster().MarkRead(e.To.Bare().String())
 				}
 			}()
+		case event.OpenChannel:
+			go func() {
+				ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+				defer cancel()
+				if acct.Name == "" {
+					acct.Name = c.LocalAddr().Localpart()
+				}
+				j, err := e.JID.WithResource(acct.Name)
+				if err != nil {
+					logger.Printf("invalid nick %s in config: %v", acct.Name, err)
+					return
+				}
+				debug.Printf("joining room %v…", j)
+				err = c.JoinMUC(ctx, j)
+				if err != nil {
+					logger.Printf("error joining room %s: %v", e.JID, err)
+				}
+			}()
 		case event.OpenChat:
 			go func() {
 				var firstUnread string
-				item, ok := pane.Roster().GetItem(e.JID.Bare().String())
+				bare := e.JID.Bare().String()
+				item, ok := pane.Roster().GetItem(bare)
 				if ok {
 					firstUnread = item.FirstUnread()
 				}
@@ -218,7 +229,8 @@ func newUIHandler(configPath string, acct account, pane *ui.UI, db *storage.DB, 
 					return
 				}
 				pane.History().ScrollToEnd()
-				pane.Roster().MarkRead(e.JID.Bare().String())
+				pane.Roster().MarkRead(bare)
+				pane.Conversations().MarkRead(bare)
 				pane.Redraw()
 			}()
 		case event.CloseChat:
@@ -372,7 +384,7 @@ func newClientHandler(configPath string, client *client.Client, pane *ui.UI, db 
 				logger.Printf("error iterating over roster items: %v", err)
 			}
 		case event.UpdateRoster:
-			pane.UpdateRoster(ui.RosterItem{Item: e.Item, Room: e.Room})
+			pane.UpdateRoster(ui.RosterItem{Item: e.Item})
 			ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
 			defer cancel()
 			db.UpdateRoster(ctx, e.Ver, e)
@@ -467,7 +479,7 @@ func newClientHandler(configPath string, client *client.Client, pane *ui.UI, db 
 				e.Info <- result
 			}()
 		default:
-			debug.Printf("unrecognized client event: %q", e)
+			debug.Printf("unrecognized client event: %T(%[1]q)", e)
 		}
 	}
 }

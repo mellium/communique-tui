@@ -12,6 +12,7 @@ import (
 	"strings"
 	"sync"
 	"text/tabwriter"
+	"text/template"
 
 	"github.com/gdamore/tcell/v2"
 	"github.com/rivo/tview"
@@ -62,24 +63,25 @@ func (b *syncBool) Get() bool {
 
 // UI is a widget that combines other widgets to make the main UI.
 type UI struct {
-	app          *tview.Application
-	flex         *tview.Flex
-	pages        *tview.Pages
-	buffers      *tview.Pages
-	history      *ConversationView
-	statusBar    *tview.TextView
-	sidebar      *Sidebar
-	rosterBox    *Roster
-	bookmarksBox *Bookmarks
-	sidebarWidth int
-	logWriter    *tview.TextView
-	handler      func(interface{})
-	redraw       func() *tview.Application
-	addr         string
-	passPrompt   chan string
-	chatsOpen    *syncBool
-	cmdPane      *commandsPane
-	debug        *log.Logger
+	app              *tview.Application
+	flex             *tview.Flex
+	pages            *tview.Pages
+	buffers          *tview.Pages
+	history          *ConversationView
+	statusBar        *tview.TextView
+	sidebar          *Sidebar
+	rosterBox        *Roster
+	bookmarksBox     *Bookmarks
+	conversationsBox *Conversations
+	sidebarWidth     int
+	logWriter        *tview.TextView
+	handler          func(interface{})
+	redraw           func() *tview.Application
+	addr             string
+	passPrompt       chan string
+	chatsOpen        *syncBool
+	cmdPane          *commandsPane
+	debug            *log.Logger
 }
 
 // Run starts the application event loop.
@@ -179,19 +181,11 @@ func New(opts ...Option) *UI {
 	pages := tview.NewPages()
 
 	rosterBox := newRoster(func() {
-		pages.ShowPage(setStatusPageName)
-		pages.SendToFront(setStatusPageName)
-		app.SetFocus(pages)
-	}, func() {
 		pages.ShowPage(delRosterPageName)
 		pages.SendToFront(delRosterPageName)
 		app.SetFocus(pages)
 	})
 	rosterBox.OnChanged(func(idx int, main string, secondary string, shortcut rune) {
-		if idx == 0 {
-			statusBar.SetText("Status: " + main)
-			return
-		}
 		main = strings.TrimPrefix(main, highlightTag)
 		statusBar.SetText(fmt.Sprintf("Chat: %q (%s)", main, secondary))
 	})
@@ -201,6 +195,15 @@ func New(opts ...Option) *UI {
 		app.SetFocus(pages)
 	})
 	bookmarksBox.OnChanged(func(idx int, main string, secondary string, shortcut rune) {
+		main = strings.TrimPrefix(main, highlightTag)
+		statusBar.SetText(fmt.Sprintf("Chat: %q (%s)", main, secondary))
+	})
+	conversationsBox := newConversations(func() {
+		pages.ShowPage(setStatusPageName)
+		pages.SendToFront(setStatusPageName)
+		app.SetFocus(pages)
+	})
+	conversationsBox.OnChanged(func(idx int, main string, secondary string, shortcut rune) {
 		if idx == 0 {
 			statusBar.SetText("Status: " + main)
 			return
@@ -209,22 +212,23 @@ func New(opts ...Option) *UI {
 		statusBar.SetText(fmt.Sprintf("Chat: %q (%s)", main, secondary))
 	})
 
-	sidebarBox := newSidebar(rosterBox, bookmarksBox)
+	sidebarBox := newSidebar(rosterBox, bookmarksBox, conversationsBox)
 
 	ui := &UI{
-		app:          app,
-		sidebar:      sidebarBox,
-		rosterBox:    rosterBox,
-		bookmarksBox: bookmarksBox,
-		sidebarWidth: 25,
-		statusBar:    statusBar,
-		handler:      func(interface{}) {},
-		redraw:       app.Draw,
-		buffers:      buffers,
-		pages:        pages,
-		passPrompt:   make(chan string),
-		chatsOpen:    &syncBool{},
-		debug:        log.New(io.Discard, "", 0),
+		app:              app,
+		sidebar:          sidebarBox,
+		rosterBox:        rosterBox,
+		bookmarksBox:     bookmarksBox,
+		conversationsBox: conversationsBox,
+		sidebarWidth:     25,
+		statusBar:        statusBar,
+		handler:          func(interface{}) {},
+		redraw:           app.Draw,
+		buffers:          buffers,
+		pages:            pages,
+		passPrompt:       make(chan string),
+		chatsOpen:        &syncBool{},
+		debug:            log.New(io.Discard, "", 0),
 	}
 	ui.cmdPane = cmdPane()
 	for _, o := range opts {
@@ -288,7 +292,6 @@ func New(opts ...Option) *UI {
 
 		return event
 	})
-	rosterInnerCapture := rosterBox.GetInputCapture()
 	rosterBox.SetInputCapture(func(event *tcell.EventKey) *tcell.EventKey {
 		eventRune := event.Rune()
 		switch eventRune {
@@ -297,23 +300,14 @@ func New(opts ...Option) *UI {
 			return nil
 		}
 
-		if rosterInnerCapture != nil {
-			return rosterInnerCapture(event)
-		}
-
 		return event
 	})
-	bookmarksInnerCapture := bookmarksBox.GetInputCapture()
 	bookmarksBox.SetInputCapture(func(event *tcell.EventKey) *tcell.EventKey {
 		eventRune := event.Rune()
 		switch eventRune {
 		case 'c':
 			ui.ShowAddBookmark()
-			//	return nil
-		}
-
-		if bookmarksInnerCapture != nil {
-			return bookmarksInnerCapture(event)
+			return nil
 		}
 
 		return event
@@ -352,10 +346,6 @@ func New(opts ...Option) *UI {
 		ui.pages.HidePage(delRosterPageName)
 	}, func() {
 		cur := ui.sidebar.roster.list.GetCurrentItem()
-		if cur == 0 {
-			// we can't delete the status selector.
-			return
-		}
 		for _, item := range ui.sidebar.roster.items {
 			if item.idx == cur {
 				ui.handler(event.DeleteRosterItem(item.Item))
@@ -370,6 +360,7 @@ func New(opts ...Option) *UI {
 		for _, item := range ui.sidebar.bookmarks.items {
 			if item.idx == cur {
 				ui.handler(event.DeleteBookmark(item.Channel))
+				ui.sidebar.bookmarks.Delete(item.Channel.JID.Bare().String())
 				break
 			}
 		}
@@ -392,28 +383,68 @@ func (ui *UI) RosterLen() int {
 // UpdateRoster adds an item to the roster.
 func (ui *UI) UpdateRoster(item RosterItem) {
 	ui.rosterBox.Upsert(item, func() {
+		selected := func(c Conversation) {
+			ui.buffers.SwitchToPage(chatPageName)
+			ui.chatsOpen.Set(true)
+			ui.handler(event.OpenChat(item.Item))
+			ui.app.SetFocus(ui.buffers)
+		}
+		c := Conversation{
+			JID:         item.JID,
+			Name:        item.Name,
+			firstUnread: item.firstUnread,
+			presences:   item.presences,
+		}
+		idx := ui.conversationsBox.Upsert(c, selected)
+		ui.conversationsBox.list.SetCurrentItem(idx)
+		ui.sidebar.dropDown.SetCurrentOption(0)
+		selected(c)
+	})
+	ui.redraw()
+}
+
+// UpdateConversations adds a roster item to the recent conversations list.
+func (ui *UI) UpdateConversations(c Conversation) {
+	ui.conversationsBox.Upsert(c, func(c Conversation) {
 		ui.buffers.SwitchToPage(chatPageName)
 		ui.chatsOpen.Set(true)
-		item, ok := ui.rosterBox.GetSelected()
-		if ok {
-			ui.handler(event.OpenChat(item.Item))
-		}
+		ui.handler(event.OpenChat(roster.Item{
+			JID:  c.JID,
+			Name: c.Name,
+		}))
 		ui.app.SetFocus(ui.buffers)
 	})
 	ui.redraw()
-	ui.handler(event.UpdateRoster{Item: item.Item, Room: item.Room})
 }
 
 // UpdateBookmarks adds an item to the bookmarks sidebar.
 func (ui *UI) UpdateBookmarks(item bookmarks.Channel) {
+	ui.handler(event.UpdateBookmark(item))
 	ui.bookmarksBox.Upsert(item, func() {
-		ui.buffers.SwitchToPage(chatPageName)
-		ui.chatsOpen.Set(true)
-		item, ok := ui.rosterBox.GetSelected()
-		if ok {
-			ui.handler(event.OpenChat(item.Item))
+		selected := func(c Conversation) {
+			ui.buffers.SwitchToPage(chatPageName)
+			ui.chatsOpen.Set(true)
+			ui.handler(event.OpenChat(roster.Item{
+				JID:  item.JID,
+				Name: item.Name,
+			}))
+			ui.app.SetFocus(ui.buffers)
 		}
+		c := Conversation{
+			JID:  item.JID,
+			Name: item.Name,
+			Room: true,
+		}
+		idx := ui.conversationsBox.Upsert(c, selected)
+		ui.conversationsBox.list.SetCurrentItem(idx)
+		ui.sidebar.dropDown.SetCurrentOption(0)
+		selected(c)
 		ui.app.SetFocus(ui.buffers)
+		ui.handler(event.OpenChannel(item))
+		ui.handler(event.OpenChat(roster.Item{
+			JID:  item.JID,
+			Name: item.Name,
+		}))
 	})
 	ui.redraw()
 }
@@ -426,6 +457,16 @@ func (ui *UI) Write(p []byte) (n int, err error) {
 // Roster returns the underlying roster pane widget.
 func (ui *UI) Roster() *Roster {
 	return ui.sidebar.roster
+}
+
+// Bookmarks returns the underlying bookmark pane widget.
+func (ui *UI) Bookmarks() *Bookmarks {
+	return ui.sidebar.bookmarks
+}
+
+// Conversations returns the recent conversations widget.
+func (ui *UI) Conversations() *Conversations {
+	return ui.sidebar.conversations
 }
 
 // ChatsOpen returns true if the chat pane is open.
@@ -510,46 +551,38 @@ func (ui *UI) ShowQuitPrompt() {
 
 // ShowAddBookmark asks the user for a new JID.
 func (ui *UI) ShowAddBookmark() {
-	bookmarkPage := ui.sidebar.bookmarks
 	const (
 		pageName  = "add_bookmark"
 		addButton = "Join"
 	)
+	// Autocomplete rooms that are joined in the chats list but that we don't have
+	// bookmarks for and autocomplete domains of existing bookmarks.
+	l := len(ui.sidebar.bookmarks.items) + len(ui.sidebar.conversations.items)
+	autocomplete := make([]jid.JID, 0, l)
+	for _, item := range ui.sidebar.bookmarks.items {
+		autocomplete = append(autocomplete, item.JID.Domain())
+	}
+	for _, item := range ui.sidebar.conversations.items {
+		if !item.Room {
+			continue
+		}
+		bare := item.JID.Bare()
+		if _, ok := ui.sidebar.bookmarks.items[bare.String()]; ok {
+			continue
+		}
+		autocomplete = append(autocomplete, bare)
+	}
 	mod := getJID("Join Channel", addButton, func(j jid.JID, buttonLabel string) {
 		if buttonLabel == addButton {
 			go func() {
-				// TODO: update bookmark?
-				ui.UpdateRoster(RosterItem{
-					Item: roster.Item{
-						JID: j.Bare(),
-					},
-					Room: true,
+				ui.UpdateBookmarks(bookmarks.Channel{
+					JID: j.Bare(),
 				})
 			}()
 		}
 		ui.pages.HidePage(pageName)
 		ui.pages.RemovePage(pageName)
-	}, func(s string) []string {
-		idx := strings.IndexByte(s, '@')
-		if idx < 0 {
-			return nil
-		}
-		search := s[idx+1:]
-		entriesSet := make(map[string]struct{})
-		for _, item := range bookmarkPage.items {
-			domainpart := item.JID.Domainpart()
-			entry := strings.TrimPrefix(domainpart, search)
-			if entry == domainpart {
-				continue
-			}
-			entriesSet[entry] = struct{}{}
-		}
-		var entries []string
-		for entry := range entriesSet {
-			entries = append(entries, s+entry)
-		}
-		return entries
-	})
+	}, autocomplete)
 
 	ui.pages.AddPage(pageName, mod, true, true)
 	ui.pages.ShowPage(pageName)
@@ -559,43 +592,39 @@ func (ui *UI) ShowAddBookmark() {
 
 // ShowAddRoster asks the user for a new JID.
 func (ui *UI) ShowAddRoster() {
-	rosterPage := ui.sidebar.roster
+	//rosterPage := ui.sidebar.roster
 	const (
 		pageName  = "add_roster"
-		addButton = "Chat"
+		addButton = "Add"
 	)
-	mod := getJID("Open Chat", addButton, func(j jid.JID, buttonLabel string) {
+
+	// Autocomplete using bare JIDs in the conversations list that aren't already
+	// in the roster, and domains from the roster list in case we're adding
+	// another contact at the same domain.
+	l := len(ui.sidebar.roster.items) + len(ui.sidebar.conversations.items)
+	autocomplete := make([]jid.JID, 0, l)
+	for _, item := range ui.sidebar.roster.items {
+		autocomplete = append(autocomplete, item.JID.Domain())
+	}
+	for _, item := range ui.sidebar.conversations.items {
+		bare := item.JID.Bare()
+		if _, ok := ui.sidebar.roster.items[bare.String()]; ok {
+			continue
+		}
+		autocomplete = append(autocomplete, bare)
+	}
+	mod := addRoster(addButton, autocomplete, func(j jid.JID, buttonLabel string) {
 		if buttonLabel == addButton {
-			go func() {
-				ui.UpdateRoster(RosterItem{
-					Item: roster.Item{
-						JID: j.Bare(),
-					},
-				})
-			}()
+			ui.handler(event.Subscribe(j.Bare()))
+			ev := event.UpdateRoster{
+				Item: roster.Item{
+					JID: j.Bare(),
+				},
+			}
+			ui.handler(ev)
 		}
 		ui.pages.HidePage(pageName)
 		ui.pages.RemovePage(pageName)
-	}, func(s string) []string {
-		idx := strings.IndexByte(s, '@')
-		if idx < 0 {
-			return nil
-		}
-		search := s[idx+1:]
-		entriesSet := make(map[string]struct{})
-		for _, item := range rosterPage.items {
-			domainpart := item.JID.Domainpart()
-			entry := strings.TrimPrefix(domainpart, search)
-			if entry == domainpart {
-				continue
-			}
-			entriesSet[entry] = struct{}{}
-		}
-		var entries []string
-		for entry := range entriesSet {
-			entries = append(entries, s+entry)
-		}
-		return entries
 	})
 
 	ui.pages.AddPage(pageName, mod, true, true)
@@ -843,10 +872,21 @@ d⃣ d⃣ remove contact
 	ui.app.SetFocus(ui.pages)
 }
 
-// GetRosterJID gets the currently selected roster JID.
+// GetRosterJID gets the currently selected roster or bookmark JID.
 func (ui *UI) GetRosterJID() jid.JID {
-	item, _ := ui.sidebar.roster.GetSelected()
-	return item.JID
+	selected, ok := ui.sidebar.GetSelected()
+	if !ok {
+		return jid.JID{}
+	}
+	switch s := selected.(type) {
+	case RosterItem:
+		return s.JID
+	case BookmarkItem:
+		return s.JID
+	case Conversation:
+		return s.JID
+	}
+	return jid.JID{}
 }
 
 func formatPresence(p []presence) string {
@@ -936,6 +976,34 @@ func (ui *UI) PickResource(f func(jid.JID, bool)) {
 	ui.app.SetFocus(ui.pages)
 }
 
+var infoTmpl = template.Must(template.New("info").Funcs(template.FuncMap{
+	"formatPresence": formatPresence,
+}).Parse(`
+🛈
+
+{{ .Name }}
+{{ if ne .JID.String .Name }}{{ .JID }}{{ end }}
+
+{{ if .Room }}Bookmarked: {{ if .Bookmarked}}🔖{{ else }}✘{{ end }}{{ end }}
+{{ if not .Room }}Subscription:
+{{- if eq .Subscription "both" -}}
+⇆
+{{- else if eq .Subscription "to" -}}
+→
+{{- else if eq .Subscription "from" -}}
+←
+{{- else -}}
+✘
+{{- end -}}
+{{- end }}
+{{ if .Group }}Groups: {{ print "%v" .Group }}{{ end }}
+{{ if .Presences }}
+Resources:
+
+{{ formatPresence .Presences }}
+{{ end }}
+`))
+
 // ShowRosterInfo displays more info about the currently selected roster item.
 func (ui *UI) ShowRosterInfo() {
 	onEsc := func() {
@@ -950,52 +1018,82 @@ func (ui *UI) ShowRosterInfo() {
 		SetBackgroundColor(tview.Styles.PrimitiveBackgroundColor)
 	mod.SetInputCapture(modalClose(onEsc))
 
-	item, ok := ui.sidebar.roster.GetSelected()
-	idx := ui.sidebar.roster.list.GetCurrentItem()
+	v, ok := ui.sidebar.GetSelected()
 	if !ok {
-		main, secondary := ui.sidebar.roster.list.GetItemText(idx)
-		mod.SetText(fmt.Sprintf(`%s
-%s
-`, main, secondary))
-	} else {
-		subscriptionIcon := "✘"
-		switch item.Subscription {
-		case "both":
-			subscriptionIcon = "⇆"
-		case "to":
-			subscriptionIcon = "→"
-		case "from":
-			subscriptionIcon = "←"
-		}
-		name := item.Name
-		if name == "" {
-			name = item.JID.Localpart()
-		}
-		mod.SetText(fmt.Sprintf(`🛈
+		ui.debug.Printf("no sidebar open, not showing info pane…")
+		return
+	}
 
-%s
-%s
-
-Subscription: %s
-Groups: %v
-Resources:
-
-%s
-`, name, item.JID, subscriptionIcon, item.Group, formatPresence(item.presences))).
-			ClearButtons()
-		// If this isn't the status button or the "Me" item and we're not
-		// subscribed, add a subscribe button.
-		if idx > 1 && item.Subscription != "to" && item.Subscription != "both" {
-			const subscribeBtn = "Subscribe"
-			mod.AddButtons([]string{subscribeBtn}).
-				SetDoneFunc(func(_ int, buttonLabel string) {
-					switch buttonLabel {
-					case subscribeBtn:
-						ui.handler(event.Subscribe(item.JID.Bare()))
-					}
-					ui.pages.HidePage(infoPageName)
-				})
+	infoData := struct {
+		Room         bool
+		Bookmarked   bool
+		Subscription string
+		Name         string
+		JID          jid.JID
+		Group        []string
+		Presences    []presence
+	}{}
+	// If the selected item is a conversation that also exists in the bookmarks or
+	// roster bar, use the data from the bookmarks or roster instead.
+	if c, ok := v.(Conversation); ok {
+		if c.Room {
+			bookmark, ok := ui.sidebar.bookmarks.GetItem(c.JID.Bare().String())
+			if ok {
+				v = bookmark
+			}
+		} else {
+			item, ok := ui.sidebar.roster.GetItem(c.JID.Bare().String())
+			if ok {
+				v = item
+			}
 		}
+	}
+	switch item := v.(type) {
+	case Conversation:
+		infoData.Room = item.Room
+		if item.Room {
+			_, infoData.Bookmarked = ui.sidebar.bookmarks.GetItem(item.JID.Bare().String())
+		}
+		infoData.Name = item.Name
+		infoData.JID = item.JID
+	case BookmarkItem:
+		infoData.Room = true
+		infoData.Bookmarked = true
+		infoData.Name = item.Name
+		infoData.JID = item.JID
+	case RosterItem:
+		infoData.Name = item.Name
+		if item.Name == "" {
+			infoData.Name = item.JID.Localpart()
+		}
+		infoData.JID = item.JID
+		infoData.Presences = item.presences
+		infoData.Subscription = item.Subscription
+	default:
+		ui.debug.Printf("unrecognized sidebar item type %T, not showing info…", item)
+		return
+	}
+
+	var buf strings.Builder
+	err := infoTmpl.Execute(&buf, infoData)
+	if err != nil {
+		ui.debug.Printf("error executing info template: %v", err)
+		return
+	}
+
+	mod.SetText(buf.String()).
+		ClearButtons()
+	// If we're not subscribed, add a subscribe button.
+	if infoData.Subscription != "to" && infoData.Subscription != "both" {
+		const subscribeBtn = "Subscribe"
+		mod.AddButtons([]string{subscribeBtn}).
+			SetDoneFunc(func(_ int, buttonLabel string) {
+				switch buttonLabel {
+				case subscribeBtn:
+					ui.handler(event.Subscribe(infoData.JID.Bare()))
+				}
+				ui.pages.HidePage(infoPageName)
+			})
 	}
 	ui.pages.AddPage(infoPageName, mod, true, false)
 	ui.pages.ShowPage(infoPageName)
