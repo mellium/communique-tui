@@ -603,9 +603,6 @@ func (ui *UI) ShowAddRoster() {
 	// another contact at the same domain.
 	l := len(ui.sidebar.roster.items) + len(ui.sidebar.conversations.items)
 	autocomplete := make([]jid.JID, 0, l)
-	for _, item := range ui.sidebar.roster.items {
-		autocomplete = append(autocomplete, item.JID.Domain())
-	}
 	for _, item := range ui.sidebar.conversations.items {
 		bare := item.JID.Bare()
 		if _, ok := ui.sidebar.roster.items[bare.String()]; ok {
@@ -613,12 +610,13 @@ func (ui *UI) ShowAddRoster() {
 		}
 		autocomplete = append(autocomplete, bare)
 	}
-	mod := addRoster(addButton, autocomplete, func(j jid.JID, buttonLabel string) {
+	mod := addRoster(addButton, autocomplete, func(v addRosterForm, buttonLabel string) {
 		if buttonLabel == addButton {
-			ui.handler(event.Subscribe(j.Bare()))
+			ui.handler(event.Subscribe(v.addr.Bare()))
 			ev := event.UpdateRoster{
 				Item: roster.Item{
-					JID: j.Bare(),
+					JID:  v.addr.Bare(),
+					Name: v.nick,
 				},
 			}
 			ui.handler(ev)

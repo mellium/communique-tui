@@ -11,10 +11,18 @@ import (
 	"mellium.im/xmpp/jid"
 )
 
+type addRosterForm struct {
+	addr jid.JID
+	nick string
+}
+
 // addRoster creates a modal that asks for a JID to add to the roster.
-func addRoster(addButton string, autocomplete []jid.JID, f func(jid.JID, string)) *Modal {
+func addRoster(addButton string, autocomplete []jid.JID, f func(addRosterForm, string)) *Modal {
 	mod := NewModal()
 	mod.SetText("Add Contact")
+	modForm := mod.Form()
+
+	nickInput := tview.NewInputField()
 
 	var inputJID jid.JID
 	jidInput := jidInput(&inputJID, true, autocomplete, func(text string) {
@@ -23,13 +31,18 @@ func addRoster(addButton string, autocomplete []jid.JID, f func(jid.JID, string)
 		}
 	})
 	jidInput.SetLabel("Address")
-
-	modForm := mod.Form()
 	modForm.AddFormItem(jidInput)
+
+	nickInput.SetLabel("Name")
+	modForm.AddFormItem(nickInput)
+
 	mod.SetBackgroundColor(tview.Styles.PrimitiveBackgroundColor).
 		AddButtons([]string{cancelButton, addButton}).
 		SetDoneFunc(func(_ int, buttonLabel string) {
-			f(inputJID.Bare(), buttonLabel)
+			f(addRosterForm{
+				addr: inputJID.Bare(),
+				nick: nickInput.GetText(),
+			}, buttonLabel)
 		})
 	return mod
 }
