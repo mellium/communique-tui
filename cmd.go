@@ -113,19 +113,23 @@ func showCmd(pane *ui.UI, client *client.Client, resp commands.Response, payload
 		case completeBtn:
 			nextCmd = resp.Complete()
 		default:
-			ctx, cancel := context.WithTimeout(context.Background(), client.Timeout())
-			defer cancel()
 			if resp.Status != "completed" && resp.Status != "canceled" {
-				_, trc, err := resp.Cancel().Execute(ctx, nil, client.Session)
-				if err != nil {
-					debug.Printf("error canceling command session: %v", err)
-				}
-				if trc != nil {
-					err = trc.Close()
+				// If for some reason we can't cancel the command we don't need to wait
+				// on it to complete to close the dialog.
+				go func() {
+					ctx, cancel := context.WithTimeout(context.Background(), client.Timeout())
+					defer cancel()
+					_, trc, err := resp.Cancel().Execute(ctx, nil, client.Session)
 					if err != nil {
-						debug.Printf("error closing cancel command payload: %v", err)
+						debug.Printf("error canceling command session: %v", err)
 					}
-				}
+					if trc != nil {
+						err = trc.Close()
+						if err != nil {
+							debug.Printf("error closing cancel command payload: %v", err)
+						}
+					}
+				}()
 			}
 			return
 		}
