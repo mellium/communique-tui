@@ -4,8 +4,6 @@
 package ui
 
 import (
-	"strings"
-
 	"github.com/rivo/tview"
 
 	"mellium.im/xmpp/jid"
@@ -25,11 +23,7 @@ func addRoster(addButton string, autocomplete []jid.JID, f func(addRosterForm, s
 	nickInput := tview.NewInputField()
 
 	var inputJID jid.JID
-	jidInput := jidInput(&inputJID, true, autocomplete, func(text string) {
-		if idx := strings.IndexByte(text, '@'); idx > -1 {
-			text = text[:idx]
-		}
-	})
+	jidInput := jidInput(&inputJID, true, autocomplete, nil)
 	jidInput.SetLabel("Address")
 	modForm.AddFormItem(jidInput)
 

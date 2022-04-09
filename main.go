@@ -111,7 +111,7 @@ func main() {
 Try running '%s -config' to generate a default config file.`, err, os.Args[0])
 	}
 	cfg := config{}
-	_, err = toml.DecodeReader(f, &cfg)
+	_, err = toml.NewDecoder(f).Decode(&cfg)
 	if err != nil {
 		logger.Printf("error parsing config file: %v", err)
 	}

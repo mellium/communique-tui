@@ -115,7 +115,7 @@ func OpenDB(ctx context.Context, appName, account, dbFile, schema string, debug 
 		break
 	}
 	if fPath == "" {
-		return nil, errors.New("could not create or open database for writing!")
+		return nil, errors.New("could not create or open database for writing")
 	}
 
 	db, err := sql.Open(dbDriver, fPath)
@@ -144,6 +144,9 @@ func prepareQueries(ctx context.Context, db *sql.DB, debug *log.Logger) (*DB, er
 	wrapDB.truncateRoster, err = db.PrepareContext(ctx, `
 DELETE FROM rosterJIDs;
 `)
+	if err != nil {
+		return nil, err
+	}
 	wrapDB.delRoster, err = db.PrepareContext(ctx, `
 DELETE FROM rosterJIDs WHERE jid=$1`)
 	if err != nil {
@@ -194,6 +197,9 @@ INSERT INTO messages
 
 	wrapDB.markRecvd, err = db.PrepareContext(ctx, `
 UPDATE messages SET received=TRUE WHERE sent=TRUE AND (idAttr=$1 OR originID=$1)`)
+	if err != nil {
+		return nil, err
+	}
 
 	wrapDB.queryMsg, err = db.PrepareContext(ctx, `
 SELECT sent, toAttr, fromAttr, idAttr, body, stanzaType
