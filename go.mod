@@ -15,9 +15,10 @@ require (
 	golang.org/x/term v0.0.0-20210927222741-03fcf44c2211 // indirect
 	golang.org/x/text v0.3.7
 	golang.org/x/tools v0.1.9 // indirect
+	mellium.im/legacy v0.0.0-20220409122216-43bce917fa17
 	mellium.im/sasl v0.2.1
 	mellium.im/xmlstream v0.15.4-0.20211023152852-0ca80a938137
-	mellium.im/xmpp v0.21.2-0.20220306134904-315a6ebc7c99
+	mellium.im/xmpp v0.21.2
 	modernc.org/sqlite v1.12.0
 )
 

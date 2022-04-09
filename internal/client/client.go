@@ -16,7 +16,7 @@ import (
 	"time"
 
 	"mellium.im/communique/internal/client/event"
-	"mellium.im/communique/internal/legacybookmarks"
+	legacybookmarks "mellium.im/legacy/bookmarks"
 	"mellium.im/sasl"
 	"mellium.im/xmlstream"
 	"mellium.im/xmpp"

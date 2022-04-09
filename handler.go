@@ -15,9 +15,9 @@ import (
 
 	"mellium.im/communique/internal/client"
 	"mellium.im/communique/internal/client/event"
-	"mellium.im/communique/internal/legacybookmarks"
 	"mellium.im/communique/internal/storage"
 	"mellium.im/communique/internal/ui"
+	legacybookmarks "mellium.im/legacy/bookmarks"
 	"mellium.im/xmpp/bookmarks"
 	"mellium.im/xmpp/commands"
 	"mellium.im/xmpp/crypto"
