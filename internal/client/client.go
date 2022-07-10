@@ -44,6 +44,7 @@ func New(j jid.JID, logger, debug *log.Logger, opts ...Option) *Client {
 		dialer: &dial.Dialer{
 			TLSConfig: &tls.Config{
 				ServerName: j.Domain().String(),
+				MinVersion: tls.VersionTLS12,
 			},
 		},
 		logger:  logger,

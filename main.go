@@ -153,7 +153,8 @@ Try running '%s -config' to generate a default config file.`, err, os.Args[0])
 
 	// Setup the global tview styles. I hate this.
 	var cfgTheme *theme
-	for _, t := range cfg.Theme {
+	for i := range cfg.Theme {
+		t := cfg.Theme[i]
 		if t.Name == cfg.UI.Theme {
 			cfgTheme = &t
 			break
@@ -272,6 +273,7 @@ Go %s %s
 		TLSConfig: &tls.Config{
 			ServerName:   j.Domain().String(),
 			KeyLogWriter: keylog,
+			MinVersion:   tls.VersionTLS12,
 		},
 		NoLookup: acct.NoSRV,
 		NoTLS:    acct.NoTLS,

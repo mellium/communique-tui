@@ -12,12 +12,9 @@ import (
 	"strings"
 	"time"
 
-	"github.com/gdamore/tcell/v2"
 	"github.com/rivo/tview"
-	"golang.org/x/text/transform"
 
 	"mellium.im/communique/internal/client/event"
-	"mellium.im/communique/internal/escape"
 	"mellium.im/communique/internal/storage"
 	"mellium.im/communique/internal/ui"
 	"mellium.im/xmpp/roster"
@@ -149,17 +146,4 @@ func loadBuffer(ctx context.Context, pane *ui.UI, db *storage.DB, configPath str
 	}
 	history.ScrollToEnd()
 	return nil
-}
-
-// unreadMarkReader wraps an io.Reader in a new reader that will insert an
-// unread marker at the given offset.
-func unreadMarkReader(r io.Reader, color tcell.Color, offset int64) io.Reader {
-	t := escape.Transformer()
-
-	return io.MultiReader(
-		transform.NewReader(io.LimitReader(r, offset), t),
-		// This marker is used by the text view UI to draw the unread marker
-		strings.NewReader("─\n"),
-		transform.NewReader(r, t),
-	)
 }

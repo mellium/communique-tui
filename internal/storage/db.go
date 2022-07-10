@@ -96,13 +96,14 @@ func OpenDB(ctx context.Context, appName, account, dbFile, schema string, debug 
 	// Create the path to the db file if it does not exist.
 	fPath = ""
 	for _, p := range paths {
-		err := os.MkdirAll(filepath.Dir(p), 0770)
+		err := os.MkdirAll(filepath.Dir(p), 0750)
 		if err != nil {
 			debug.Printf("error creating db dir, skipping: %v", err)
 			continue
 		}
 		// Create the database file if it does not exist, similar to touch(1).
-		fd, err := os.OpenFile(p, os.O_RDWR|os.O_CREATE, 0700)
+		/* #nosec */
+		fd, err := os.OpenFile(p, os.O_RDWR|os.O_CREATE, 0600)
 		if err != nil {
 			debug.Printf("error opening or creating db, skipping: %v", err)
 			continue
@@ -115,7 +116,7 @@ func OpenDB(ctx context.Context, appName, account, dbFile, schema string, debug 
 		break
 	}
 	if fPath == "" {
-		return nil, errors.New("could not create or open database for writing!")
+		return nil, errors.New("could not create or open database for writing")
 	}
 
 	db, err := sql.Open(dbDriver, fPath)
@@ -124,11 +125,13 @@ func OpenDB(ctx context.Context, appName, account, dbFile, schema string, debug 
 	}
 	_, err = db.Exec("PRAGMA foreign_keys = ON")
 	if err != nil {
+		/* #nosec */
 		db.Close()
 		return nil, fmt.Errorf("error enabling foreign keys: %w", err)
 	}
 	_, err = db.Exec(schema)
 	if err != nil {
+		/* #nosec */
 		db.Close()
 		return nil, fmt.Errorf("error applying schema: %w", err)
 	}
@@ -144,6 +147,9 @@ func prepareQueries(ctx context.Context, db *sql.DB, debug *log.Logger) (*DB, er
 	wrapDB.truncateRoster, err = db.PrepareContext(ctx, `
 DELETE FROM rosterJIDs;
 `)
+	if err != nil {
+		return nil, err
+	}
 	wrapDB.delRoster, err = db.PrepareContext(ctx, `
 DELETE FROM rosterJIDs WHERE jid=$1`)
 	if err != nil {
@@ -194,6 +200,9 @@ INSERT INTO messages
 
 	wrapDB.markRecvd, err = db.PrepareContext(ctx, `
 UPDATE messages SET received=TRUE WHERE sent=TRUE AND (idAttr=$1 OR originID=$1)`)
+	if err != nil {
+		return nil, err
+	}
 
 	wrapDB.queryMsg, err = db.PrepareContext(ctx, `
 SELECT sent, toAttr, fromAttr, idAttr, body, stanzaType
@@ -780,8 +789,8 @@ func (db *DB) UpsertDisco(ctx context.Context, j jid.JID, caps disco.Caps, info 
 		if err != nil {
 			return fmt.Errorf("encoding root forms start element failed: %v", err)
 		}
-		for _, f := range info.Form {
-			err = e.Encode(&f)
+		for i := range info.Form {
+			err = e.Encode(&info.Form[i])
 			if err != nil {
 				return fmt.Errorf("encoding form failed: %w", err)
 			}

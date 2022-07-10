@@ -387,7 +387,10 @@ func newClientHandler(configPath string, client *client.Client, pane *ui.UI, db 
 			pane.UpdateRoster(ui.RosterItem{Item: e.Item})
 			ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
 			defer cancel()
-			db.UpdateRoster(ctx, e.Ver, e)
+			err := db.UpdateRoster(ctx, e.Ver, e)
+			if err != nil {
+				debug.Printf("error updating roster version: %v", err)
+			}
 		case event.Receipt:
 			ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
 			defer cancel()
