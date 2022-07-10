@@ -1,3 +1,7 @@
+// Copyright 2022 The Mellium Contributors.
+// Use of this source code is governed by the BSD 2-clause
+// license that can be found in the LICENSE file.
+
 // This file was largely copied from tview and is used under the terms of the
 // MIT license.
 // For more information see LICENSE-tview.
