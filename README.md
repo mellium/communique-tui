@@ -1,9 +1,9 @@
 # Communiqué
 
-[![Issue Tracker][badge]](https://github.com/mellium/xmpp/issues)
+[![Issue Tracker][badge]](https://mellium.im/issue/)
 [![Chat](https://img.shields.io/badge/XMPP-users@mellium.chat-orange.svg)](https://mellium.chat)
 [![License](https://img.shields.io/badge/license-FreeBSD-blue.svg)](https://opensource.org/licenses/BSD-2-Clause)
-[![Build Status](https://builds.sr.ht/~samwhited/communique-tui.svg)](https://builds.sr.ht/~samwhited/communique-tui?)
+[![CI](https://ci.codeberg.org/api/badges/mellium/communique-tui/status.svg)](https://ci.codeberg.org/mellium/communique-tui)
 
 <a href="https://opencollective.com/mellium" alt="Donate on Open Collective"><img src="https://opencollective.com/mellium/donate/button@2x.png?color=blue" width="200"/></a>
 
@@ -35,4 +35,4 @@ conditions.
 [CONTRIBUTING.md]: https://mellium.im/docs/CONTRIBUTING
 [badge]: https://img.shields.io/badge/style-mellium%2fxmpp-green.svg?longCache=true&style=popout-square&label=issues
 [Go]: https://golang.org/
-[LICENSE]: https://github.com/mellium/xmpp/blob/main/LICENSE
+[LICENSE]: https://codeberg.org/mellium/xmpp/src/branch/main/LICENSE
