@@ -2,7 +2,6 @@ pipeline:
   info: &info
     image: golang:${GO_VERSION}-alpine
     environment:
-      GO111MODULE: "on"
       CGO_ENABLED: "0"
     commands:
       - go version
@@ -15,7 +14,7 @@ pipeline:
 matrix:
   GO_VERSION:
     - 1.18
-    - 1.17
+    - 1.19
 
 depends_on:
   - dco
