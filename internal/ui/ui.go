@@ -673,12 +673,12 @@ func (ui *UI) ShowForm(formData *form.Data, buttons []string, onDone func(string
 			// TODO: rewrap text to some reasonable length first.
 			if field.Label != "" {
 				for _, line := range strings.Split(field.Label, "\n") {
-					box.AddFormItem(newLabel(line))
+					box.AddFormItem(tview.NewTextView().SetText(line))
 				}
 			}
 			for _, val := range field.Raw {
 				for _, line := range strings.Split(val, "\n") {
-					box.AddFormItem(newLabel(line))
+					box.AddFormItem(tview.NewTextView().SetText(line))
 				}
 			}
 			// TODO: will this just work? it's on the form already right?
