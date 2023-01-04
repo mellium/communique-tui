@@ -16,7 +16,7 @@ require (
 	golang.org/x/text v0.3.7
 	golang.org/x/tools v0.1.9 // indirect
 	mellium.im/legacy v0.0.0-20220409122216-43bce917fa17
-	mellium.im/sasl v0.2.1
+	mellium.im/sasl v0.3.1
 	mellium.im/xmlstream v0.15.4-0.20211023152852-0ca80a938137
 	mellium.im/xmpp v0.21.2
 	modernc.org/sqlite v1.12.0
