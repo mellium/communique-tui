@@ -15,6 +15,8 @@ import (
 	"sync"
 	"time"
 
+	"golang.org/x/text/message"
+
 	"mellium.im/communique/internal/client/event"
 	legacybookmarks "mellium.im/legacy/bookmarks"
 	"mellium.im/sasl"
@@ -99,6 +101,8 @@ func (c *Client) reconnect(ctx context.Context) error {
 		return nil
 	}
 
+	p := c.Printer()
+
 	pass, err := c.getPass(ctx)
 	if err != nil {
 		return err
@@ -108,9 +112,9 @@ func (c *Client) reconnect(ctx context.Context) error {
 	ctx, cancel = context.WithTimeout(ctx, c.timeout)
 	defer cancel()
 
-	conn, err := c.dialer.Dial(ctx, "tcp", c.addr)
+	conn, err := c.dialer.Dial(ctx, "tc8p", c.addr)
 	if err != nil {
-		return fmt.Errorf("error dialing connection: %v", err)
+		return fmt.Errorf("error dialing connection: %w", err)
 	}
 
 	saslFeature := xmpp.SASL("", pass,
@@ -139,7 +143,7 @@ func (c *Client) reconnect(ctx context.Context) error {
 	})
 	c.Session, err = xmpp.NewSession(ctx, c.addr.Domain(), c.addr, conn, 0, negotiator)
 	if err != nil {
-		return fmt.Errorf("error negotiating session: %v", err)
+		return fmt.Errorf("error negotiating session: %w", err)
 	}
 
 	c.online = true
@@ -147,16 +151,16 @@ func (c *Client) reconnect(ctx context.Context) error {
 	go func() {
 		err := c.Serve(newXMPPHandler(c))
 		if err != nil {
-			c.logger.Printf("Error while handling XMPP streams: %q", err)
+			c.logger.Print(p.Sprintf("Error while handling XMPP streams: %q", err))
 		}
 
 		c.handler(event.StatusOffline{})
 		err = c.Offline()
 		if err != nil {
-			c.logger.Printf("Error going offline: %q", err)
+			c.logger.Print(p.Sprintf("Error going offline: %q", err))
 		}
 		if err = conn.Close(); err != nil {
-			c.logger.Printf("Error closing the connection: %q", err)
+			c.logger.Print(p.Sprintf("Error closing the connection: %q", err))
 		}
 	}()
 
@@ -174,7 +178,7 @@ func (c *Client) reconnect(ctx context.Context) error {
 	defer carbonsCancel()
 	err = carbons.Enable(carbonsCtx, c.Session)
 	if err != nil {
-		c.debug.Printf("error enabling carbons: %q", err)
+		c.debug.Print(p.Sprintf("error enabling carbons: %q", err))
 		return err
 	}
 
@@ -183,7 +187,7 @@ func (c *Client) reconnect(ctx context.Context) error {
 	defer rosterCancel()
 	err = c.Roster(rosterCtx)
 	if err != nil {
-		c.logger.Printf("error fetching roster: %q", err)
+		c.logger.Print(p.Sprintf("error fetching roster: %q", err))
 	}
 
 	// Fetch the bookmarks
@@ -191,7 +195,7 @@ func (c *Client) reconnect(ctx context.Context) error {
 	defer bookmarksCancel()
 	err = c.Bookmarks(bookmarksCtx)
 	if err != nil {
-		c.logger.Printf("error fetching bookmarks: %q", err)
+		c.logger.Print(p.Sprintf("error fetching bookmarks: %q", err))
 	}
 
 	return nil
@@ -216,6 +220,13 @@ type Client struct {
 	mucClient       *muc.Client
 	chanM           sync.Mutex
 	channels        map[string]*muc.Channel
+	p               *message.Printer
+}
+
+// Printer returns the message printer that the client is using for
+// translations.
+func (c *Client) Printer() *message.Printer {
+	return c.p
 }
 
 // Online sets the status to online.
@@ -237,6 +248,7 @@ func (c *Client) Online(ctx context.Context) error {
 
 // Bookmarks fetches the users list of bookmarked chat rooms.
 func (c *Client) Bookmarks(ctx context.Context) error {
+	p := c.Printer()
 	var iter interface {
 		Next() bool
 		Err() error
@@ -246,7 +258,7 @@ func (c *Client) Bookmarks(ctx context.Context) error {
 
 	info, err := c.Disco(c.LocalAddr().Bare())
 	if err != nil {
-		c.debug.Printf("error discovering bookmarks support: %v", err)
+		c.debug.Print(p.Sprintf("error discovering bookmarks support: %v", err))
 	}
 
 	useLegacyBookmarks := true
@@ -260,26 +272,33 @@ func (c *Client) Bookmarks(ctx context.Context) error {
 	if useLegacyBookmarks {
 		query, err := version.Get(ctx, c.Session, c.Session.LocalAddr().Domain())
 		if err != nil {
-			c.debug.Printf(`error fetching version information: %v`, err)
+			c.debug.Print(p.Sprintf("error fetching version information: %v", err))
 		}
-		var bookmarksErr string
+		var (
+			bookmarksErr string
+			modName      string
+		)
 		if query.Name == "Prosody" {
 			switch {
 			case strings.HasPrefix(query.Version, "trunk"):
-				bookmarksErr = `
-To fix this, contact your server administrator and ask them to enable "mod_bookmarks".`
+				modName = "mod_bookmarks"
 			case strings.HasPrefix(query.Version, "0.11"):
-				bookmarksErr = `
-To fix this, contact your server administrator and ask them to enable "mod_bookmarks2".`
+				modName = "mod_bookmarks2"
 			}
 		}
+		if modName != "" {
+			bookmarksErr = p.Sprintf("To fix this, contact your server administrator and ask them to enable %q", modName)
+		}
 		c.logger.Printf(`
+--
+%s
+%s
+--
+`,
+			p.Sprintf("Your server does not support bookmark unification, an important feature that stops newer clients from seeing a different list of chat rooms than older clients that do not yet support the latest features."),
+			bookmarksErr,
+		)
 
-	--
-Your server does not support bookmark unification, an important feature that stops newer clients from seeing a different list of chat rooms than older clients that do not yet support the latest features.%s
-	--
-
-`, bookmarksErr)
 		iter = legacybookmarks.Fetch(ctx, c.Session)
 	} else {
 		iter = bookmarks.Fetch(ctx, c.Session)
@@ -288,7 +307,7 @@ Your server does not support bookmark unification, an important feature that sto
 	defer func() {
 		e := iter.Close()
 		if e != nil {
-			c.debug.Printf("error closing bookmarks stream: %v", e)
+			c.debug.Print(p.Sprintf("error closing bookmarks stream: %v", e))
 		}
 	}()
 	items := make(chan event.UpdateBookmark)
@@ -310,13 +329,14 @@ Your server does not support bookmark unification, an important feature that sto
 
 // Roster requests the users contact list.
 func (c *Client) Roster(ctx context.Context) error {
+	p := c.Printer()
 	rosterIQ := roster.IQ{}
 	rosterIQ.Query.Ver = c.rosterVer
 	iter := roster.FetchIQ(ctx, rosterIQ, c.Session)
 	defer func() {
 		e := iter.Close()
 		if e != nil {
-			c.debug.Printf("Error closing roster stream: %q", e)
+			c.debug.Print(p.Sprintf("Error closing roster stream: %q", e))
 		}
 	}()
 	items := make(chan event.UpdateRoster)

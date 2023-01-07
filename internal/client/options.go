@@ -9,11 +9,20 @@ import (
 	"io"
 	"time"
 
+	"golang.org/x/text/message"
+
 	"mellium.im/xmpp/dial"
 )
 
 // Option is used to configure a client.
 type Option func(*Client)
+
+// Printer sets the message printer used for translations.
+func Printer(p *message.Printer) Option {
+	return func(c *Client) {
+		c.p = p
+	}
+}
 
 // RosterVer sets the last seen and stored roster version.
 func RosterVer(ver string) Option {

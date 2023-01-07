@@ -11,6 +11,7 @@ import (
 
 	"github.com/gdamore/tcell/v2"
 	"github.com/rivo/tview"
+	"golang.org/x/text/message"
 )
 
 // BookmarkItem represents a bookmark in the list.
@@ -31,7 +32,7 @@ type Bookmarks struct {
 }
 
 // newBookmarks creates a new bookmarks widget with the provided options.
-func newBookmarks(onDelete func()) *Bookmarks {
+func newBookmarks(p *message.Printer, onDelete func()) *Bookmarks {
 	r := &Bookmarks{
 		items:    make(map[string]BookmarkItem),
 		itemLock: &sync.Mutex{},
@@ -43,7 +44,7 @@ func newBookmarks(onDelete func()) *Bookmarks {
 		SetBorderPadding(0, 0, 1, 0)
 	r.flex.AddItem(r.list, 0, 1, true).
 		SetDirection(tview.FlexRow)
-	r.list.SetTitle("Channels")
+	r.list.SetTitle(p.Sprintf("Channels"))
 
 	return r
 }

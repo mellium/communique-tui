@@ -16,6 +16,7 @@ import (
 
 	"github.com/gdamore/tcell/v2"
 	"github.com/rivo/tview"
+	"golang.org/x/text/message"
 
 	"mellium.im/communique/internal/client/event"
 	"mellium.im/xmpp/bookmarks"
@@ -82,6 +83,12 @@ type UI struct {
 	chatsOpen        *syncBool
 	cmdPane          *commandsPane
 	debug            *log.Logger
+	p                *message.Printer
+}
+
+// Printer returns the message printer that the UI is using for translations.
+func (ui *UI) Printer() *message.Printer {
+	return ui.p
 }
 
 // Run starts the application event loop.
@@ -169,7 +176,7 @@ func RosterWidth(width int) Option {
 }
 
 // New constructs a new UI.
-func New(opts ...Option) *UI {
+func New(p *message.Printer, opts ...Option) *UI {
 	app := tview.NewApplication()
 	statusBar := tview.NewTextView()
 	statusBar.
@@ -189,7 +196,7 @@ func New(opts ...Option) *UI {
 		main = strings.TrimPrefix(main, highlightTag)
 		statusBar.SetText(fmt.Sprintf("Chat: %q (%s)", main, secondary))
 	})
-	bookmarksBox := newBookmarks(func() {
+	bookmarksBox := newBookmarks(p, func() {
 		pages.ShowPage(delBookmarkPageName)
 		pages.SendToFront(delBookmarkPageName)
 		app.SetFocus(pages)
@@ -198,7 +205,7 @@ func New(opts ...Option) *UI {
 		main = strings.TrimPrefix(main, highlightTag)
 		statusBar.SetText(fmt.Sprintf("Chat: %q (%s)", main, secondary))
 	})
-	conversationsBox := newConversations(func() {
+	conversationsBox := newConversations(p, func() {
 		pages.ShowPage(setStatusPageName)
 		pages.SendToFront(setStatusPageName)
 		app.SetFocus(pages)
@@ -239,7 +246,7 @@ func New(opts ...Option) *UI {
 	ui.history = chats
 	buffers.AddPage(chatPageName, chats, true, false)
 
-	logs := newLogs(app, func(event *tcell.EventKey) *tcell.EventKey {
+	logs := newLogs(p, app, func(event *tcell.EventKey) *tcell.EventKey {
 		switch event.Key() {
 		case tcell.KeyTAB, tcell.KeyBacktab:
 			name, _ := ui.buffers.GetFrontPage()
@@ -342,7 +349,7 @@ func New(opts ...Option) *UI {
 	ui.pages.AddPage(setStatusPageName, setStatusPage, true, false)
 	ui.pages.AddPage(uiPageName, ui.flex, true, true)
 	buffers.AddPage(cmdPageName, ui.cmdPane, true, false)
-	ui.pages.AddPage(delRosterPageName, delRosterModal(func() {
+	ui.pages.AddPage(delRosterPageName, delRosterModal(p, func() {
 		ui.pages.HidePage(delRosterPageName)
 	}, func() {
 		cur := ui.sidebar.roster.list.GetCurrentItem()
@@ -353,7 +360,7 @@ func New(opts ...Option) *UI {
 			}
 		}
 	}), true, false)
-	ui.pages.AddPage(delBookmarkPageName, delBookmarkModal(func() {
+	ui.pages.AddPage(delBookmarkPageName, delBookmarkModal(p, func() {
 		ui.pages.HidePage(delBookmarkPageName)
 	}, func() {
 		cur := ui.sidebar.bookmarks.list.GetCurrentItem()
@@ -531,10 +538,11 @@ func (ui *UI) ShowPasswordPrompt() string {
 
 // ShowQuitPrompt asks if the user wants to quit the application.
 func (ui *UI) ShowQuitPrompt() {
+	p := ui.Printer()
 	const quitPageName = "quit"
 	quitModal := tview.NewModal().
-		SetText("Are you sure you want to quit?").
-		AddButtons([]string{"Quit", "Cancel"}).
+		SetText(p.Sprintf("Are you sure you want to quit?")).
+		AddButtons([]string{p.Sprintf("Quit"), p.Sprintf("Cancel")}).
 		SetDoneFunc(func(buttonIndex int, _ string) {
 			if buttonIndex == 0 {
 				ui.Stop()
@@ -552,9 +560,10 @@ func (ui *UI) ShowQuitPrompt() {
 // ShowAddBookmark asks the user for a new JID.
 func (ui *UI) ShowAddBookmark() {
 	const (
-		pageName  = "add_bookmark"
-		addButton = "Join"
+		pageName = "add_bookmark"
 	)
+	p := ui.Printer()
+	var addButton = p.Sprintf("Join")
 	// Autocomplete rooms that are joined in the chats list but that we don't have
 	// bookmarks for and autocomplete domains of existing bookmarks.
 	l := len(ui.sidebar.bookmarks.items) + len(ui.sidebar.conversations.items)
@@ -572,7 +581,7 @@ func (ui *UI) ShowAddBookmark() {
 		}
 		autocomplete = append(autocomplete, bare)
 	}
-	mod := getJID("Join Channel", addButton, false, func(j jid.JID, buttonLabel string) {
+	mod := getJID(p, p.Sprintf("Join Channel"), addButton, false, func(j jid.JID, buttonLabel string) {
 		if buttonLabel == addButton {
 			go func() {
 				ui.UpdateBookmarks(bookmarks.Channel{
@@ -592,11 +601,11 @@ func (ui *UI) ShowAddBookmark() {
 
 // ShowAddRoster asks the user for a new JID.
 func (ui *UI) ShowAddRoster() {
-	//rosterPage := ui.sidebar.roster
 	const (
-		pageName  = "add_roster"
-		addButton = "Add"
+		pageName = "add_roster"
 	)
+	p := ui.Printer()
+	addButton := p.Sprintf("Add")
 
 	// Autocomplete using bare JIDs in the conversations list that aren't already
 	// in the roster, and domains from the roster list in case we're adding
@@ -610,7 +619,7 @@ func (ui *UI) ShowAddRoster() {
 		}
 		autocomplete = append(autocomplete, bare)
 	}
-	mod := addRoster(addButton, autocomplete, func(v addRosterForm, buttonLabel string) {
+	mod := addRoster(p, addButton, autocomplete, func(v addRosterForm, buttonLabel string) {
 		if buttonLabel == addButton {
 			ui.handler(event.Subscribe(v.addr.Bare()))
 			ev := event.UpdateRoster{
@@ -633,8 +642,10 @@ func (ui *UI) ShowAddRoster() {
 
 // ShowLoadCmd shows available ad-hoc commands for the selected JID.
 func (ui *UI) ShowLoadCmd(j jid.JID) {
+	p := ui.Printer()
+	cancelButton := p.Sprintf("Cancel")
 	ui.cmdPane.Form().SetButtonsAlign(tview.AlignLeft)
-	ui.cmdPane.SetText("Commands", "Loading commands…")
+	ui.cmdPane.SetText(p.Sprintf("Commands"), p.Sprintf("Loading commands…"))
 	ui.cmdPane.Form().Clear(true).
 		AddButton(cancelButton, func() {
 			ui.SelectRoster()
@@ -782,6 +793,9 @@ func (ui *UI) ShowNote(note commands.Note, buttons []string, onDone func(string)
 // after the "ShowListCMD" function has been called (since that sets the text to
 // a loading indicator).
 func (ui *UI) SetCommands(j jid.JID, c []commands.Command) {
+	p := ui.Printer()
+	cancelButton := p.Sprintf("Cancel")
+	execButton := p.Sprintf("Exec")
 	defer func() {
 		ui.buffers.SwitchToPage(cmdPageName)
 		ui.app.SetFocus(ui.buffers)

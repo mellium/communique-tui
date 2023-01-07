@@ -31,20 +31,21 @@ import (
 // newUIHandler returns a handler for events that are emitted by the UI that
 // need to modify the client state.
 func newUIHandler(configPath string, acct account, pane *ui.UI, db *storage.DB, c *client.Client, logger, debug *log.Logger) func(interface{}) {
+	p := pane.Printer()
 	return func(ev interface{}) {
 		switch e := ev.(type) {
 		case event.ExecCommand:
 			go func() {
 				ctx, cancel := context.WithTimeout(context.Background(), c.Timeout())
 				defer cancel()
-				debug.Printf("executing command: %+v", e)
+				debug.Print(p.Sprintf("executing command: %+v", e))
 				resp, trc, err := commands.Command(e).Execute(ctx, nil, c.Session)
 				if err != nil {
-					logger.Printf("error executing command %q on %q: %v", e.Node, e.JID, err)
+					logger.Printf(p.Sprintf("error executing command %q on %q: %v", e.Node, e.JID, err))
 				}
 				err = showCmd(pane, c, resp, trc, debug)
 				if err != nil {
-					logger.Printf("error showing next command for %q: %v", e.JID, err)
+					logger.Print(p.Sprintf("error showing next command for %q: %v", e.JID, err))
 				}
 			}()
 		case event.LoadingCommands:
@@ -59,11 +60,11 @@ func newUIHandler(configPath string, acct account, pane *ui.UI, db *storage.DB, 
 				}
 				err := iter.Err()
 				if err != nil {
-					debug.Printf("error fetching commands for %q: %v", j, err)
+					debug.Print(p.Sprintf("error fetching commands for %q: %v", j, err))
 				}
 				err = iter.Close()
 				if err != nil {
-					debug.Printf("error closing commands iter for %q: %v", j, err)
+					debug.Print(p.Sprintf("error closing commands iter for %q: %v", j, err))
 				}
 				pane.SetCommands(j, cmd)
 			}()
@@ -72,7 +73,7 @@ func newUIHandler(configPath string, acct account, pane *ui.UI, db *storage.DB, 
 				ctx, cancel := context.WithTimeout(context.Background(), c.Timeout())
 				defer cancel()
 				if err := c.Away(ctx); err != nil {
-					logger.Printf("error setting away status: %v", err)
+					logger.Print(p.Sprintf("error setting away status: %v", err))
 				}
 			}()
 		case event.StatusOnline:
@@ -80,7 +81,7 @@ func newUIHandler(configPath string, acct account, pane *ui.UI, db *storage.DB, 
 				ctx, cancel := context.WithTimeout(context.Background(), c.Timeout())
 				defer cancel()
 				if err := c.Online(ctx); err != nil {
-					logger.Printf("error setting online status: %v", err)
+					logger.Print(p.Sprintf("error setting online status: %v", err))
 				}
 			}()
 		case event.StatusBusy:
@@ -88,13 +89,13 @@ func newUIHandler(configPath string, acct account, pane *ui.UI, db *storage.DB, 
 				ctx, cancel := context.WithTimeout(context.Background(), c.Timeout())
 				defer cancel()
 				if err := c.Busy(ctx); err != nil {
-					logger.Printf("error setting busy status: %v", err)
+					logger.Print(p.Sprintf("error setting busy status: %v", err))
 				}
 			}()
 		case event.StatusOffline:
 			go func() {
 				if err := c.Offline(); err != nil {
-					logger.Printf("error going offline: %v", err)
+					logger.Print(p.Sprintf("error going offline: %v", err))
 				}
 			}()
 		case event.UpdateRoster:
@@ -103,7 +104,7 @@ func newUIHandler(configPath string, acct account, pane *ui.UI, db *storage.DB, 
 				defer cancel()
 				err := roster.Set(ctx, c.Session, e.Item)
 				if err != nil {
-					logger.Printf("error adding roster item %s: %v", e.JID, err)
+					logger.Print(p.Sprintf("error adding roster item %s: %v", e.JID, err))
 				}
 			}()
 		case event.DeleteRosterItem:
@@ -112,7 +113,7 @@ func newUIHandler(configPath string, acct account, pane *ui.UI, db *storage.DB, 
 				defer cancel()
 				err := roster.Delete(ctx, c.Session, e.JID)
 				if err != nil {
-					logger.Printf("error removing roster item %s: %v", e.JID, err)
+					logger.Print(p.Sprintf("error removing roster item %s: %v", e.JID, err))
 				}
 			}()
 		case event.UpdateBookmark:
@@ -121,7 +122,7 @@ func newUIHandler(configPath string, acct account, pane *ui.UI, db *storage.DB, 
 				defer cancel()
 				info, err := c.Disco(c.LocalAddr().Bare())
 				if err != nil {
-					debug.Printf("error discovering bookmarks support: %v", err)
+					debug.Print(p.Sprintf("error discovering bookmarks support: %v", err))
 				}
 				var bookmarkSync = false
 				for _, feature := range info.Features {
@@ -133,14 +134,14 @@ func newUIHandler(configPath string, acct account, pane *ui.UI, db *storage.DB, 
 				if !bookmarkSync {
 					err = legacybookmarks.Set(ctx, c.Session, bookmarks.Channel(e))
 					if err != nil {
-						logger.Printf("error publishing legacy bookmark %s: %v", e.JID, err)
+						logger.Print(p.Sprintf("error publishing legacy bookmark %s: %v", e.JID, err))
 					}
 				}
 				// Always publish the bookmark to PEP bookmarks in case we're using a
 				// client that only supports those in addition to this one.
 				err = bookmarks.Publish(ctx, c.Session, bookmarks.Channel(e))
 				if err != nil {
-					logger.Printf("error publishing bookmark %s: %v", e.JID, err)
+					logger.Print(p.Sprintf("error publishing bookmark %s: %v", e.JID, err))
 				}
 			}()
 		case event.DeleteBookmark:
@@ -149,7 +150,7 @@ func newUIHandler(configPath string, acct account, pane *ui.UI, db *storage.DB, 
 				defer cancel()
 				info, err := c.Disco(c.LocalAddr().Bare())
 				if err != nil {
-					debug.Printf("error discovering bookmarks support: %v", err)
+					debug.Print(p.Sprintf("error discovering bookmarks support: %v", err))
 				}
 				var bookmarkSync = false
 				for _, feature := range info.Features {
@@ -161,7 +162,7 @@ func newUIHandler(configPath string, acct account, pane *ui.UI, db *storage.DB, 
 				if !bookmarkSync {
 					err = legacybookmarks.Delete(ctx, c.Session, e.JID)
 					if err != nil {
-						logger.Printf("error removing legacy bookmark %s: %v", e.JID, err)
+						logger.Print(p.Sprintf("error removing legacy bookmark %s: %v", e.JID, err))
 					}
 				}
 				// Always try to delete the bookmark from PEP bookmarks in case we're
@@ -171,7 +172,7 @@ func newUIHandler(configPath string, acct account, pane *ui.UI, db *storage.DB, 
 				// though (otherwise we'll most likely report "item-not-found" every
 				// single time).
 				if err != nil && bookmarkSync {
-					logger.Printf("error removing bookmark %s: %v", e.JID, err)
+					logger.Print(p.Sprintf("error removing bookmark %s: %v", e.JID, err))
 				}
 			}()
 		case event.ChatMessage:
@@ -182,13 +183,13 @@ func newUIHandler(configPath string, acct account, pane *ui.UI, db *storage.DB, 
 				var err error
 				e, err = c.SendMessage(ctx, e)
 				if err != nil {
-					logger.Printf("error sending message: %v", err)
+					logger.Print(p.Sprintf("error sending message: %v", err))
 				}
 				if err = writeMessage(pane, configPath, e, false); err != nil {
-					logger.Printf("error saving sent message to history: %v", err)
+					logger.Print(p.Sprintf("error saving sent message to history: %v", err))
 				}
 				if err = db.InsertMsg(ctx, e.Account, e, c.LocalAddr()); err != nil {
-					logger.Printf("error writing message to database: %v", err)
+					logger.Print(p.Sprintf("error writing message to database: %v", err))
 				}
 				// If we sent the message that wasn't automated (it has a body), assume
 				// we've read everything before it.
@@ -205,13 +206,13 @@ func newUIHandler(configPath string, acct account, pane *ui.UI, db *storage.DB, 
 				}
 				j, err := e.JID.WithResource(acct.Name)
 				if err != nil {
-					logger.Printf("invalid nick %s in config: %v", acct.Name, err)
+					logger.Print(p.Sprintf("invalid nick %s in config: %v", acct.Name, err))
 					return
 				}
-				debug.Printf("joining room %v…", j)
+				debug.Print(p.Sprintf("joining room %v…", j))
 				err = c.JoinMUC(ctx, j)
 				if err != nil {
-					logger.Printf("error joining room %s: %v", e.JID, err)
+					logger.Print(p.Sprintf("error joining room %s: %v", e.JID, err))
 				}
 			}()
 		case event.OpenChat:
@@ -225,7 +226,7 @@ func newUIHandler(configPath string, acct account, pane *ui.UI, db *storage.DB, 
 				ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
 				defer cancel()
 				if err := loadBuffer(ctx, pane, db, configPath, roster.Item(e), firstUnread, logger); err != nil {
-					logger.Printf("error loading chat: %v", err)
+					logger.Print(p.Sprintf("error loading chat: %v", err))
 					return
 				}
 				pane.History().ScrollToEnd()
@@ -244,14 +245,14 @@ func newUIHandler(configPath string, acct account, pane *ui.UI, db *storage.DB, 
 				Type: stanza.SubscribedPresence,
 			}.Wrap(nil))
 			if err != nil {
-				logger.Printf("error sending presence pre-approval to %s: %v", jid.JID(e), err)
+				logger.Print(p.Sprintf("error sending presence pre-approval to %s: %v", jid.JID(e), err))
 			}
 			err = c.Send(ctx, stanza.Presence{
 				To:   jid.JID(e),
 				Type: stanza.SubscribePresence,
 			}.Wrap(nil))
 			if err != nil {
-				logger.Printf("error sending presence request to %s: %v", jid.JID(e), err)
+				logger.Print(p.Sprintf("error sending presence request to %s: %v", jid.JID(e), err))
 			}
 		case event.PullToRefreshChat:
 			go func() {
@@ -261,14 +262,14 @@ func newUIHandler(configPath string, acct account, pane *ui.UI, db *storage.DB, 
 				// TODO: if mam:2#extended is supported, use archive ID
 				_, t, err := db.BeforeID(ctx, e.JID)
 				if err != nil {
-					logger.Printf("error fetching earliest message info for %v from database: %v", e, err)
+					logger.Print(p.Sprintf("error fetching earliest message info for %v from database: %v", e, err))
 					return
 				}
 				if t.IsZero() {
-					debug.Printf("no scrollback for %v", e.JID)
+					debug.Print(p.Sprintf("no scrollback for %v", e.JID))
 					return
 				}
-				debug.Printf("fetching scrollback before %v for %v…", t, e.JID)
+				debug.Print(p.Sprintf("fetching scrollback before %v for %v…", t, e.JID))
 				_, _, _, screenHeight := pane.GetRect()
 				_, err = history.Fetch(ctx, history.Query{
 					With:    e.JID,
@@ -278,17 +279,17 @@ func newUIHandler(configPath string, acct account, pane *ui.UI, db *storage.DB, 
 					Last:    true,
 				}, c.Session.LocalAddr().Bare(), c.Session)
 				if err != nil {
-					debug.Printf("error fetching scrollback for %v: %v", e.JID, err)
+					debug.Print(p.Sprintf("error fetching scrollback for %v: %v", e.JID, err))
 				}
 				if err := loadBuffer(ctx, pane, db, configPath, roster.Item(e), "", logger); err != nil {
-					logger.Printf("error scrollback for %v: %v", e.JID, err)
+					logger.Print(p.Sprintf("error scrollback for %v: %v", e.JID, err))
 					return
 				}
 				// TODO: scroll to an offset that keeps context so that we don't lose
 				// our position.
 			}()
 		default:
-			debug.Printf("unrecognized ui event: %T(%[1]q)", e)
+			debug.Print(p.Sprintf("unrecognized ui event: %T(%[1]q)", e))
 		}
 	}
 }
@@ -296,6 +297,7 @@ func newUIHandler(configPath string, acct account, pane *ui.UI, db *storage.DB, 
 // newClientHandler returns a handler for events that are emitted by the client
 // that need to modify the UI.
 func newClientHandler(configPath string, client *client.Client, pane *ui.UI, db *storage.DB, logger, debug *log.Logger) func(interface{}) {
+	p := client.Printer()
 	return func(ev interface{}) {
 		switch e := ev.(type) {
 		case event.StatusAway:
@@ -315,7 +317,7 @@ func newClientHandler(configPath string, client *client.Client, pane *ui.UI, db 
 			defer cancel()
 			err := db.ReplaceRoster(ctx, e)
 			if err != nil {
-				logger.Printf("error updating to roster ver %q: %v", e.Ver, err)
+				logger.Print(p.Sprintf("error updating to roster ver %q: %v", e.Ver, err))
 			}
 			ctx, cancel = context.WithTimeout(context.Background(), 30*time.Second)
 			defer cancel()
@@ -327,7 +329,7 @@ func newClientHandler(configPath string, client *client.Client, pane *ui.UI, db 
 				ids[id.Addr.Bare().String()] = id
 			}
 			if err := afterIDs.Err(); err != nil {
-				logger.Printf("error querying database for last seen messages: %v", err)
+				logger.Print(p.Sprintf("error querying database for last seen messages: %v", err))
 				return
 			}
 			err = db.ForRoster(ctx, func(item event.UpdateRoster) {
@@ -360,7 +362,7 @@ func newClientHandler(configPath string, client *client.Client, pane *ui.UI, db 
 							Start: id.Delay,
 						}, accountBare, client.Session)
 						if err != nil {
-							logger.Printf("error fetching history after %s for %s: %v", id.ID, item.JID, err)
+							logger.Print(p.Sprintf("error fetching history after %s for %s: %v", id.ID, item.JID, err))
 						}
 						return
 					}
@@ -376,12 +378,12 @@ func newClientHandler(configPath string, client *client.Client, pane *ui.UI, db 
 						Last:    true,
 					}, accountBare, client.Session)
 					if err != nil {
-						debug.Printf("error bootstraping history for %s: %v", item.JID, err)
+						debug.Print(p.Sprintf("error bootstraping history for %s: %v", item.JID, err))
 					}
 				}()
 			})
 			if err != nil {
-				logger.Printf("error iterating over roster items: %v", err)
+				logger.Print(p.Sprintf("error iterating over roster items: %v", err))
 			}
 		case event.UpdateRoster:
 			pane.UpdateRoster(ui.RosterItem{Item: e.Item})
@@ -389,23 +391,23 @@ func newClientHandler(configPath string, client *client.Client, pane *ui.UI, db 
 			defer cancel()
 			err := db.UpdateRoster(ctx, e.Ver, e)
 			if err != nil {
-				debug.Printf("error updating roster version: %v", err)
+				debug.Print(p.Sprintf("error updating roster version: %v", err))
 			}
 		case event.Receipt:
 			ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
 			defer cancel()
 			err := db.MarkReceived(ctx, e)
 			if err != nil {
-				logger.Printf("error marking message %q as received: %v", e, err)
+				logger.Print(p.Sprintf("error marking message %q as received: %v", e, err))
 			}
 		case event.ChatMessage:
 			ctx, cancel := context.WithTimeout(context.Background(), time.Second)
 			defer cancel()
 			if err := writeMessage(pane, configPath, e, false); err != nil {
-				logger.Printf("error writing received message to chat: %v", err)
+				logger.Print(p.Sprintf("error writing received message to chat: %v", err))
 			}
 			if err := db.InsertMsg(ctx, e.Account, e, client.LocalAddr()); err != nil {
-				logger.Printf("error writing message to database: %v", err)
+				logger.Print(p.Sprintf("error writing message to database: %v", err))
 			}
 			// If we sent the message that wasn't automated (it has a body), assume
 			// we've read everything before it.
@@ -416,10 +418,10 @@ func newClientHandler(configPath string, client *client.Client, pane *ui.UI, db 
 			ctx, cancel := context.WithTimeout(context.Background(), time.Second)
 			defer cancel()
 			if err := writeMessage(pane, configPath, e.Result.Forward.Msg, false); err != nil {
-				logger.Printf("error writing history message to chat: %v", err)
+				logger.Print(p.Sprintf("error writing history message to chat: %v", err))
 			}
 			if err := db.InsertMsg(ctx, true, e.Result.Forward.Msg, client.LocalAddr()); err != nil {
-				logger.Printf("error writing history to database: %v", err)
+				logger.Print(p.Sprintf("error writing history to database: %v", err))
 			}
 		case event.NewCaps:
 			go func() {
@@ -427,7 +429,7 @@ func newClientHandler(configPath string, client *client.Client, pane *ui.UI, db 
 				defer cancel()
 				err := db.InsertCaps(ctx, e.From, e.Caps)
 				if err != nil {
-					logger.Printf("error inserting entity capbailities hash: %v", err)
+					logger.Print(p.Sprintf("error inserting entity capbailities hash: %v", err))
 				}
 			}()
 		case event.NewFeatures:
@@ -440,8 +442,8 @@ func newClientHandler(configPath string, client *client.Client, pane *ui.UI, db 
 				}{}
 				discoInfo, caps, err := db.GetInfo(ctx, e.To)
 				if err != nil {
-					logger.Printf("error fetching info from cache: %v", err)
-					logger.Print("falling back to network query…")
+					logger.Print(p.Sprintf("error fetching info from cache: %v", err))
+					logger.Print(p.Sprintf("falling back to network query…"))
 				}
 				// If we have previously fetched disco info (and have a valid caps to
 				// compare against), check that it's up to date.
@@ -449,12 +451,12 @@ func newClientHandler(configPath string, client *client.Client, pane *ui.UI, db 
 					dbHash := discoInfo.Hash(caps.Hash.New())
 					if caps.Ver != "" && dbHash == caps.Ver {
 						// Cache !
-						debug.Printf("caps cache hit for %s: %s:%s", e.To, caps.Hash, dbHash)
+						debug.Print(p.Sprintf("caps cache hit for %s: %s:%s", e.To, caps.Hash, dbHash))
 						result.Info = discoInfo
 						e.Info <- result
 						return
 					}
-					debug.Printf("caps cache miss for %s: %s:%s, %[2]s:%[4]s", e.To, caps.Hash, dbHash, caps.Ver)
+					debug.Print(p.Sprintf("caps cache miss for %s: %s:%s, %[2]s:%[4]s", e.To, caps.Hash, dbHash, caps.Ver))
 				}
 
 				// If we do not have any previously fetched info, or we had a cache miss
@@ -476,13 +478,13 @@ func newClientHandler(configPath string, client *client.Client, pane *ui.UI, db 
 				}
 				err = db.UpsertDisco(ctx, e.To, caps, discoInfo)
 				if err != nil {
-					logger.Printf("error saving entity caps to the database: %v", err)
+					logger.Print(p.Sprintf("error saving entity caps to the database: %v", err))
 				}
 				result.Info = discoInfo
 				e.Info <- result
 			}()
 		default:
-			debug.Printf("unrecognized client event: %T(%[1]q)", e)
+			debug.Print(p.Sprintf("unrecognized client event: %T(%[1]q)", e))
 		}
 	}
 }

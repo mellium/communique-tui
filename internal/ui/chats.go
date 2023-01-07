@@ -26,6 +26,7 @@ type ConversationView struct {
 
 // NewConversationView configures and creates a new chat view.
 func NewConversationView(ui *UI) *ConversationView {
+	p := ui.Printer()
 	cv := ConversationView{
 		Flex: tview.NewFlex().SetDirection(tview.FlexRow),
 		TextView: tview.NewTextView().
@@ -36,7 +37,7 @@ func NewConversationView(ui *UI) *ConversationView {
 			SetFieldBackgroundColor(tview.Styles.PrimitiveBackgroundColor),
 		ui: ui,
 	}
-	cv.TextView.SetBorder(true).SetTitle("Conversation")
+	cv.TextView.SetBorder(true).SetTitle(p.Sprintf("Conversation"))
 	cv.input.SetBorder(true)
 	cv.Flex.SetBorder(false)
 	cv.Flex.AddItem(unreadTextView{TextView: cv.TextView}, 0, 100, false)

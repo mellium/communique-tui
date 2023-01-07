@@ -9,13 +9,9 @@ import (
 
 	"github.com/gdamore/tcell/v2"
 	"github.com/rivo/tview"
+	"golang.org/x/text/message"
 
 	"mellium.im/xmpp/jid"
-)
-
-const (
-	cancelButton = "Cancel"
-	execButton   = "Execute"
 )
 
 func modalClose(onEsc func()) func(event *tcell.EventKey) *tcell.EventKey {
@@ -27,12 +23,13 @@ func modalClose(onEsc func()) func(event *tcell.EventKey) *tcell.EventKey {
 	}
 }
 
-func delRosterModal(onEsc func(), onDel func()) *tview.Modal {
-	const (
-		removeButton = "Remove"
+func delRosterModal(p *message.Printer, onEsc func(), onDel func()) *tview.Modal {
+	var (
+		removeButton = p.Sprintf("Remove")
+		cancelButton = p.Sprintf("Cancel")
 	)
 	mod := tview.NewModal().
-		SetText(`Remove this contact from your roster?`).
+		SetText(p.Sprintf("Remove this contact from your roster?")).
 		SetBackgroundColor(tview.Styles.PrimitiveBackgroundColor).
 		AddButtons([]string{cancelButton, removeButton}).
 		SetDoneFunc(func(_ int, buttonLabel string) {
@@ -45,12 +42,13 @@ func delRosterModal(onEsc func(), onDel func()) *tview.Modal {
 	return mod
 }
 
-func delBookmarkModal(onEsc func(), onDel func()) *tview.Modal {
-	const (
-		removeButton = "Remove"
+func delBookmarkModal(p *message.Printer, onEsc func(), onDel func()) *tview.Modal {
+	var (
+		removeButton = p.Sprintf("Remove")
+		cancelButton = p.Sprintf("Cancel")
 	)
 	mod := tview.NewModal().
-		SetText(`Remove this channel?`).
+		SetText(p.Sprintf("Remove this channel?")).
 		SetBackgroundColor(tview.Styles.PrimitiveBackgroundColor).
 		AddButtons([]string{cancelButton, removeButton}).
 		SetDoneFunc(func(_ int, buttonLabel string) {
@@ -65,11 +63,14 @@ func delBookmarkModal(onEsc func(), onDel func()) *tview.Modal {
 
 // getJID creates a modal that asks for a JID. Eg. to add a bookmark or start a
 // new conversation.
-func getJID(title, addButton string, bare bool, f func(jid.JID, string), autocomplete []jid.JID) *Modal {
+func getJID(p *message.Printer, title, addButton string, bare bool, f func(jid.JID, string), autocomplete []jid.JID) *Modal {
+	var (
+		cancelButton = p.Sprintf("Cancel")
+	)
 	mod := NewModal().
 		SetText(title)
 	var inputJID jid.JID
-	jidInput := jidInput(&inputJID, bare, autocomplete, nil)
+	jidInput := jidInput(p, &inputJID, bare, autocomplete, nil)
 	modForm := mod.Form()
 	modForm.AddFormItem(jidInput)
 	mod.SetBackgroundColor(tview.Styles.PrimitiveBackgroundColor).
@@ -84,12 +85,12 @@ func getJID(title, addButton string, bare bool, f func(jid.JID, string), autocom
 // As the user types the label will change to indicate if the JID is valid or
 // invalid.
 // If the JID is valid, it is unmarshaled into the intputJID pointer.
-func jidInput(inputJID *jid.JID, bare bool, autocomplete []jid.JID, onChange func(string)) *tview.InputField {
+func jidInput(p *message.Printer, inputJID *jid.JID, bare bool, autocomplete []jid.JID, onChange func(string)) *tview.InputField {
 	jidInput := tview.NewInputField()
 	jidInput.SetPlaceholder("me@example.net")
 	jidInput.SetChangedFunc(func(text string) {
 		if text == "" {
-			jidInput.SetLabel("Address")
+			jidInput.SetLabel(p.Sprintf("Address"))
 			return
 		}
 		j, err := jid.Parse(text)

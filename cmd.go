@@ -87,11 +87,12 @@ func showCmd(pane *ui.UI, client *client.Client, resp commands.Response, payload
 		return err
 	}
 
-	const (
-		prevBtn     = "Prev"
-		nextBtn     = "Next"
-		completeBtn = "Complete"
-		cancelBtn   = "Cancel"
+	p := pane.Printer()
+	var (
+		prevBtn     = p.Sprintf("Prev")
+		nextBtn     = p.Sprintf("Next")
+		completeBtn = p.Sprintf("Complete")
+		cancelBtn   = p.Sprintf("Cancel")
 	)
 	var buttons []string
 	if actions&commands.Prev == commands.Prev {

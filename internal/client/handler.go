@@ -137,6 +137,7 @@ func newMessageHandler(c *Client) mux.MessageHandlerFunc {
 }
 
 func newHistoryHandler(c *Client) mux.MessageHandlerFunc {
+	p := c.Printer()
 	return func(m stanza.Message, r xmlstream.TokenReadEncoder) error {
 		msg := event.HistoryMessage{Message: m}
 
@@ -146,7 +147,7 @@ func newHistoryHandler(c *Client) mux.MessageHandlerFunc {
 			return err
 		}
 		if !msg.From.Equal(jid.JID{}) && !msg.From.Equal(c.addr.Bare()) {
-			c.debug.Printf("possibly spoofed history message from %s", msg.From)
+			c.debug.Print(p.Sprintf("possibly spoofed history message from %s", msg.From))
 			return nil
 		}
 		fromBare := msg.Result.Forward.Msg.From.Bare()

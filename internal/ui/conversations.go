@@ -11,6 +11,8 @@ import (
 
 	"github.com/gdamore/tcell/v2"
 	"github.com/rivo/tview"
+	"golang.org/x/text/message"
+
 	"mellium.im/xmpp/jid"
 )
 
@@ -41,21 +43,23 @@ type Conversations struct {
 	Width    int
 	flex     *tview.Flex
 	changed  func(int, string, string, rune)
+	p        *message.Printer
 }
 
 // newConversations creates a new widget with the provided options.
-func newConversations(onStatus func()) *Conversations {
+func newConversations(p *message.Printer, onStatus func()) *Conversations {
 	c := &Conversations{
 		items:    make(map[string]Conversation),
 		itemLock: &sync.Mutex{},
 		list:     tview.NewList(),
 		flex:     tview.NewFlex(),
+		p:        p,
 	}
 	c.flex.SetBorder(true).
 		SetBorderPadding(0, 0, 1, 0)
 	c.flex.AddItem(c.list, 0, 1, true).
 		SetDirection(tview.FlexRow)
-	c.list.SetTitle("Conversations")
+	c.list.SetTitle(p.Sprintf("Conversations"))
 
 	// Add default status indicator.
 	c.Upsert(Conversation{idx: 0}, func(Conversation) { onStatus() })
@@ -66,22 +70,22 @@ func newConversations(onStatus func()) *Conversations {
 
 // Offline sets the state of the roster to show the user as offline.
 func (c Conversations) Offline() {
-	c.setStatus("silver::d", "Offline")
+	c.setStatus("silver::d", c.p.Sprintf("Offline"))
 }
 
 // Online sets the state of the roster to show the user as online.
 func (c Conversations) Online() {
-	c.setStatus("green", "Online")
+	c.setStatus("green", c.p.Sprintf("Online"))
 }
 
 // Away sets the state of the roster to show the user as away.
 func (c Conversations) Away() {
-	c.setStatus("orange", "Away")
+	c.setStatus("orange", c.p.Sprintf("Away"))
 }
 
 // Busy sets the state of the roster to show the user as busy.
 func (c Conversations) Busy() {
-	c.setStatus("red", "Busy")
+	c.setStatus("red", c.p.Sprintf("Busy"))
 }
 
 func (c Conversations) setStatus(color, name string) {

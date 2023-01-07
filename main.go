@@ -9,6 +9,8 @@
 // messaging service that speaks the XMPP protocol.
 package main // import "mellium.im/communique"
 
+//go:generate go run -tags=tools golang.org/x/text/cmd/gotext update -out catalog.go
+
 import (
 	"bytes"
 	"context"
@@ -26,6 +28,9 @@ import (
 	"strings"
 	"syscall"
 	"time"
+
+	"golang.org/x/text/language"
+	"golang.org/x/text/message"
 
 	"github.com/BurntSushi/toml"
 	"github.com/gdamore/tcell/v2"
@@ -52,20 +57,34 @@ var (
 	Commit  = "unknown commit"
 )
 
-func printHelp(flags *flag.FlagSet, w io.Writer) {
+func printHelp(flags *flag.FlagSet, w io.Writer, p *message.Printer) {
 	flags.SetOutput(w)
-	fmt.Fprint(w, `Usage of communiqué:
+	p.Fprintf(w, `Usage of communiqué:
 
 `)
 	flags.PrintDefaults()
 }
 
 func main() {
+	// Setup internationalization and translations.
+	lang := os.Getenv("LC_ALL")
+	if lang == "" {
+		lang = os.Getenv("LANG")
+	}
+	if lang == "" {
+		lang = "en"
+	} else {
+		lang, _, _ = strings.Cut(lang, ".")
+	}
+	langTag := language.Make(lang)
+	langTag, _, _ = message.DefaultCatalog.Matcher().Match(langTag)
+	p := message.NewPrinter(langTag)
+
 	earlyLogs := &bytes.Buffer{}
 	logger := log.New(io.MultiWriter(os.Stderr, earlyLogs), "", log.LstdFlags)
-	debug := log.New(io.Discard, "DEBUG ", log.LstdFlags)
-	xmlInLog := log.New(io.Discard, "RECV ", log.LstdFlags)
-	xmlOutLog := log.New(io.Discard, "SENT ", log.LstdFlags)
+	debug := log.New(io.Discard, p.Sprintf("DEBUG")+" ", log.LstdFlags)
+	xmlInLog := log.New(io.Discard, p.Sprintf("RECV")+" ", log.LstdFlags)
+	xmlOutLog := log.New(io.Discard, p.Sprintf("SENT")+" ", log.LstdFlags)
 
 	var (
 		configPath string
@@ -75,47 +94,47 @@ func main() {
 		genConfig  bool
 	)
 	flags := flag.NewFlagSet(appName, flag.ContinueOnError)
-	flags.StringVar(&configPath, "f", configPath, "the config file to load")
-	flags.StringVar(&defAcct, "account", defAcct, "override the account set in the config file")
-	flags.BoolVar(&h, "h", h, "print this help message")
-	flags.BoolVar(&help, "help", help, "print this help message")
-	flags.BoolVar(&genConfig, "config", genConfig, "print a default config file to stdout")
+	flags.StringVar(&configPath, "f", configPath, p.Sprintf("the config file to load"))
+	flags.StringVar(&defAcct, "account", defAcct, p.Sprintf("override the account set in the config file"))
+	flags.BoolVar(&h, "h", h, p.Sprintf("print this help message"))
+	flags.BoolVar(&help, "help", help, p.Sprintf("print this help message"))
+	flags.BoolVar(&genConfig, "config", genConfig, p.Sprintf("print a default config file to stdout"))
 	// Even with ContinueOnError set, it still prints for some reason. Discard the
 	// first defaults so we can write our own.
 	flags.SetOutput(io.Discard)
 	err := flags.Parse(os.Args[1:])
 	if err != nil {
 		logger.Println(err)
-		printHelp(flags, os.Stderr)
+		printHelp(flags, os.Stderr, p)
 		os.Exit(2)
 	}
 
 	if help || h {
-		printHelp(flags, os.Stdout)
+		printHelp(flags, os.Stdout, p)
 		return
 	}
 
 	if genConfig {
 		err = printConfig(os.Stdout)
 		if err != nil {
-			logger.Fatalf("Error encoding default config as TOML: %v", err)
+			logger.Fatal(p.Sprintf("Error encoding default config as TOML: %v", err))
 		}
 		return
 	}
 
 	f, fpath, err := configFile(configPath)
 	if err != nil {
-		logger.Fatalf(`%v
+		logger.Fatalf(p.Sprintf(`%v
 
-Try running '%s -config' to generate a default config file.`, err, os.Args[0])
+Try running '%s -config' to generate a default config file.`, err, os.Args[0]))
 	}
 	cfg := config{}
 	_, err = toml.NewDecoder(f).Decode(&cfg)
 	if err != nil {
-		logger.Printf("error parsing config file: %v", err)
+		logger.Print(p.Sprintf("error parsing config file: %v", err))
 	}
 	if err = f.Close(); err != nil {
-		logger.Printf("error closing config file: %v", err)
+		logger.Print(p.Sprintf("error closing config file: %v", err))
 	}
 
 	if cfg.Log.Verbose {
@@ -134,7 +153,7 @@ Try running '%s -config' to generate a default config file.`, err, os.Args[0])
 		}
 	}
 	if acct.Address == "" {
-		logger.Fatalf("account %q not found in config file", cfg.DefaultAcct)
+		logger.Fatal(p.Sprintf("account %q not found in config file", cfg.DefaultAcct))
 	}
 
 	// Open the database
@@ -142,11 +161,11 @@ Try running '%s -config' to generate a default config file.`, err, os.Args[0])
 	defer cancel()
 	account, err := jid.Parse(acct.Address)
 	if err != nil {
-		logger.Fatalf("error parsing main account as XMPP address: %v", err)
+		logger.Fatal(p.Sprintf("error parsing main account as XMPP address: %v", err))
 	}
 	db, err := storage.OpenDB(dbCtx, appName, account.Bare().String(), acct.DB, schema, debug)
 	if err != nil {
-		logger.Fatalf("error opening database: %v", err)
+		logger.Fatal(p.Sprintf("error opening database: %v", err))
 	}
 	defer db.Close()
 
@@ -177,6 +196,7 @@ Try running '%s -config' to generate a default config file.`, err, os.Args[0])
 	signal.Notify(sigs, os.Interrupt, syscall.SIGQUIT, syscall.SIGTERM)
 
 	pane := ui.New(
+		p,
 		ui.Debug(debug),
 		ui.Addr(acct.Address),
 		ui.ShowStatus(!cfg.UI.HideStatus),
@@ -203,7 +223,7 @@ Go %s %s
 
 `, string(appName[0]^0x20)+appName[1:], Version, Commit, runtime.Version(), runtime.Compiler)
 	if err != nil {
-		debug.Printf("error logging to pane: %v", err)
+		debug.Print(p.Sprintf("error logging to pane: %v", err))
 	}
 
 	_, err = io.Copy(pane, earlyLogs)
@@ -212,13 +232,13 @@ Go %s %s
 		debug.SetOutput(pane)
 	}
 	if err != nil {
-		debug.Printf("error copying early log data to output buffer: %q", err)
+		debug.Print(p.Sprintf("error copying early log data to output buffer: %q", err))
 	}
 
 	pass := &bytes.Buffer{}
 	if len(acct.PassCmd) > 0 {
 		args := strings.Fields(acct.PassCmd)
-		debug.Printf("running command: %q", acct.PassCmd)
+		debug.Print(p.Sprintf("running command: %q", acct.PassCmd))
 		// The config file is considered a safe source since it is never written
 		// except by the user, so consider this use of exec to be safe.
 		/* #nosec */
@@ -229,7 +249,7 @@ Go %s %s
 		/* #nosec */
 		err := cmd.Run()
 		if err != nil {
-			debug.Printf("error running password command, falling back to prompt: %v", err)
+			debug.Print(p.Sprintf("error running password command, falling back to prompt: %v", err))
 		}
 	}
 	getPass := func(ctx context.Context) (string, error) {
@@ -241,23 +261,23 @@ Go %s %s
 
 	var j jid.JID
 	if cfg.DefaultAcct == "" {
-		logger.Printf(`no user address specified, edit %q and add:
+		logger.Print(p.Sprintf(`no user address specified, edit %q and add:
 
 	jid="me@example.com"
 
-`, fpath)
+`, fpath))
 	} else {
-		logger.Printf("user address: %q", cfg.DefaultAcct)
+		logger.Print(p.Sprintf("user address: %q", cfg.DefaultAcct))
 		j, err = jid.Parse(cfg.DefaultAcct)
 		if err != nil {
-			logger.Printf("error parsing user address: %q", err)
+			logger.Print(p.Sprintf("error parsing user address: %q", err))
 		}
 	}
 	timeout := 30 * time.Second
 	if cfg.Timeout != "" {
 		timeout, err = time.ParseDuration(cfg.Timeout)
 		if err != nil {
-			logger.Printf("error parsing timeout, defaulting to 30s: %q", err)
+			logger.Print(p.Sprintf("error parsing timeout, defaulting to 30s: %q", err))
 		}
 	}
 	// cfg.KeyLog
@@ -265,7 +285,7 @@ Go %s %s
 	if acct.KeyLog != "" {
 		keylog, err = os.OpenFile(acct.KeyLog, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, 0400)
 		if err != nil {
-			logger.Printf("error creating keylog file: %q", err)
+			logger.Print(p.Sprintf("error creating keylog file: %q", err))
 		}
 	}
 	dialer := &dial.Dialer{
@@ -284,7 +304,7 @@ Go %s %s
 		defer cancel()
 		rosterVer, err = db.RosterVer(ctx)
 		if err != nil {
-			logger.Printf("error retrieving roster version, falling back to full roster fetch: %v", err)
+			logger.Print(p.Sprintf("error retrieving roster version, falling back to full roster fetch: %v", err))
 		}
 	}()
 	c := client.New(
@@ -295,6 +315,7 @@ Go %s %s
 		client.Tee(logwriter.New(xmlInLog), logwriter.New(xmlOutLog)),
 		client.Password(getPass),
 		client.RosterVer(rosterVer),
+		client.Printer(p),
 	)
 	c.Handler(newClientHandler(configPath, c, pane, db, logger, debug))
 	pane.Handle(newUIHandler(configPath, acct, pane, db, c, logger, debug))
@@ -315,15 +336,15 @@ Go %s %s
 		ctx, cancel := context.WithTimeout(context.Background(), 3*timeout)
 		defer cancel()
 		if err := c.Online(ctx); err != nil {
-			logger.Printf("initial login failed: %v", err)
+			logger.Print(p.Sprintf("initial login failed: %v", err))
 			return
 		}
-		debug.Printf("logged in as: %q", c.LocalAddr())
+		debug.Print(p.Sprintf("logged in as: %q", c.LocalAddr()))
 	}()
 
 	go func() {
 		s := <-sigs
-		debug.Printf("got signal: %v", s)
+		debug.Print(p.Sprintf("got signal: %v", s))
 		pane.Stop()
 	}()
 

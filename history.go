@@ -121,6 +121,7 @@ func writeMessage(pane *ui.UI, configPath string, msg event.ChatMessage, notNew 
 func loadBuffer(ctx context.Context, pane *ui.UI, db *storage.DB, configPath string, ev roster.Item, msgID string, logger *log.Logger) error {
 	history := pane.History()
 	history.SetText("")
+	p := pane.Printer()
 
 	iter := db.QueryHistory(ctx, ev.JID.String(), "")
 	for iter.Next() {
@@ -133,16 +134,15 @@ func loadBuffer(ctx context.Context, pane *ui.UI, db *storage.DB, configPath str
 		}
 		err := writeMessage(pane, configPath, cur, true)
 		if err != nil {
-			err = fmt.Errorf("error writing history: %w", err)
-			history.SetText(err.Error())
-			logger.Println(err)
+			msg := p.Sprintf("error writing history: %v", err)
+			history.SetText(msg)
+			logger.Println(msg)
 			return nil
 		}
 	}
 	if err := iter.Err(); err != nil {
 		history.SetText(err.Error())
-		err = fmt.Errorf("error querying history for %s: %w", ev.JID, err)
-		logger.Println(err)
+		logger.Println(p.Sprintf("error querying history for %s: %v", ev.JID, err))
 	}
 	history.ScrollToEnd()
 	return nil
