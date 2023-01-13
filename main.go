@@ -59,9 +59,12 @@ var (
 
 func printHelp(flags *flag.FlagSet, w io.Writer, p *message.Printer) {
 	flags.SetOutput(w)
-	p.Fprintf(w, `Usage of communiqué:
+	_, err := p.Fprintf(w, `Usage of communiqué:
 
 `)
+	if err != nil {
+		panic(err)
+	}
 	flags.PrintDefaults()
 }
 
