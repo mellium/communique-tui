@@ -17,7 +17,6 @@ import (
 	"flag"
 	"fmt"
 	"io"
-	"io/ioutil"
 	"log"
 	"os"
 	"os/exec"
@@ -64,9 +63,9 @@ func printHelp(flags *flag.FlagSet, w io.Writer) {
 func main() {
 	earlyLogs := &bytes.Buffer{}
 	logger := log.New(io.MultiWriter(os.Stderr, earlyLogs), "", log.LstdFlags)
-	debug := log.New(ioutil.Discard, "DEBUG ", log.LstdFlags)
-	xmlInLog := log.New(ioutil.Discard, "RECV ", log.LstdFlags)
-	xmlOutLog := log.New(ioutil.Discard, "SENT ", log.LstdFlags)
+	debug := log.New(io.Discard, "DEBUG ", log.LstdFlags)
+	xmlInLog := log.New(io.Discard, "RECV ", log.LstdFlags)
+	xmlOutLog := log.New(io.Discard, "SENT ", log.LstdFlags)
 
 	var (
 		configPath string
@@ -83,7 +82,7 @@ func main() {
 	flags.BoolVar(&genConfig, "config", genConfig, "print a default config file to stdout")
 	// Even with ContinueOnError set, it still prints for some reason. Discard the
 	// first defaults so we can write our own.
-	flags.SetOutput(ioutil.Discard)
+	flags.SetOutput(io.Discard)
 	err := flags.Parse(os.Args[1:])
 	if err != nil {
 		logger.Println(err)
@@ -111,7 +110,7 @@ func main() {
 Try running '%s -config' to generate a default config file.`, err, os.Args[0])
 	}
 	cfg := config{}
-	_, err = toml.DecodeReader(f, &cfg)
+	_, err = toml.NewDecoder(f).Decode(&cfg)
 	if err != nil {
 		logger.Printf("error parsing config file: %v", err)
 	}
