@@ -74,6 +74,7 @@ func main() {
 		h          bool
 		help       bool
 		genConfig  bool
+		useQuic    bool
 	)
 	flags := flag.NewFlagSet(appName, flag.ContinueOnError)
 	flags.StringVar(&configPath, "f", configPath, "the config file to load")
@@ -81,6 +82,7 @@ func main() {
 	flags.BoolVar(&h, "h", h, "print this help message")
 	flags.BoolVar(&help, "help", help, "print this help message")
 	flags.BoolVar(&genConfig, "config", genConfig, "print a default config file to stdout")
+	flags.BoolVar(&useQuic, "quic", useQuic, "Start session over quic (XEP-0467)")
 	// Even with ContinueOnError set, it still prints for some reason. Discard the
 	// first defaults so we can write our own.
 	flags.SetOutput(ioutil.Discard)
@@ -296,6 +298,7 @@ Go %s %s
 		client.Tee(logwriter.New(xmlInLog), logwriter.New(xmlOutLog)),
 		client.Password(getPass),
 		client.RosterVer(rosterVer),
+		client.Quic(useQuic),
 	)
 	c.Handler(newClientHandler(configPath, c, pane, db, logger, debug))
 	pane.Handle(newUIHandler(configPath, acct, pane, db, c, logger, debug))
