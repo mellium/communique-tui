@@ -5,6 +5,7 @@ import (
 	"crypto/tls"
 	"log"
 	"net"
+	"time"
 
 	"github.com/quic-go/quic-go"
 	"mellium.im/xmpp/jid"
@@ -40,7 +41,12 @@ func Connect(ctx context.Context, addr jid.JID, logger *log.Logger) (*QuicConn, 
 
 	logger.Println("Connecting to server...")
 
-	conn, err := quic.DialAddr(ctx, ipAddr+":443", tlsCfg, nil)
+	config := quic.Config{
+		MaxIdleTimeout: 5 * time.Minute,
+		KeepAlivePeriod: 5 * time.Second,
+	}
+
+	conn, err := quic.DialAddr(ctx, ipAddr+":5300", tlsCfg, &config)
 	if err != nil {
 		return nil, err
 	}

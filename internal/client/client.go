@@ -148,7 +148,11 @@ func (c *Client) reconnect(ctx context.Context) error {
 			TeeOut: c.wout,
 		}
 	})
-	c.Session, err = xmpp.NewSession(ctx, c.addr.Domain(), c.addr, conn, 0, negotiator)
+	state := xmpp.SessionState(0)
+	if c.useQuic {
+		state = state | xmpp.Secure
+	}
+	c.Session, err = xmpp.NewSession(ctx, c.addr.Domain(), c.addr, conn, state, negotiator)
 	if err != nil {
 		return fmt.Errorf("error negotiating session: %v", err)
 	}
