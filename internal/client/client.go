@@ -16,6 +16,7 @@ import (
 	"time"
 
 	"mellium.im/communique/internal/client/event"
+	"mellium.im/communique/internal/client/quic"
 	legacybookmarks "mellium.im/legacy/bookmarks"
 	"mellium.im/sasl"
 	"mellium.im/xmlstream"
@@ -108,9 +109,19 @@ func (c *Client) reconnect(ctx context.Context) error {
 	ctx, cancel = context.WithTimeout(ctx, c.timeout)
 	defer cancel()
 
-	conn, err := c.dialer.Dial(ctx, "tcp", c.addr)
+	var conn io.ReadWriter
+	var quicConn *quic.QuicConn
+	if c.useQuic {
+		quicConn, err = quic.Connect(ctx, c.addr, c.logger)
+	} else {
+		conn, err = c.dialer.Dial(ctx, "tcp", c.addr)
+	}
 	if err != nil {
 		return fmt.Errorf("error dialing connection: %v", err)
+	}
+	if c.useQuic {
+		c.quicConn = quicConn
+		conn = quicConn.Stream
 	}
 
 	saslFeature := xmpp.SASL("", pass,
@@ -137,7 +148,11 @@ func (c *Client) reconnect(ctx context.Context) error {
 			TeeOut: c.wout,
 		}
 	})
-	c.Session, err = xmpp.NewSession(ctx, c.addr.Domain(), c.addr, conn, 0, negotiator)
+	state := xmpp.SessionState(0)
+	if c.useQuic {
+		state = state | xmpp.Secure
+	}
+	c.Session, err = xmpp.NewSession(ctx, c.addr.Domain(), c.addr, conn, state, negotiator)
 	if err != nil {
 		return fmt.Errorf("error negotiating session: %v", err)
 	}
@@ -155,7 +170,12 @@ func (c *Client) reconnect(ctx context.Context) error {
 		if err != nil {
 			c.logger.Printf("Error going offline: %q", err)
 		}
-		if err = conn.Close(); err != nil {
+		if c.useQuic {
+			err = c.quicConn.Conn.CloseWithError(0x42, "Closing the connection")
+		} else {
+			err = c.Session.Conn().Close()
+		}
+		if err != nil {
 			c.logger.Printf("Error closing the connection: %q", err)
 		}
 	}()
@@ -216,6 +236,8 @@ type Client struct {
 	mucClient       *muc.Client
 	chanM           sync.Mutex
 	channels        map[string]*muc.Channel
+	useQuic         bool
+	quicConn        *quic.QuicConn
 }
 
 // Online sets the status to online.

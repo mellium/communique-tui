@@ -42,6 +42,15 @@ func Dialer(d *dial.Dialer) Option {
 	}
 }
 
+// Quic tells if the session will use xmpp over quic or not (XEP-0467)
+//
+// If this option is not provided, session will start over tcp or tls
+func Quic(v bool) Option {
+	return func(c *Client) {
+		c.useQuic = v
+	}
+}
+
 // NoTLS configures the client to use a plain connection.
 // This should only be used for debugging.
 func NoTLS(v bool) Option {
