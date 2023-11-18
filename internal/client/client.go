@@ -159,6 +159,8 @@ func (c *Client) reconnect(ctx context.Context) error {
 
 	c.online = true
 
+	c.debug.Println("Finished session negotiation")
+
 	go func() {
 		err := c.Serve(newXMPPHandler(c))
 		if err != nil {
@@ -182,6 +184,7 @@ func (c *Client) reconnect(ctx context.Context) error {
 
 	// If the stream contained entity capabilities, go ahead and send an alert so
 	// that we can fetch the disco
+	c.debug.Println("Fetching server caps")
 	if caps, ok := disco.ServerCaps(c.Session); ok {
 		c.handler(event.NewCaps{
 			From: c.Session.In().From,
@@ -190,6 +193,7 @@ func (c *Client) reconnect(ctx context.Context) error {
 	}
 
 	// Enable message carbons.
+	c.debug.Println("Enabling message carbons")
 	carbonsCtx, carbonsCancel := context.WithTimeout(context.Background(), c.timeout)
 	defer carbonsCancel()
 	err = carbons.Enable(carbonsCtx, c.Session)
@@ -199,6 +203,7 @@ func (c *Client) reconnect(ctx context.Context) error {
 	}
 
 	// Fetch the roster
+	c.debug.Println("Fetching roster")
 	rosterCtx, rosterCancel := context.WithTimeout(context.Background(), c.timeout)
 	defer rosterCancel()
 	err = c.Roster(rosterCtx)
@@ -207,6 +212,7 @@ func (c *Client) reconnect(ctx context.Context) error {
 	}
 
 	// Fetch the bookmarks
+	c.debug.Println("Fetching bookmarks")
 	bookmarksCtx, bookmarksCancel := context.WithTimeout(context.Background(), c.timeout)
 	defer bookmarksCancel()
 	err = c.Bookmarks(bookmarksCtx)
@@ -449,6 +455,7 @@ func (c *Client) SendMessage(ctx context.Context, msg event.ChatMessage) (event.
 		msg.ID = id
 		msg.OriginID.ID = id
 	}
+	msg.From = c.Session.LocalAddr()
 
 	return msg, c.Session.Send(ctx, receipts.Request(encodeMessage(msg)))
 }

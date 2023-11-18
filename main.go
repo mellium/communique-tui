@@ -33,6 +33,7 @@ import (
 	"github.com/rivo/tview"
 
 	"mellium.im/communique/internal/client"
+	"mellium.im/communique/internal/gui"
 	"mellium.im/communique/internal/logwriter"
 	"mellium.im/communique/internal/storage"
 	"mellium.im/communique/internal/ui"
@@ -75,6 +76,7 @@ func main() {
 		help       bool
 		genConfig  bool
 		useQuic    bool
+		useGui     bool
 	)
 	flags := flag.NewFlagSet(appName, flag.ContinueOnError)
 	flags.StringVar(&configPath, "f", configPath, "the config file to load")
@@ -83,6 +85,7 @@ func main() {
 	flags.BoolVar(&help, "help", help, "print this help message")
 	flags.BoolVar(&genConfig, "config", genConfig, "print a default config file to stdout")
 	flags.BoolVar(&useQuic, "quic", useQuic, "Start session over quic (XEP-0467)")
+	flags.BoolVar(&useGui, "gui", useGui, "Start session with fyne GUI")
 	// Even with ContinueOnError set, it still prints for some reason. Discard the
 	// first defaults so we can write our own.
 	flags.SetOutput(ioutil.Discard)
@@ -103,6 +106,98 @@ func main() {
 		if err != nil {
 			logger.Fatalf("Error encoding default config as TOML: %v", err)
 		}
+		return
+	}
+
+	// GUI Code is here
+	if useGui {
+		// TODO: Implement windows to display different type of debug output
+		// Currently displaying all in one main terminal
+		debug.SetOutput(io.MultiWriter(earlyLogs, os.Stderr))
+		xmlInLog.SetOutput(io.MultiWriter(earlyLogs, os.Stderr))
+		xmlOutLog.SetOutput(io.MultiWriter(earlyLogs, os.Stderr))
+
+		timeout := 30 * time.Second
+
+		window := gui.New(debug)
+
+		jidChan := make(chan *gui.LoginData)
+		var db *storage.DB
+
+		go func() {
+			logininp := <-jidChan
+
+			debug.Printf("JID Account: %s", logininp.JID)
+			if logininp.JID == "" {
+				return
+			}
+
+			// Open the database
+			dbCtx, cancel := context.WithTimeout(context.Background(), 1*time.Second)
+			defer cancel()
+			account, err := jid.Parse(logininp.JID)
+			if err != nil {
+				logger.Fatalf("error parsing main account as XMPP address: %v", err)
+			}
+			db, err = storage.OpenDB(dbCtx, appName, account.Bare().String(), "", schema, debug)
+			if err != nil {
+				logger.Fatalf("error opening database: %v", err)
+			}
+
+			// Get current roster version
+			var rosterVer string
+			func() {
+				ctx, cancel := context.WithTimeout(context.Background(), timeout)
+				defer cancel()
+				rosterVer, err = db.RosterVer(ctx)
+				if err != nil {
+					logger.Printf("error retrieving roster version, falling back to full roster fetch: %v", err)
+				}
+			}()
+
+			j, err := jid.Parse(logininp.JID)
+			if err != nil {
+				logger.Printf("error parsing user address: %q", err)
+			}
+
+			getPass := func(ctx context.Context) (string, error) {
+				return logininp.Pass, nil
+			}
+
+			dialer := &dial.Dialer{
+				TLSConfig: &tls.Config{
+					ServerName: j.Domain().String(),
+					MinVersion: tls.VersionTLS12,
+				},
+				NoLookup: false,
+				NoTLS:    false,
+			}
+
+			c := client.New(
+				j, logger, debug,
+				client.Timeout(timeout),
+				client.Dialer(dialer),
+				client.NoTLS(false),
+				client.Tee(logwriter.New(xmlInLog), logwriter.New(xmlOutLog)),
+				client.Password(getPass),
+				client.RosterVer(rosterVer),
+				client.Quic(useQuic),
+			)
+
+			c.Handler(newXMPPClientHandler(window, db, c, logger, debug))
+			window.Handler(newFyneGUIHandler(window, db, c, logger, debug))
+
+			ctx, cancel := context.WithTimeout(context.Background(), 3*timeout)
+			defer cancel()
+			if err := c.Online(ctx); err != nil {
+				logger.Printf("initial login failed: %v", err)
+				return
+			}
+			debug.Printf("logged in as: %q", c.LocalAddr())
+		}()
+
+		window.Run(jidChan)
+		db.Close()
 		return
 	}
 
