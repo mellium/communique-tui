@@ -134,4 +134,7 @@ type (
 			Err  error
 		}
 	}
+
+	// NewCall is sent when there's a new request to start a call
+	NewCall struct{}
 )

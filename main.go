@@ -33,6 +33,7 @@ import (
 	"github.com/rivo/tview"
 
 	"mellium.im/communique/internal/client"
+	"mellium.im/communique/internal/client/gst"
 	"mellium.im/communique/internal/gui"
 	"mellium.im/communique/internal/logwriter"
 	"mellium.im/communique/internal/storage"
@@ -111,6 +112,7 @@ func main() {
 
 	// GUI Code is here
 	if useGui {
+		gst.GstreamerInit()
 		// TODO: Implement windows to display different type of debug output
 		// Currently displaying all in one main terminal
 		debug.SetOutput(io.MultiWriter(earlyLogs, os.Stderr))
