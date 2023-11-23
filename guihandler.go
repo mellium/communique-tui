@@ -44,7 +44,7 @@ func newFyneGUIHandler(g *gui.GUI, db *storage.DB, c *client.Client, logger, deb
 			}()
 		case event.NewCall:
 			go func() {
-				receivePipeline := gst.CreatePipeline()
+				receivePipeline, _ := gst.CreateReceivePipeline()
 				receivePipeline.Start()
 			}()
 		}
