@@ -11,7 +11,6 @@ import (
 
 	"mellium.im/communique/internal/client"
 	"mellium.im/communique/internal/client/event"
-	"mellium.im/communique/internal/client/gst"
 	"mellium.im/communique/internal/gui"
 	"mellium.im/communique/internal/storage"
 	"mellium.im/xmpp/crypto"
@@ -41,11 +40,6 @@ func newFyneGUIHandler(g *gui.GUI, db *storage.DB, c *client.Client, logger, deb
 				if err = db.InsertMsg(ctx, e.Account, e, c.LocalAddr()); err != nil {
 					logger.Printf("error writing message to database: %v", err)
 				}
-			}()
-		case event.NewCall:
-			go func() {
-				receivePipeline, _ := gst.CreateReceivePipeline()
-				receivePipeline.Start()
 			}()
 		}
 	}

@@ -87,31 +87,33 @@ const (
 	pcmClockRate   = 8000
 )
 
-func CreateSendPipeline(codecName string, tracks []*webrtc.TrackLocalStaticSample, pipelineSrc string) (*SendPipeline, error) {
+func CreateSendPipeline(codecName string, tracks []*webrtc.TrackLocalStaticSample) (*SendPipeline, error) {
 	pipelineStr := "appsink name=appsink"
+	pipelineVideoSrc := "autovideosrc ! video/x-raw, width=320, height=240 ! videoconvert ! tee name=t ! autovideosink t. ! queue"
+	pipelineAudioSrc := "autoaudiosrc ! queue ! audioconvert"
 	var clockRate float32
 
 	switch codecName {
 	case "vp8":
-		pipelineStr = pipelineSrc + " ! vp8enc error-resilient=partitions keyframe-max-dist=10 auto-alt-ref=true cpu-used=5 deadline=1 ! " + pipelineStr
+		pipelineStr = pipelineVideoSrc + " ! vp8enc error-resilient=partitions keyframe-max-dist=10 auto-alt-ref=true cpu-used=5 deadline=1 ! " + pipelineStr
 		clockRate = videoClockRate
 	case "vp9":
-		pipelineStr = pipelineSrc + " ! vp9enc ! " + pipelineStr
+		pipelineStr = pipelineVideoSrc + " ! vp9enc ! " + pipelineStr
 		clockRate = videoClockRate
 	case "h264":
-		pipelineStr = pipelineSrc + " ! video/x-raw,format=I420 ! x264enc speed-preset=ultrafast tune=zerolatency key-int-max=20 ! video/x-h264,stream-format=byte-stream ! " + pipelineStr
+		pipelineStr = pipelineVideoSrc + " ! video/x-raw,format=I420 ! x264enc speed-preset=ultrafast tune=zerolatency key-int-max=20 ! video/x-h264,stream-format=byte-stream ! " + pipelineStr
 		clockRate = videoClockRate
 	case "opus":
-		pipelineStr = pipelineSrc + " ! opusenc ! " + pipelineStr
+		pipelineStr = pipelineAudioSrc + " ! opusenc ! " + pipelineStr
 		clockRate = audioClockRate
 	case "g722":
-		pipelineStr = pipelineSrc + " ! avenc_g722 ! " + pipelineStr
+		pipelineStr = pipelineAudioSrc + " ! avenc_g722 ! " + pipelineStr
 		clockRate = audioClockRate
 	case "pcmu":
-		pipelineStr = pipelineSrc + " ! audio/x-raw, rate=8000 ! mulawenc ! " + pipelineStr
+		pipelineStr = pipelineAudioSrc + " ! audio/x-raw, rate=8000 ! mulawenc ! " + pipelineStr
 		clockRate = pcmClockRate
 	case "pcma":
-		pipelineStr = pipelineSrc + " ! audio/x-raw, rate=8000 ! alawenc ! " + pipelineStr
+		pipelineStr = pipelineAudioSrc + " ! audio/x-raw, rate=8000 ! alawenc ! " + pipelineStr
 		clockRate = pcmClockRate
 	default:
 		return nil, errors.New("Unhandled codec " + codecName)
