@@ -125,9 +125,9 @@ func (c *Client) reconnect(ctx context.Context) error {
 	}
 
 	saslFeature := xmpp.SASL("", pass,
-		sasl.ScramSha256Plus,
-		sasl.ScramSha1Plus,
-		sasl.ScramSha256,
+		// sasl.ScramSha256Plus,
+		// sasl.ScramSha1Plus,
+		// sasl.ScramSha256,
 		sasl.ScramSha1,
 		sasl.Plain,
 	)

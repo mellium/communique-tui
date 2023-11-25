@@ -49,9 +49,17 @@ func makeChatBox(c *conversation, g *GUI) fyne.CanvasObject {
 func makeToolbar(c *conversation, g *GUI) fyne.CanvasObject {
 	addressCard := widget.NewCard(c.email, "", nil)
 	toolbar := widget.NewToolbar(
-		widget.NewToolbarAction(theme.MediaPlayIcon(), func() {}),
+		widget.NewToolbarAction(theme.MediaPlayIcon(), func() {
+			g.TerminateCallSession()
+		}),
 		widget.NewToolbarAction(theme.MediaVideoIcon(), func() {
-			g.handler(event.NewCall{})
+			fullJid := c.email
+			if c.resource != "" {
+				fullJid += "/" + c.resource
+			}
+			g.ShowOutgoingCall(jid.MustParse(fullJid))
+			g.ShowIncomingCall(jid.MustParse(fullJid))
+			g.ShowCallSession()
 		}),
 	)
 	return container.NewBorder(nil, nil, nil, toolbar, addressCard)

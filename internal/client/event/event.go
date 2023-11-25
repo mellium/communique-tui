@@ -135,6 +135,15 @@ type (
 		}
 	}
 
-	// NewCall is sent when there's a new request to start a call
-	NewCall struct{}
+	// NewCall is sent when there's a new request to start a call from current client or another client
+	NewCall jid.JID
+
+	// AcceptCall is sent when current client or another client accept a call request
+	AcceptCall jid.JID
+
+	// CancelCall is sent when current client or another client cancel a call request
+	CancelCall string
+
+	// TerminateCall is sent when current client or another client want to terminate call session
+	TerminateCall string
 )

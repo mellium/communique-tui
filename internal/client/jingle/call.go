@@ -11,6 +11,7 @@ import (
 )
 
 type JingleState int
+type JingleRole int
 
 const (
 	Ended JingleState = iota
@@ -18,8 +19,15 @@ const (
 	Active
 )
 
+const (
+	EmptyRole JingleRole = iota
+	Initiator
+	Responder
+)
+
 type CallClient struct {
 	State            JingleState
+	Role             JingleRole
 	SID              string
 	RTCClient        *webrtc.PeerConnection
 	ReceivePipelines []*gst.ReceivePipeline
@@ -31,11 +39,12 @@ type CallClient struct {
 func New(debug *log.Logger) *CallClient {
 	return &CallClient{
 		State: Ended,
+		Role:  EmptyRole,
 		debug: debug,
 	}
 }
 
-func (c *CallClient) StartCall(initiator *jid.JID) (*Jingle, error) {
+func (c *CallClient) StartOutgoingCall(initiator *jid.JID) (*Jingle, error) {
 	c.mu.Lock()
 	defer c.mu.Unlock()
 	if c.State != Ended {
@@ -47,7 +56,7 @@ func (c *CallClient) StartCall(initiator *jid.JID) (*Jingle, error) {
 	return &Jingle{}, nil
 }
 
-func (c *CallClient) StartCallFinalize(jingle *Jingle) error {
+func (c *CallClient) AcceptOutgoingCall(jingle *Jingle) error {
 	c.mu.Lock()
 	defer c.mu.Unlock()
 	if c.State != Pending {
@@ -59,7 +68,7 @@ func (c *CallClient) StartCallFinalize(jingle *Jingle) error {
 	return nil
 }
 
-func (c *CallClient) AcceptCall(responder *jid.JID, jingle *Jingle) (*Jingle, error) {
+func (c *CallClient) AcceptIncomingCall(responder *jid.JID, jingle *Jingle) (*Jingle, error) {
 	c.mu.Lock()
 	defer c.mu.Unlock()
 	if c.State != Ended {
@@ -71,10 +80,21 @@ func (c *CallClient) AcceptCall(responder *jid.JID, jingle *Jingle) (*Jingle, er
 	return nil, nil
 }
 
+func (c *CallClient) CancelCall() error {
+	c.mu.Lock()
+	defer c.mu.Unlock()
+	if c.State != Pending {
+		return errors.New("No outgoing call to cancel")
+	}
+
+	// TODO: Cancel current call request
+	return nil
+}
+
 func (c *CallClient) TerminateCall() error {
 	c.mu.Lock()
 	defer c.mu.Unlock()
-	if c.State == Ended {
+	if c.State != Active {
 		return errors.New("There's no ongoing call")
 	}
 

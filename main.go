@@ -172,14 +172,14 @@ func main() {
 					MinVersion: tls.VersionTLS12,
 				},
 				NoLookup: false,
-				NoTLS:    false,
+				NoTLS:    true,
 			}
 
 			c := client.New(
 				j, logger, debug,
 				client.Timeout(timeout),
 				client.Dialer(dialer),
-				client.NoTLS(false),
+				client.NoTLS(true),
 				client.Tee(logwriter.New(xmlInLog), logwriter.New(xmlOutLog)),
 				client.Password(getPass),
 				client.RosterVer(rosterVer),
