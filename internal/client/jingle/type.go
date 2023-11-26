@@ -66,15 +66,18 @@ type PayloadType struct {
 }
 
 type ICEUDPTransport struct {
-	XMLName     xml.Name `xml:"urn:xmpp:jingle:transports:ice-udp:1 transport,omitempty"`
-	PWD         string   `xml:"pwd,attr,omitempty"`
-	UFrag       string   `xml:"ufrag,attr,omitempty"`
-	FingerPrint *struct {
-		Hash  string `xml:"hash,attr,omitempty"`
-		Setup string `xml:"setup,attr,omitempty"`
-		Text  string `xml:",chardata"`
-	} `xml:"urn:xmpp:jingle:apps:dtls:0 fingerprint,omitempty"`
-	Candidates []*ICECandidate `xml:"candidate,omitempty"`
+	XMLName     xml.Name        `xml:"urn:xmpp:jingle:transports:ice-udp:1 transport,omitempty"`
+	PWD         string          `xml:"pwd,attr,omitempty"`
+	UFrag       string          `xml:"ufrag,attr,omitempty"`
+	FingerPrint *FingerPrint    `xml:"urn:xmpp:jingle:apps:dtls:0 fingerprint,omitempty"`
+	Candidates  []*ICECandidate `xml:"candidate,omitempty"`
+}
+
+type FingerPrint struct {
+	XMLName xml.Name `xml:"urn:xmpp:jingle:apps:dtls:0 fingerprint,omitempty"`
+	Hash    string   `xml:"hash,attr,omitempty"`
+	Setup   string   `xml:"setup,attr,omitempty"`
+	Text    string   `xml:",chardata"`
 }
 
 type ICECandidate struct {
