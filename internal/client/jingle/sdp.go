@@ -130,6 +130,7 @@ func FromSDP(sdp string) *Jingle {
 		case "m":
 			media := mediaParse(sdpValue)
 			content := &Content{
+				Creator: "initiator",
 				Description: &RTPDescription{
 					Media:        media.media,
 					PayloadTypes: []*PayloadType{},
