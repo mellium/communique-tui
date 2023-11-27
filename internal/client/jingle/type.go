@@ -1,6 +1,31 @@
 package jingle
 
-import "encoding/xml"
+import (
+	"encoding/xml"
+
+	"mellium.im/xmlstream"
+	"mellium.im/xmpp/stanza"
+)
+
+type IQ struct {
+	stanza.IQ
+
+	Jingle *Jingle `xml:"urn:xmpp:jingle:1 jingle"`
+}
+
+func (iq IQ) WriteXML(w xmlstream.TokenWriter) (int, error) {
+	return xmlstream.Copy(w, iq.TokenReader())
+}
+
+func (iq IQ) MarshalXML(e *xml.Encoder, _ xml.StartElement) error {
+	_, err := iq.WriteXML(e)
+	return err
+}
+
+func (iq IQ) TokenReader() xml.TokenReader {
+	start := xml.StartElement{Name: xml.Name{Local: "jingle", Space: NS}}
+	return iq.Wrap(xmlstream.Wrap(nil, start))
+}
 
 type Jingle struct {
 	XMLName   xml.Name `xml:"urn:xmpp:jingle:1 jingle"`

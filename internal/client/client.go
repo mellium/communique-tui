@@ -16,6 +16,7 @@ import (
 	"time"
 
 	"mellium.im/communique/internal/client/event"
+	"mellium.im/communique/internal/client/jingle"
 	"mellium.im/communique/internal/client/quic"
 	legacybookmarks "mellium.im/legacy/bookmarks"
 	"mellium.im/sasl"
@@ -220,6 +221,9 @@ func (c *Client) reconnect(ctx context.Context) error {
 		c.logger.Printf("error fetching bookmarks: %q", err)
 	}
 
+	// Init CallClient
+	c.CallClient = jingle.New(c.debug)
+
 	return nil
 }
 
@@ -244,6 +248,7 @@ type Client struct {
 	channels        map[string]*muc.Channel
 	useQuic         bool
 	quicConn        *quic.QuicConn
+	CallClient      *jingle.CallClient
 }
 
 // Online sets the status to online.

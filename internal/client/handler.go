@@ -9,6 +9,7 @@ import (
 	"io"
 
 	"mellium.im/communique/internal/client/event"
+	"mellium.im/communique/internal/client/jingle"
 	"mellium.im/xmlstream"
 	"mellium.im/xmpp"
 	"mellium.im/xmpp/carbons"
@@ -157,5 +158,26 @@ func newHistoryHandler(c *Client) mux.MessageHandlerFunc {
 		msg.Result.Forward.Msg.Delay = msg.Result.Forward.Delay
 		c.handler(msg)
 		return nil
+	}
+}
+
+func newJingleHandler(c *Client) mux.IQHandlerFunc {
+	return func(iq stanza.IQ, t xmlstream.TokenReadEncoder, start *xml.StartElement) error {
+		jingle := &jingle.Jingle{}
+		err := xml.NewTokenDecoder(t).Decode(jingle)
+		if err != nil {
+			return err
+		}
+
+		switch jingle.Action {
+		case "session-initiate":
+			c.handler(event.NewIncomingCall(jingle))
+		case "session-accept":
+			c.handler(event.OutgoingCallAccepted(jingle))
+		case "session-terminate":
+			c.handler(event.TerminateCall(""))
+		}
+		_, err = xmlstream.Copy(t, iq.Result(nil))
+		return err
 	}
 }

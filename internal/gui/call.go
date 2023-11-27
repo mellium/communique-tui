@@ -44,7 +44,7 @@ func (g *GUI) ShowIncomingCall(account jid.JID) {
 			g.incomingCallWindow.Close()
 		})
 		acceptButton := widget.NewButton("Accept", func() {
-			g.handler(event.AcceptCall(account))
+			g.handler(event.AcceptIncomingCall(""))
 			g.incomingCallWindow.Close()
 		})
 

@@ -47,6 +47,18 @@ func New(debug *log.Logger) *CallClient {
 	}
 }
 
+func (c *CallClient) GetState() JingleState {
+	c.mu.Lock()
+	defer c.mu.Unlock()
+	return c.State
+}
+
+func (c *CallClient) GetRole() JingleRole {
+	c.mu.Lock()
+	defer c.mu.Unlock()
+	return c.Role
+}
+
 func (c *CallClient) StartOutgoingCall(initiator *jid.JID) (*Jingle, error) {
 	c.mu.Lock()
 	defer c.mu.Unlock()
@@ -99,6 +111,9 @@ func (c *CallClient) AcceptOutgoingCall(jingle *Jingle) error {
 	}
 	if c.Role != Initiator {
 		return errors.New("You are not an initiator")
+	}
+	if jingle.SID != c.SID {
+		return errors.New("Different SID, is this from your intended responder?")
 	}
 
 	// Set remote description

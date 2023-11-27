@@ -11,11 +11,13 @@ import (
 
 	"mellium.im/communique/internal/client"
 	"mellium.im/communique/internal/client/event"
+	"mellium.im/communique/internal/client/jingle"
 	"mellium.im/communique/internal/gui"
 	"mellium.im/communique/internal/storage"
 	"mellium.im/xmpp/crypto"
 	"mellium.im/xmpp/disco"
 	"mellium.im/xmpp/jid"
+	"mellium.im/xmpp/stanza"
 )
 
 func newFyneGUIHandler(g *gui.GUI, db *storage.DB, c *client.Client, logger, debug *log.Logger) func(interface{}) {
@@ -39,6 +41,30 @@ func newFyneGUIHandler(g *gui.GUI, db *storage.DB, c *client.Client, logger, deb
 				}
 				if err = db.InsertMsg(ctx, e.Account, e, c.LocalAddr()); err != nil {
 					logger.Printf("error writing message to database: %v", err)
+				}
+			}()
+		case event.NewOutgoingCall:
+			go func() {
+				jidCopy := jid.JID(e)
+				jingleRequest, err := c.CallClient.StartOutgoingCall(&jidCopy)
+				if err != nil {
+					g.TerminateCallSession()
+					logger.Println(err)
+					return
+				}
+
+				ctx, cancel := context.WithTimeout(context.Background(), 60*time.Second)
+				defer cancel()
+				err = c.UnmarshalIQ(ctx, jingle.IQ{
+					IQ: stanza.IQ{
+						Type: stanza.SetIQ,
+						To:   jidCopy,
+					},
+					Jingle: jingleRequest,
+				}.TokenReader(), nil)
+				if err != nil {
+					g.TerminateCallSession()
+					c.CallClient.CancelCall()
 				}
 			}()
 		}
