@@ -163,18 +163,73 @@ func newHistoryHandler(c *Client) mux.MessageHandlerFunc {
 
 func newJingleHandler(c *Client) mux.IQHandlerFunc {
 	return func(iq stanza.IQ, t xmlstream.TokenReadEncoder, start *xml.StartElement) error {
-		jingle := &jingle.Jingle{}
-		err := xml.NewTokenDecoder(t).Decode(jingle)
+		jingleRequest := &jingle.Jingle{}
+		err := xml.NewTokenDecoder(t).Decode(jingleRequest)
 		if err != nil {
 			return err
 		}
 
-		switch jingle.Action {
+		state, _, sid := c.CallClient.GetCurrentState()
+
+		switch jingleRequest.Action {
 		case "session-initiate":
-			c.handler(event.NewIncomingCall(jingle))
+			if (sid != jingleRequest.SID) && (state != jingle.Ended) {
+				_, err = xmlstream.Copy(t, iq.Error(stanza.Error{
+					Type:      stanza.Wait,
+					Condition: stanza.ResourceConstraint,
+				}))
+				return err
+			}
+			if sid == jingleRequest.SID {
+				if state == jingle.Pending {
+					_, err = xmlstream.Copy(t, iq.Error(stanza.Error{
+						Type:      stanza.Cancel,
+						Condition: stanza.Conflict,
+					}))
+					return err
+				}
+				if state == jingle.Active {
+					_, err = xmlstream.Copy(t, iq.Error(stanza.Error{
+						Type:      stanza.Cancel,
+						Condition: stanza.UnexpectedRequest,
+					}))
+					return err
+				}
+			}
+			c.handler(event.NewIncomingCall(jingleRequest))
 		case "session-accept":
-			c.handler(event.OutgoingCallAccepted(jingle))
+			if sid != jingleRequest.SID {
+				_, err = xmlstream.Copy(t, iq.Error(stanza.Error{
+					Type:      stanza.Cancel,
+					Condition: stanza.ItemNotFound,
+				}))
+				return err
+			} else {
+				if state != jingle.Pending {
+					_, err = xmlstream.Copy(t, iq.Error(stanza.Error{
+						Type:      stanza.Cancel,
+						Condition: stanza.UnexpectedRequest,
+					}))
+					return err
+				}
+			}
+			c.handler(event.OutgoingCallAccepted(jingleRequest))
 		case "session-terminate":
+			if sid != jingleRequest.SID {
+				_, err = xmlstream.Copy(t, iq.Error(stanza.Error{
+					Type:      stanza.Cancel,
+					Condition: stanza.ItemNotFound,
+				}))
+				return err
+			} else {
+				if state == jingle.Ended {
+					_, err = xmlstream.Copy(t, iq.Error(stanza.Error{
+						Type:      stanza.Cancel,
+						Condition: stanza.UnexpectedRequest,
+					}))
+					return err
+				}
+			}
 			c.handler(event.TerminateCall(""))
 		}
 		_, err = xmlstream.Copy(t, iq.Result(nil))

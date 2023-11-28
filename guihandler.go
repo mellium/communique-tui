@@ -52,7 +52,7 @@ func newFyneGUIHandler(g *gui.GUI, db *storage.DB, c *client.Client, logger, deb
 					logger.Println(err)
 					return
 				}
-
+				c.CallClient.SetPartnerJid(jidCopy)
 				ctx, cancel := context.WithTimeout(context.Background(), 60*time.Second)
 				defer cancel()
 				err = c.UnmarshalIQ(ctx, jingle.IQ{
@@ -65,8 +65,101 @@ func newFyneGUIHandler(g *gui.GUI, db *storage.DB, c *client.Client, logger, deb
 				if err != nil {
 					g.TerminateCallSession()
 					c.CallClient.CancelCall()
+					logger.Println(err)
+					return
 				}
+				g.ShowOutgoingCall(jidCopy)
 			}()
+		case event.AcceptIncomingCall:
+			go func() {
+				jidCopy := c.LocalAddr()
+				jingleResponse, err := c.CallClient.AcceptIncomingCall(&jidCopy, e)
+				ctx, cancel := context.WithTimeout(context.Background(), 60*time.Second)
+				defer cancel()
+				if err != nil {
+					c.UnmarshalIQ(ctx, jingle.IQ{
+						IQ: stanza.IQ{
+							Type: stanza.SetIQ,
+							To:   jid.MustParse(e.Initiator),
+						},
+						Jingle: jingle.JingleFailed(e.SID),
+					}.TokenReader(), nil)
+					return
+				}
+				c.CallClient.SetPartnerJid(jid.MustParse(e.Initiator))
+				err = c.UnmarshalIQ(ctx, jingle.IQ{
+					IQ: stanza.IQ{
+						Type: stanza.SetIQ,
+						To:   jid.MustParse(e.Initiator),
+					},
+					Jingle: jingleResponse,
+				}.TokenReader(), nil)
+				if err != nil {
+					g.TerminateCallSession()
+					c.CallClient.TerminateCall()
+					logger.Println(err)
+					return
+				}
+				g.ShowCallSession()
+			}()
+		case event.CancelCall:
+			go func() {
+				jingleTerminate, err := c.CallClient.CancelCall()
+				ctx, cancel := context.WithTimeout(context.Background(), 60*time.Second)
+				defer cancel()
+				if err != nil {
+					c.UnmarshalIQ(ctx, jingle.IQ{
+						IQ: stanza.IQ{
+							Type: stanza.SetIQ,
+							To:   c.CallClient.PartnerJID,
+						},
+						Jingle: jingle.JingleFailed(jingleTerminate.SID),
+					}.TokenReader(), nil)
+					logger.Println(err)
+					return
+				}
+				err = c.UnmarshalIQ(ctx, jingle.IQ{
+					IQ: stanza.IQ{
+						Type: stanza.SetIQ,
+						To:   c.CallClient.PartnerJID,
+					},
+					Jingle: jingleTerminate,
+				}.TokenReader(), nil)
+				if err != nil {
+					logger.Println(err)
+				}
+				g.TerminateCallSession()
+			}()
+		case event.TerminateCall:
+			go func() {
+				jingleTerminate, err := c.CallClient.TerminateCall()
+				ctx, cancel := context.WithTimeout(context.Background(), 60*time.Second)
+				defer cancel()
+				if err != nil {
+					c.UnmarshalIQ(ctx, jingle.IQ{
+						IQ: stanza.IQ{
+							Type: stanza.SetIQ,
+							To:   c.CallClient.PartnerJID,
+						},
+						Jingle: jingle.JingleFailed(jingleTerminate.SID),
+					}.TokenReader(), nil)
+					logger.Println(err)
+					return
+				}
+				err = c.UnmarshalIQ(ctx, jingle.IQ{
+					IQ: stanza.IQ{
+						Type: stanza.SetIQ,
+						To:   c.CallClient.PartnerJID,
+					},
+					Jingle: jingleTerminate,
+				}.TokenReader(), nil)
+				if err != nil {
+					logger.Println(err)
+				}
+				g.TerminateCallSession()
+			}()
+		default:
+			debug.Printf("unrecognized gui event: %T(%[1]q)", e)
 		}
 	}
 }
@@ -184,6 +277,30 @@ func newXMPPClientHandler(g *gui.GUI, db *storage.DB, c *client.Client, logger, 
 				}
 				result.Info = discoInfo
 				e.Info <- result
+			}()
+		case event.OutgoingCallAccepted:
+			go func() {
+				err := c.CallClient.AcceptOutgoingCall(e)
+				if err != nil {
+					c.CallClient.CancelCall()
+					logger.Println(err)
+					return
+				}
+				g.ShowCallSession()
+			}()
+		case event.NewIncomingCall:
+			go func() {
+				g.ShowIncomingCall(e)
+			}()
+		case event.CancelCall:
+			go func() {
+				c.CallClient.CancelCall()
+				g.TerminateCallSession()
+			}()
+		case event.TerminateCall:
+			go func() {
+				c.CallClient.TerminateCall()
+				g.TerminateCallSession()
 			}()
 		default:
 			debug.Printf("unrecognized client event: %T(%[1]q)", e)

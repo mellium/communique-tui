@@ -6,6 +6,7 @@ import (
 	"fyne.io/fyne/v2/layout"
 	"fyne.io/fyne/v2/widget"
 	"mellium.im/communique/internal/client/event"
+	"mellium.im/communique/internal/client/jingle"
 	"mellium.im/xmpp/jid"
 )
 
@@ -30,21 +31,22 @@ func (g *GUI) ShowOutgoingCall(account jid.JID) {
 	}
 }
 
-func (g *GUI) ShowIncomingCall(account jid.JID) {
+func (g *GUI) ShowIncomingCall(jingleRequest *jingle.Jingle) {
 	if g.incomingCallWindow == nil {
+		callerJid := jid.MustParse(jingleRequest.Initiator)
 		g.incomingCallWindow = g.app.NewWindow("Incoming Call")
 		g.incomingCallWindow.SetCloseIntercept(func() {
 			g.handler(event.CancelCall(""))
 			g.incomingCallWindow.Close()
 		})
 
-		callCard := widget.NewCard(account.Bare().String(), "Incoming Call", nil)
+		callCard := widget.NewCard(callerJid.Bare().String(), "Incoming Call", nil)
 		declineButton := widget.NewButton("Decline", func() {
 			g.handler(event.CancelCall(""))
 			g.incomingCallWindow.Close()
 		})
 		acceptButton := widget.NewButton("Accept", func() {
-			g.handler(event.AcceptIncomingCall(""))
+			g.handler(event.AcceptIncomingCall(jingleRequest))
 			g.incomingCallWindow.Close()
 		})
 
@@ -57,6 +59,7 @@ func (g *GUI) ShowIncomingCall(account jid.JID) {
 
 func (g *GUI) ShowCallSession() {
 	if g.callSessionWindow == nil {
+		g.TerminateCallSession()
 		g.callSessionWindow = g.app.NewWindow("Call Session")
 		g.callSessionWindow.SetCloseIntercept(func() {
 			g.handler(event.TerminateCall(""))

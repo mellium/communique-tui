@@ -36,6 +36,7 @@ type CallClient struct {
 	debug            *log.Logger
 	AudioTrack       *webrtc.TrackLocalStaticSample
 	VideoTrack       *webrtc.TrackLocalStaticSample
+	PartnerJID       jid.JID
 	mu               sync.Mutex
 }
 
@@ -47,16 +48,17 @@ func New(debug *log.Logger) *CallClient {
 	}
 }
 
-func (c *CallClient) GetState() JingleState {
+// Return current state synchronously. (state, role, sid)
+func (c *CallClient) GetCurrentState() (JingleState, JingleRole, string) {
 	c.mu.Lock()
 	defer c.mu.Unlock()
-	return c.State
+	return c.State, c.Role, c.SID
 }
 
-func (c *CallClient) GetRole() JingleRole {
+func (c *CallClient) SetPartnerJid(partnerJid jid.JID) {
 	c.mu.Lock()
 	defer c.mu.Unlock()
-	return c.Role
+	c.PartnerJID = partnerJid
 }
 
 func (c *CallClient) StartOutgoingCall(initiator *jid.JID) (*Jingle, error) {

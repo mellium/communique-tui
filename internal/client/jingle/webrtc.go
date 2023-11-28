@@ -34,7 +34,7 @@ func (c *CallClient) onTrackHandler(peerConnection *webrtc.PeerConnection) func(
 
 		codecName := strings.Split(track.Codec().RTPCodecCapability.MimeType, "/")[1]
 		c.debug.Printf("Track has started, of type %d: %s \n", track.PayloadType(), codecName)
-		pipeline := gst.CreateReceivePipeline(track.PayloadType(), strings.ToLower(codecName))
+		pipeline, _ := gst.CreateReceivePipeline(track.PayloadType(), strings.ToLower(codecName))
 		c.ReceivePipelines = append(c.ReceivePipelines, pipeline)
 
 		go func() {
@@ -102,8 +102,8 @@ func (c *CallClient) createPeerConnection() (*webrtc.PeerConnection, error) {
 }
 
 func (c *CallClient) startTracks() {
-	audioPipeline := gst.CreateSendPipeline("opus", []*webrtc.TrackLocalStaticSample{c.AudioTrack})
-	videoPipeline := gst.CreateSendPipeline("vp8", []*webrtc.TrackLocalStaticSample{c.VideoTrack})
+	audioPipeline, _ := gst.CreateSendPipeline("opus", []*webrtc.TrackLocalStaticSample{c.AudioTrack})
+	videoPipeline, _ := gst.CreateSendPipeline("vp8", []*webrtc.TrackLocalStaticSample{c.VideoTrack})
 	c.SendPipelines = append(c.SendPipelines, audioPipeline)
 	c.SendPipelines = append(c.SendPipelines, videoPipeline)
 	go func() {

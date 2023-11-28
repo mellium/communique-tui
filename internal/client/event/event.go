@@ -146,7 +146,7 @@ type (
 	NewIncomingCall *jingle.Jingle
 
 	// AcceptIncomingCall is sent from gui to indicate acceptance oh call initiation request
-	AcceptIncomingCall string
+	AcceptIncomingCall *jingle.Jingle
 
 	// CancelCall is sent when current client or another client cancel a call request
 	CancelCall string

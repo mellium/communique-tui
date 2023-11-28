@@ -57,7 +57,6 @@ func makeToolbar(c *conversation, g *GUI) fyne.CanvasObject {
 				fullJid += "/" + c.resource
 			}
 			g.handler(event.NewOutgoingCall(jid.MustParse(fullJid)))
-			g.ShowOutgoingCall(jid.MustParse(fullJid))
 		}),
 	)
 	return container.NewBorder(nil, nil, nil, toolbar, addressCard)

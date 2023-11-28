@@ -48,6 +48,26 @@ type Jingle struct {
 	} `xml:"reason,omitempty"`
 }
 
+func JingleFailed(sid string) *Jingle {
+	return &Jingle{
+		Action: "session-terminate",
+		SID:    sid,
+		Reason: &struct {
+			Condition *struct {
+				XMLName xml.Name "xml:\",omitempty\""
+				Details string   "xml:\",chardata\""
+			}
+		}{
+			Condition: &struct {
+				XMLName xml.Name "xml:\",omitempty\""
+				Details string   "xml:\",chardata\""
+			}{
+				XMLName: xml.Name{Local: "failed-application"},
+			},
+		},
+	}
+}
+
 type Content struct {
 	XMLName     xml.Name         `xml:"content,omitempty"`
 	Creator     string           `xml:"creator,attr,omitempty"`
