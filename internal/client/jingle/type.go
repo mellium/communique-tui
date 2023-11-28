@@ -2,6 +2,7 @@ package jingle
 
 import (
 	"encoding/xml"
+	"strings"
 
 	"mellium.im/xmlstream"
 	"mellium.im/xmpp/stanza"
@@ -23,8 +24,11 @@ func (iq IQ) MarshalXML(e *xml.Encoder, _ xml.StartElement) error {
 }
 
 func (iq IQ) TokenReader() xml.TokenReader {
-	start := xml.StartElement{Name: xml.Name{Local: "jingle", Space: NS}}
-	return iq.Wrap(xmlstream.Wrap(nil, start))
+	jingleMarshaled, _ := xml.Marshal(iq.Jingle)
+	var jingleReader xml.TokenReader = xml.NewDecoder(strings.NewReader(
+		string(jingleMarshaled),
+	))
+	return iq.Wrap(jingleReader)
 }
 
 type Jingle struct {
