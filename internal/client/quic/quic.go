@@ -12,8 +12,8 @@ import (
 )
 
 type QuicConn struct {
-	Conn    quic.Connection
-	Stream  quic.Stream
+	Conn   quic.Connection
+	Stream quic.Stream
 }
 
 func Connect(ctx context.Context, addr jid.JID, logger *log.Logger) (*QuicConn, error) {
@@ -42,11 +42,22 @@ func Connect(ctx context.Context, addr jid.JID, logger *log.Logger) (*QuicConn, 
 	logger.Println("Connecting to server...")
 
 	config := quic.Config{
-		MaxIdleTimeout: 5 * time.Minute,
+		MaxIdleTimeout:  5 * time.Minute,
 		KeepAlivePeriod: 5 * time.Second,
 	}
 
-	conn, err := quic.DialAddr(ctx, ipAddr+":5300", tlsCfg, &config)
+	udpConn, err := net.ListenUDP("udp4", &net.UDPAddr{Port: 0})
+	if err != nil {
+		return nil, err
+	}
+	udpConn.SetReadBuffer(1048576)
+	udpConn.SetWriteBuffer(1048576)
+
+	tr := quic.Transport{
+		Conn: udpConn,
+	}
+
+	conn, err := tr.Dial(ctx, &net.UDPAddr{IP: net.ParseIP(ipAddr), Port: 5300}, tlsCfg, &config)
 	if err != nil {
 		return nil, err
 	}

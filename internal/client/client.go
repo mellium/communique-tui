@@ -11,6 +11,7 @@ import (
 	"fmt"
 	"io"
 	"log"
+	"net"
 	"strings"
 	"sync"
 	"time"
@@ -115,7 +116,15 @@ func (c *Client) reconnect(ctx context.Context) error {
 	if c.useQuic {
 		quicConn, err = quic.Connect(ctx, c.addr, c.logger)
 	} else {
-		conn, err = c.dialer.Dial(ctx, "tcp", c.addr)
+		var dialConn net.Conn
+		dialConn, err = c.dialer.Dial(ctx, "tcp", c.addr)
+		if err != nil {
+			return fmt.Errorf("error dialing connection: %v", err)
+		}
+		tcpConn := dialConn.(*net.TCPConn)
+		tcpConn.SetReadBuffer(1048576)
+		tcpConn.SetWriteBuffer(1048576)
+		conn = tcpConn
 	}
 	if err != nil {
 		return fmt.Errorf("error dialing connection: %v", err)
