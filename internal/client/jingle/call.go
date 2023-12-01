@@ -6,6 +6,7 @@ import (
 	"log"
 	"strconv"
 	"sync"
+	"time"
 
 	"github.com/pion/webrtc/v3"
 	"mellium.im/communique/internal/client/gst"
@@ -60,6 +61,7 @@ func New(clientJID jid.JID, onIceCandidate func(ice *webrtc.ICECandidate), debug
 
 func (c *CallClient) resetClient() {
 	c.peerConnection.Close()
+	time.Sleep(1 * time.Second)
 
 	for _, pipeline := range c.receivePipelines {
 		pipeline.Stop()

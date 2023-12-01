@@ -22,6 +22,7 @@ import (
 
 func GstreamerInit() {
 	C.gstreamer_init()
+	go C.gstreamer_start_mainloop()
 }
 
 type ReceivePipeline struct {
@@ -89,13 +90,13 @@ const (
 
 func CreateSendPipeline(codecName string, tracks []*webrtc.TrackLocalStaticSample) (*SendPipeline, error) {
 	pipelineStr := "appsink name=appsink"
-	pipelineVideoSrc := "autovideosrc ! video/x-raw, width=320, height=240 ! videoconvert ! tee name=t ! autovideosink t. ! queue"
+	pipelineVideoSrc := "autovideosrc ! video/x-raw, width=320, height=240 ! videoconvert"
 	pipelineAudioSrc := "autoaudiosrc ! queue ! audioconvert"
 	var clockRate float32
 
 	switch codecName {
 	case "vp8":
-		pipelineStr = pipelineVideoSrc + " ! vp8enc error-resilient=partitions keyframe-max-dist=10 auto-alt-ref=true cpu-used=5 deadline=1 ! " + pipelineStr
+		pipelineStr = pipelineVideoSrc + " ! vp8enc error-resilient=partitions keyframe-max-dist=10 auto-alt-ref=true cpu-used=5 deadline=1 ! tee name=t t. ! queue ! vp8dec ! decodebin ! videoconvert ! autovideosink t. ! queue ! appsink name=appsink"
 		clockRate = videoClockRate
 	case "vp9":
 		pipelineStr = pipelineVideoSrc + " ! vp9enc ! " + pipelineStr

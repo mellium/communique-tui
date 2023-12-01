@@ -8,6 +8,7 @@
 extern void goHandlePipelineBuffer(void *buffer, int bufferLen, int samples, int pipelineId);
 
 void gstreamer_init();
+void gstreamer_start_mainloop();
 
 GstElement *gstreamer_receive_create_pipeline(char *pipeline);
 void gstreamer_receive_start_pipeline(GstElement *pipeline);

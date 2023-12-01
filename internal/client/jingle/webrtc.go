@@ -37,10 +37,7 @@ func (c *CallClient) onTrackHandler(peerConnection *webrtc.PeerConnection) func(
 		pipeline, _ := gst.CreateReceivePipeline(track.PayloadType(), strings.ToLower(codecName))
 		c.receivePipelines = append(c.receivePipelines, pipeline)
 
-		go func() {
-			pipeline.Start()
-			c.debug.Printf("Track has stopped, of type %d: %s\n", track.PayloadType(), codecName)
-		}()
+		pipeline.Start()
 
 		buf := make([]byte, 1400)
 		for {
@@ -112,10 +109,6 @@ func (c *CallClient) startTracks() {
 	videoPipeline, _ := gst.CreateSendPipeline("vp8", []*webrtc.TrackLocalStaticSample{c.videoTrack})
 	c.sendPipelines = append(c.sendPipelines, audioPipeline)
 	c.sendPipelines = append(c.sendPipelines, videoPipeline)
-	go func() {
-		audioPipeline.Start()
-	}()
-	go func() {
-		videoPipeline.Start()
-	}()
+	audioPipeline.Start()
+	videoPipeline.Start()
 }
