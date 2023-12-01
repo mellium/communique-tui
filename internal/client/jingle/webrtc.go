@@ -69,7 +69,7 @@ func (c *CallClient) createPeerConnection() (*webrtc.PeerConnection, error) {
 		},
 	}
 
-	peerConnection, err := webrtc.NewPeerConnection(config)
+	peerConnection, err := c.api.NewPeerConnection(config)
 	if err != nil {
 		return nil, err
 	}

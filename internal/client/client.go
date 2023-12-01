@@ -122,8 +122,14 @@ func (c *Client) reconnect(ctx context.Context) error {
 			return fmt.Errorf("error dialing connection: %v", err)
 		}
 		tcpConn := dialConn.(*net.TCPConn)
-		tcpConn.SetReadBuffer(1048576)
-		tcpConn.SetWriteBuffer(1048576)
+		err = tcpConn.SetReadBuffer(1048576)
+		if err != nil {
+			c.logger.Println(err)
+		}
+		err = tcpConn.SetWriteBuffer(1048576)
+		if err != nil {
+			c.logger.Println(err)
+		}
 		conn = tcpConn
 	}
 	if err != nil {

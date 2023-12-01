@@ -27,6 +27,7 @@ const (
 )
 
 type CallClient struct {
+	api              *webrtc.API
 	State            JingleState
 	Role             JingleRole
 	SID              string
@@ -42,6 +43,7 @@ type CallClient struct {
 
 func New(debug *log.Logger) *CallClient {
 	return &CallClient{
+		api:   createCustomAPI(),
 		State: Ended,
 		Role:  EmptyRole,
 		debug: debug,
@@ -79,6 +81,7 @@ func (c *CallClient) StartOutgoingCall(initiator *jid.JID) (*Jingle, error) {
 	if err != nil {
 		return nil, err
 	}
+	c.debug.Println(offer.SDP)
 	gatherComplete := webrtc.GatheringCompletePromise(peerConnection)
 	if err = peerConnection.SetLocalDescription(offer); err != nil {
 		return nil, err

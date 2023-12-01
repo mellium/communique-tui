@@ -50,8 +50,14 @@ func Connect(ctx context.Context, addr jid.JID, logger *log.Logger) (*QuicConn, 
 	if err != nil {
 		return nil, err
 	}
-	udpConn.SetReadBuffer(1048576)
-	udpConn.SetWriteBuffer(1048576)
+	err = udpConn.SetReadBuffer(1048576)
+	if err != nil {
+		logger.Println(err)
+	}
+	err = udpConn.SetWriteBuffer(1048576)
+	if err != nil {
+		logger.Println(err)
+	}
 
 	tr := quic.Transport{
 		Conn: udpConn,
