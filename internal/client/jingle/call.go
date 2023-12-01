@@ -4,11 +4,13 @@ import (
 	"encoding/xml"
 	"errors"
 	"log"
+	"strconv"
 	"sync"
 
 	"github.com/pion/webrtc/v3"
 	"mellium.im/communique/internal/client/gst"
 	"mellium.im/xmpp/jid"
+	"mellium.im/xmpp/stanza"
 )
 
 type JingleState int
@@ -28,45 +30,89 @@ const (
 
 type CallClient struct {
 	api              *webrtc.API
-	State            JingleState
-	Role             JingleRole
-	SID              string
-	RTCClient        *webrtc.PeerConnection
-	ReceivePipelines []*gst.ReceivePipeline
-	SendPipelines    []*gst.SendPipeline
+	state            JingleState
+	role             JingleRole
+	sid              string
+	peerConnection   *webrtc.PeerConnection
+	receivePipelines []*gst.ReceivePipeline
+	sendPipelines    []*gst.SendPipeline
 	debug            *log.Logger
-	AudioTrack       *webrtc.TrackLocalStaticSample
-	VideoTrack       *webrtc.TrackLocalStaticSample
-	PartnerJID       jid.JID
+	audioTrack       *webrtc.TrackLocalStaticSample
+	videoTrack       *webrtc.TrackLocalStaticSample
+	clientJID        jid.JID
+	partnerJID       jid.JID
+	icePwd           string
+	iceUfrag         string
+	onIceCandidate   func(ice *webrtc.ICECandidate)
 	mu               sync.Mutex
 }
 
-func New(debug *log.Logger) *CallClient {
+func New(clientJID jid.JID, onIceCandidate func(ice *webrtc.ICECandidate), debug *log.Logger) *CallClient {
 	return &CallClient{
-		api:   createCustomAPI(),
-		State: Ended,
-		Role:  EmptyRole,
-		debug: debug,
+		api:            createCustomAPI(),
+		state:          Ended,
+		role:           EmptyRole,
+		debug:          debug,
+		clientJID:      clientJID,
+		onIceCandidate: onIceCandidate,
 	}
+}
+
+func (c *CallClient) resetClient() {
+	c.peerConnection.Close()
+
+	for _, pipeline := range c.receivePipelines {
+		pipeline.Stop()
+		pipeline.Free()
+	}
+	for _, pipeline := range c.sendPipelines {
+		pipeline.Stop()
+		pipeline.Free()
+	}
+
+	c.state = Ended
+	c.role = EmptyRole
+	c.sid = ""
+	c.peerConnection = nil
+	c.receivePipelines = nil
+	c.sendPipelines = nil
+	c.audioTrack = nil
+	c.videoTrack = nil
+	c.icePwd = ""
+	c.iceUfrag = ""
+}
+
+func (c *CallClient) WrapJingleMessage(jingleMessage *Jingle) (*IQ, error) {
+	if c.state == Ended {
+		return nil, errors.New("No jingle session is running")
+	}
+
+	return &IQ{
+		IQ: stanza.IQ{
+			Type: stanza.SetIQ,
+			To:   c.partnerJID,
+		},
+		Jingle: jingleMessage,
+	}, nil
 }
 
 // Return current state synchronously. (state, role, sid)
 func (c *CallClient) GetCurrentState() (JingleState, JingleRole, string) {
 	c.mu.Lock()
 	defer c.mu.Unlock()
-	return c.State, c.Role, c.SID
+	return c.state, c.role, c.sid
 }
 
-func (c *CallClient) SetPartnerJid(partnerJid jid.JID) {
+func (c *CallClient) GetPartnerJid() jid.JID {
 	c.mu.Lock()
 	defer c.mu.Unlock()
-	c.PartnerJID = partnerJid
+	return c.partnerJID
 }
 
-func (c *CallClient) StartOutgoingCall(initiator *jid.JID) (*Jingle, error) {
+func (c *CallClient) StartOutgoingCall(partnerJID jid.JID) (*Jingle, error) {
 	c.mu.Lock()
 	defer c.mu.Unlock()
-	if c.State != Ended {
+	if c.state != Ended {
 		return nil, errors.New("Another call is in progress")
 	}
 
@@ -81,29 +127,28 @@ func (c *CallClient) StartOutgoingCall(initiator *jid.JID) (*Jingle, error) {
 	if err != nil {
 		return nil, err
 	}
-	c.debug.Println(offer.SDP)
-	gatherComplete := webrtc.GatheringCompletePromise(peerConnection)
 	if err = peerConnection.SetLocalDescription(offer); err != nil {
 		return nil, err
 	}
-	<-gatherComplete
 
 	// Converting SDP Offer into Jingle
-	localDescription := peerConnection.LocalDescription()
-	jingle := FromSDP(localDescription.SDP)
+	jingle := FromSDP(offer.SDP)
 
 	// Completing Jingle Attributes
 	jingle.Action = "session-initiate"
-	jingle.Initiator = initiator.String()
+	jingle.Initiator = c.clientJID.String()
 	jingle.SID = randomID()
 
 	// Change CallClient state
-	c.State = Pending
-	c.Role = Initiator
-	c.SID = jingle.SID
-	c.RTCClient = peerConnection
-	c.ReceivePipelines = []*gst.ReceivePipeline{}
-	c.SendPipelines = []*gst.SendPipeline{}
+	c.state = Pending
+	c.role = Initiator
+	c.sid = jingle.SID
+	c.peerConnection = peerConnection
+	c.partnerJID = partnerJID
+	c.receivePipelines = []*gst.ReceivePipeline{}
+	c.sendPipelines = []*gst.SendPipeline{}
+	c.icePwd = jingle.Contents[0].Transport.PWD
+	c.iceUfrag = jingle.Contents[0].Transport.UFrag
 
 	return jingle, nil
 }
@@ -111,13 +156,13 @@ func (c *CallClient) StartOutgoingCall(initiator *jid.JID) (*Jingle, error) {
 func (c *CallClient) AcceptOutgoingCall(jingle *Jingle) error {
 	c.mu.Lock()
 	defer c.mu.Unlock()
-	if c.State != Pending {
+	if c.state != Pending {
 		return errors.New("There's no calling attempt to finalize")
 	}
-	if c.Role != Initiator {
+	if c.role != Initiator {
 		return errors.New("You are not an initiator")
 	}
-	if jingle.SID != c.SID {
+	if jingle.SID != c.sid {
 		return errors.New("Different SID, is this from your intended responder?")
 	}
 
@@ -126,24 +171,21 @@ func (c *CallClient) AcceptOutgoingCall(jingle *Jingle) error {
 		Type: webrtc.SDPTypeAnswer,
 		SDP:  jingle.ToSDP(),
 	}
-	err := c.RTCClient.SetRemoteDescription(remoteDescription)
+	err := c.peerConnection.SetRemoteDescription(remoteDescription)
 	if err != nil {
 		return err
 	}
 
 	// Change CallClient state
-	c.State = Active
-
-	// Start pushing track buffer
-	c.startTracks()
+	c.state = Active
 
 	return nil
 }
 
-func (c *CallClient) AcceptIncomingCall(responder *jid.JID, jingle *Jingle) (*Jingle, error) {
+func (c *CallClient) AcceptIncomingCall(jingle *Jingle) (*Jingle, error) {
 	c.mu.Lock()
 	defer c.mu.Unlock()
-	if c.State != Ended {
+	if c.state != Ended {
 		return nil, errors.New("Another call is in progress")
 	}
 
@@ -168,31 +210,29 @@ func (c *CallClient) AcceptIncomingCall(responder *jid.JID, jingle *Jingle) (*Ji
 	if err != nil {
 		return nil, err
 	}
-	gatherComplete := webrtc.GatheringCompletePromise(peerConnection)
 	err = peerConnection.SetLocalDescription(answer)
 	if err != nil {
 		return nil, err
 	}
-	<-gatherComplete
 
 	// Converting SDP into jingle
-	localDescription := peerConnection.LocalDescription()
-	jingleResponse := FromSDP(localDescription.SDP)
+	jingleResponse := FromSDP(answer.SDP)
 
 	// Completing Jingle attributes
 	jingleResponse.Action = "session-accept"
-	jingleResponse.Responder = responder.String()
+	jingleResponse.Responder = c.clientJID.String()
 	jingleResponse.SID = jingle.SID
 
 	// Change CallClient State
-	c.State = Active
-	c.Role = Responder
-	c.SID = jingleResponse.SID
-	c.ReceivePipelines = []*gst.ReceivePipeline{}
-	c.SendPipelines = []*gst.SendPipeline{}
-
-	// Start pushing buffer to track
-	c.startTracks()
+	c.state = Active
+	c.role = Responder
+	c.sid = jingleResponse.SID
+	c.peerConnection = peerConnection
+	c.partnerJID = jid.MustParse(jingle.Initiator)
+	c.receivePipelines = []*gst.ReceivePipeline{}
+	c.sendPipelines = []*gst.SendPipeline{}
+	c.icePwd = jingle.Contents[0].Transport.PWD
+	c.iceUfrag = jingle.Contents[0].Transport.UFrag
 
 	return jingleResponse, nil
 }
@@ -200,17 +240,17 @@ func (c *CallClient) AcceptIncomingCall(responder *jid.JID, jingle *Jingle) (*Ji
 func (c *CallClient) CancelCall() (*Jingle, error) {
 	c.mu.Lock()
 	defer c.mu.Unlock()
-	if c.State != Pending {
+	if c.state != Pending {
 		return nil, errors.New("No outgoing call to cancel")
 	}
 
-	// Closing peerConnection
-	c.RTCClient.Close()
+	// Resetting Client
+	c.resetClient()
 
 	// Generating jingle terminate
 	jingle := &Jingle{
 		Action: "session-terminate",
-		SID:    c.SID,
+		SID:    c.sid,
 		Reason: &struct {
 			Condition *struct {
 				XMLName xml.Name "xml:\",omitempty\""
@@ -226,36 +266,23 @@ func (c *CallClient) CancelCall() (*Jingle, error) {
 		},
 	}
 
-	// Cleaning CallClient
-	c.State = Ended
-	c.Role = EmptyRole
-	c.SID = ""
-	for _, pipeline := range c.ReceivePipelines {
-		pipeline.Stop()
-		pipeline.Free()
-	}
-	for _, pipeline := range c.SendPipelines {
-		pipeline.Stop()
-		pipeline.Free()
-	}
-
 	return jingle, nil
 }
 
 func (c *CallClient) TerminateCall() (*Jingle, error) {
 	c.mu.Lock()
 	defer c.mu.Unlock()
-	if c.State != Active {
+	if c.state != Active {
 		return nil, errors.New("There's no ongoing call")
 	}
 
-	// Closing connection
-	c.RTCClient.Close()
+	// Resetting Client
+	c.resetClient()
 
 	// Generating jingle terminate
 	jingle := &Jingle{
 		Action: "session-terminate",
-		SID:    c.SID,
+		SID:    c.sid,
 		Reason: &struct {
 			Condition *struct {
 				XMLName xml.Name "xml:\",omitempty\""
@@ -271,18 +298,60 @@ func (c *CallClient) TerminateCall() (*Jingle, error) {
 		},
 	}
 
-	// Cleaning CallClient
-	c.State = Ended
-	c.Role = EmptyRole
-	c.SID = ""
-	for _, pipeline := range c.ReceivePipelines {
-		pipeline.Stop()
-		pipeline.Free()
+	return jingle, nil
+}
+
+func (c *CallClient) RegisterICECandidate(ice *ICECandidate) error {
+	c.mu.Lock()
+	defer c.mu.Unlock()
+
+	err := c.peerConnection.AddICECandidate(webrtc.ICECandidateInit{
+		Candidate: ice.toSDP(),
+	})
+
+	return err
+}
+
+func (c *CallClient) CreateICECandidateMessage(ice *webrtc.ICECandidate) (*Jingle, error) {
+	if c.state == Ended {
+		return nil, errors.New("No jingle session currently running")
 	}
-	for _, pipeline := range c.SendPipelines {
-		pipeline.Stop()
-		pipeline.Free()
+	c.debug.Printf("New ICE Candidate: %#v", ice)
+
+	iceCandidate := &ICECandidate{
+		Component:  strconv.FormatUint(uint64(ice.Component), 10),
+		Foundation: ice.Foundation,
+		Ip:         ice.Address,
+		Port:       strconv.FormatUint(uint64(ice.Port), 10),
+		Priority:   strconv.FormatUint(uint64(ice.Priority), 10),
+		Protocol:   ice.Protocol.String(),
+		Type:       ice.Typ.String(),
+	}
+	if iceCandidate.Type != "host" {
+		iceCandidate.RelAddr = ice.RelatedAddress
+		iceCandidate.RelPort = strconv.FormatUint(uint64(ice.RelatedPort), 10)
 	}
 
-	return jingle, nil
+	content := &Content{
+		Creator: "initiator",
+		Name:    "0",
+		Transport: &ICEUDPTransport{
+			PWD:        c.icePwd,
+			UFrag:      c.iceUfrag,
+			Candidates: []*ICECandidate{iceCandidate},
+		},
+	}
+
+	jingleMessage := &Jingle{
+		Action:   "transport-info",
+		SID:      c.sid,
+		Contents: []*Content{content},
+	}
+	if c.role == Initiator {
+		jingleMessage.Initiator = c.clientJID.String()
+	} else {
+		jingleMessage.Responder = c.clientJID.String()
+	}
+
+	return jingleMessage, nil
 }

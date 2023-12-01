@@ -46,13 +46,12 @@ func newFyneGUIHandler(g *gui.GUI, db *storage.DB, c *client.Client, logger, deb
 		case event.NewOutgoingCall:
 			go func() {
 				jidCopy := jid.JID(e)
-				jingleRequest, err := c.CallClient.StartOutgoingCall(&jidCopy)
+				jingleRequest, err := c.CallClient.StartOutgoingCall(jidCopy)
 				if err != nil {
 					g.TerminateCallSession()
 					logger.Println(err)
 					return
 				}
-				c.CallClient.SetPartnerJid(jidCopy)
 				ctx, cancel := context.WithTimeout(context.Background(), 60*time.Second)
 				defer cancel()
 				err = c.UnmarshalIQ(ctx, jingle.IQ{
@@ -72,8 +71,7 @@ func newFyneGUIHandler(g *gui.GUI, db *storage.DB, c *client.Client, logger, deb
 			}()
 		case event.AcceptIncomingCall:
 			go func() {
-				jidCopy := c.LocalAddr()
-				jingleResponse, err := c.CallClient.AcceptIncomingCall(&jidCopy, e)
+				jingleResponse, err := c.CallClient.AcceptIncomingCall(e)
 				ctx, cancel := context.WithTimeout(context.Background(), 60*time.Second)
 				defer cancel()
 				if err != nil {
@@ -86,7 +84,6 @@ func newFyneGUIHandler(g *gui.GUI, db *storage.DB, c *client.Client, logger, deb
 					}.TokenReader(), nil)
 					return
 				}
-				c.CallClient.SetPartnerJid(jid.MustParse(e.Initiator))
 				err = c.UnmarshalIQ(ctx, jingle.IQ{
 					IQ: stanza.IQ{
 						Type: stanza.SetIQ,
@@ -108,12 +105,13 @@ func newFyneGUIHandler(g *gui.GUI, db *storage.DB, c *client.Client, logger, deb
 				ctx, cancel := context.WithTimeout(context.Background(), 60*time.Second)
 				defer cancel()
 				if err != nil {
+					_, _, sid := c.CallClient.GetCurrentState()
 					c.UnmarshalIQ(ctx, jingle.IQ{
 						IQ: stanza.IQ{
 							Type: stanza.SetIQ,
-							To:   c.CallClient.PartnerJID,
+							To:   c.CallClient.GetPartnerJid(),
 						},
-						Jingle: jingle.JingleFailed(jingleTerminate.SID),
+						Jingle: jingle.JingleFailed(sid),
 					}.TokenReader(), nil)
 					logger.Println(err)
 					return
@@ -121,7 +119,7 @@ func newFyneGUIHandler(g *gui.GUI, db *storage.DB, c *client.Client, logger, deb
 				err = c.UnmarshalIQ(ctx, jingle.IQ{
 					IQ: stanza.IQ{
 						Type: stanza.SetIQ,
-						To:   c.CallClient.PartnerJID,
+						To:   c.CallClient.GetPartnerJid(),
 					},
 					Jingle: jingleTerminate,
 				}.TokenReader(), nil)
@@ -139,7 +137,7 @@ func newFyneGUIHandler(g *gui.GUI, db *storage.DB, c *client.Client, logger, deb
 					c.UnmarshalIQ(ctx, jingle.IQ{
 						IQ: stanza.IQ{
 							Type: stanza.SetIQ,
-							To:   c.CallClient.PartnerJID,
+							To:   c.CallClient.GetPartnerJid(),
 						},
 						Jingle: jingle.JingleFailed(jingleTerminate.SID),
 					}.TokenReader(), nil)
@@ -149,7 +147,7 @@ func newFyneGUIHandler(g *gui.GUI, db *storage.DB, c *client.Client, logger, deb
 				err = c.UnmarshalIQ(ctx, jingle.IQ{
 					IQ: stanza.IQ{
 						Type: stanza.SetIQ,
-						To:   c.CallClient.PartnerJID,
+						To:   c.CallClient.GetPartnerJid(),
 					},
 					Jingle: jingleTerminate,
 				}.TokenReader(), nil)

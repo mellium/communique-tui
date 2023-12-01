@@ -237,7 +237,7 @@ func (c *Client) reconnect(ctx context.Context) error {
 	}
 
 	// Init CallClient
-	c.CallClient = jingle.New(c.debug)
+	c.CallClient = jingle.New(c.LocalAddr(), newOnIceCandidateHandler(c), c.debug)
 
 	return nil
 }

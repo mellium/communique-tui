@@ -140,7 +140,6 @@ func FromSDP(sdp string) *Jingle {
 						Hash: fingerprint.Hash,
 						Text: fingerprint.Text,
 					},
-					Candidates: []*ICECandidate{},
 				},
 			}
 			for _, id := range media.ids {
@@ -237,8 +236,8 @@ func FromSDP(sdp string) *Jingle {
 			i++
 		}
 	}
-	for _, content := range j.Contents {
-		content.Transport.Candidates = append(content.Transport.Candidates, iceCandidates...)
+	if iceCandidates != nil {
+		j.Contents[0].Transport.Candidates = append([]*ICECandidate{}, iceCandidates...)
 	}
 
 	return j
@@ -384,29 +383,7 @@ func (j *Jingle) ToSDP() string {
 
 		if idx == 0 {
 			for _, candidate := range content.Transport.Candidates {
-				candidateData := []string{
-					candidate.Component,
-					candidate.Protocol,
-					candidate.Priority,
-					candidate.Ip,
-					candidate.Port,
-					"typ",
-					candidate.Type,
-				}
-				if candidate.Type == "srflx" || candidate.Type == "relay" {
-					candidateData = append(candidateData, []string{
-						"raddr",
-						candidate.RelAddr,
-						"rport",
-						candidate.RelPort,
-					}...)
-				}
-				candidateVal := &attributeField{
-					name:      "candidate",
-					value:     candidate.Foundation,
-					extension: strings.Join(candidateData, " "),
-				}
-				sdplines = append(sdplines, "a="+candidateVal.toString())
+				sdplines = append(sdplines, "a="+candidate.toSDP())
 			}
 			sdplines = append(sdplines, "a=end-of-candidates")
 		}

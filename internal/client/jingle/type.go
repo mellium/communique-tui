@@ -141,3 +141,29 @@ type ICECandidate struct {
 	RelAddr    string   `xml:"rel-addr,attr,omitempty"`
 	RelPort    string   `xml:"rel-port,attr,omitempty"`
 }
+
+func (candidate *ICECandidate) toSDP() string {
+	candidateData := []string{
+		candidate.Component,
+		candidate.Protocol,
+		candidate.Priority,
+		candidate.Ip,
+		candidate.Port,
+		"typ",
+		candidate.Type,
+	}
+	if candidate.Type == "srflx" || candidate.Type == "relay" {
+		candidateData = append(candidateData, []string{
+			"raddr",
+			candidate.RelAddr,
+			"rport",
+			candidate.RelPort,
+		}...)
+	}
+	candidateVal := &attributeField{
+		name:      "candidate",
+		value:     candidate.Foundation,
+		extension: strings.Join(candidateData, " "),
+	}
+	return candidateVal.toString()
+}

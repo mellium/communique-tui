@@ -35,7 +35,7 @@ func (c *CallClient) onTrackHandler(peerConnection *webrtc.PeerConnection) func(
 		codecName := strings.Split(track.Codec().RTPCodecCapability.MimeType, "/")[1]
 		c.debug.Printf("Track has started, of type %d: %s \n", track.PayloadType(), codecName)
 		pipeline, _ := gst.CreateReceivePipeline(track.PayloadType(), strings.ToLower(codecName))
-		c.ReceivePipelines = append(c.ReceivePipelines, pipeline)
+		c.receivePipelines = append(c.receivePipelines, pipeline)
 
 		go func() {
 			pipeline.Start()
@@ -78,7 +78,13 @@ func (c *CallClient) createPeerConnection() (*webrtc.PeerConnection, error) {
 
 	peerConnection.OnICEConnectionStateChange(func(connectionState webrtc.ICEConnectionState) {
 		c.debug.Printf("Connection State has changed %s \n", connectionState.String())
+		if connectionState == webrtc.ICEConnectionStateConnected {
+			c.debug.Println("Start pushing track")
+			c.startTracks()
+		}
 	})
+
+	peerConnection.OnICECandidate(c.onIceCandidate)
 
 	// create audio track
 	opusTrack, err := webrtc.NewTrackLocalStaticSample(webrtc.RTPCodecCapability{MimeType: "audio/opus"}, "audio", "pion1")
@@ -87,7 +93,7 @@ func (c *CallClient) createPeerConnection() (*webrtc.PeerConnection, error) {
 	} else if _, err = peerConnection.AddTrack(opusTrack); err != nil {
 		return nil, err
 	}
-	c.AudioTrack = opusTrack
+	c.audioTrack = opusTrack
 
 	// create video track
 	vp8Track, err := webrtc.NewTrackLocalStaticSample(webrtc.RTPCodecCapability{MimeType: "video/vp8"}, "video", "pion2")
@@ -96,16 +102,16 @@ func (c *CallClient) createPeerConnection() (*webrtc.PeerConnection, error) {
 	} else if _, err = peerConnection.AddTrack(vp8Track); err != nil {
 		return nil, err
 	}
-	c.VideoTrack = vp8Track
+	c.videoTrack = vp8Track
 
 	return peerConnection, nil
 }
 
 func (c *CallClient) startTracks() {
-	audioPipeline, _ := gst.CreateSendPipeline("opus", []*webrtc.TrackLocalStaticSample{c.AudioTrack})
-	videoPipeline, _ := gst.CreateSendPipeline("vp8", []*webrtc.TrackLocalStaticSample{c.VideoTrack})
-	c.SendPipelines = append(c.SendPipelines, audioPipeline)
-	c.SendPipelines = append(c.SendPipelines, videoPipeline)
+	audioPipeline, _ := gst.CreateSendPipeline("opus", []*webrtc.TrackLocalStaticSample{c.audioTrack})
+	videoPipeline, _ := gst.CreateSendPipeline("vp8", []*webrtc.TrackLocalStaticSample{c.videoTrack})
+	c.sendPipelines = append(c.sendPipelines, audioPipeline)
+	c.sendPipelines = append(c.sendPipelines, videoPipeline)
 	go func() {
 		audioPipeline.Start()
 	}()
