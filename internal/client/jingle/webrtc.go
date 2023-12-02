@@ -18,12 +18,14 @@ const (
 func (c *CallClient) onTrackHandler(peerConnection *webrtc.PeerConnection) func(*webrtc.TrackRemote, *webrtc.RTPReceiver) {
 	return func(track *webrtc.TrackRemote, receiver *webrtc.RTPReceiver) {
 		// Send a PLI on an interval so that the publisher is pushing a keyframe every rtcpPLIInterval
+		c.wg.Add(1)
+		defer c.wg.Done()
 		go func() {
 			ticker := time.NewTicker(time.Second * 3)
 			for range ticker.C {
 				rtcpSendErr := peerConnection.WriteRTCP([]rtcp.Packet{&rtcp.PictureLossIndication{MediaSSRC: uint32(track.SSRC())}})
 				if rtcpSendErr != nil {
-					c.debug.Println(rtcpSendErr)
+					c.debug.Printf("Error sending RTCP track: %q", rtcpSendErr)
 				}
 				if peerConnection.ConnectionState() != webrtc.PeerConnectionStateConnected {
 					c.debug.Printf("Stopping RTCP Send of type %d\n", track.PayloadType())
@@ -43,13 +45,14 @@ func (c *CallClient) onTrackHandler(peerConnection *webrtc.PeerConnection) func(
 		for {
 			i, _, readErr := track.Read(buf)
 			if readErr != nil {
-				c.debug.Println(readErr)
+				c.debug.Printf("Error reading track: %q", readErr)
+				return
 			}
-			pipeline.Push(buf[:i])
 			if peerConnection.ConnectionState() != webrtc.PeerConnectionStateConnected {
 				c.debug.Printf("Ending on track handler of type %d: %s\n", track.PayloadType(), codecName)
 				return
 			}
+			pipeline.Push(buf[:i])
 		}
 	}
 }

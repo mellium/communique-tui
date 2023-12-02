@@ -6,7 +6,6 @@ import (
 	"log"
 	"strconv"
 	"sync"
-	"time"
 
 	"github.com/pion/webrtc/v3"
 	"mellium.im/communique/internal/client/gst"
@@ -47,6 +46,7 @@ type CallClient struct {
 	onIceCandidate    func(ice *webrtc.ICECandidate)
 	tempIceCandidates []webrtc.ICECandidateInit
 	mu                sync.Mutex
+	wg                sync.WaitGroup
 }
 
 func New(clientJID jid.JID, onIceCandidate func(ice *webrtc.ICECandidate), debug *log.Logger) *CallClient {
@@ -65,7 +65,7 @@ func (c *CallClient) resetClient() {
 	if c.peerConnection != nil {
 		c.peerConnection.Close()
 	}
-	time.Sleep(1 * time.Second)
+	c.wg.Wait()
 
 	for _, pipeline := range c.receivePipelines {
 		pipeline.Stop()
@@ -267,9 +267,6 @@ func (c *CallClient) CancelCall() (*Jingle, error) {
 		return nil, errors.New("No outgoing call to cancel")
 	}
 
-	// Resetting Client
-	c.resetClient()
-
 	// Generating jingle terminate
 	jingle := &Jingle{
 		Action: "session-terminate",
@@ -289,6 +286,9 @@ func (c *CallClient) CancelCall() (*Jingle, error) {
 		},
 	}
 
+	// Resetting Client
+	c.resetClient()
+
 	return jingle, nil
 }
 
@@ -298,9 +298,6 @@ func (c *CallClient) TerminateCall() (*Jingle, error) {
 	if c.state != Active {
 		return nil, errors.New("There's no ongoing call")
 	}
-
-	// Resetting Client
-	c.resetClient()
 
 	// Generating jingle terminate
 	jingle := &Jingle{
@@ -320,6 +317,9 @@ func (c *CallClient) TerminateCall() (*Jingle, error) {
 			},
 		},
 	}
+
+	// Resetting Client
+	c.resetClient()
 
 	return jingle, nil
 }
