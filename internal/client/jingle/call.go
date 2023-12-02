@@ -30,37 +30,41 @@ const (
 )
 
 type CallClient struct {
-	api              *webrtc.API
-	state            JingleState
-	role             JingleRole
-	sid              string
-	peerConnection   *webrtc.PeerConnection
-	receivePipelines []*gst.ReceivePipeline
-	sendPipelines    []*gst.SendPipeline
-	debug            *log.Logger
-	audioTrack       *webrtc.TrackLocalStaticSample
-	videoTrack       *webrtc.TrackLocalStaticSample
-	clientJID        jid.JID
-	partnerJID       jid.JID
-	icePwd           string
-	iceUfrag         string
-	onIceCandidate   func(ice *webrtc.ICECandidate)
-	mu               sync.Mutex
+	api               *webrtc.API
+	state             JingleState
+	role              JingleRole
+	sid               string
+	peerConnection    *webrtc.PeerConnection
+	receivePipelines  []*gst.ReceivePipeline
+	sendPipelines     []*gst.SendPipeline
+	debug             *log.Logger
+	audioTrack        *webrtc.TrackLocalStaticSample
+	videoTrack        *webrtc.TrackLocalStaticSample
+	clientJID         jid.JID
+	partnerJID        jid.JID
+	icePwd            string
+	iceUfrag          string
+	onIceCandidate    func(ice *webrtc.ICECandidate)
+	tempIceCandidates []webrtc.ICECandidateInit
+	mu                sync.Mutex
 }
 
 func New(clientJID jid.JID, onIceCandidate func(ice *webrtc.ICECandidate), debug *log.Logger) *CallClient {
 	return &CallClient{
-		api:            createCustomAPI(),
-		state:          Ended,
-		role:           EmptyRole,
-		debug:          debug,
-		clientJID:      clientJID,
-		onIceCandidate: onIceCandidate,
+		api:               createCustomAPI(),
+		state:             Ended,
+		role:              EmptyRole,
+		debug:             debug,
+		clientJID:         clientJID,
+		onIceCandidate:    onIceCandidate,
+		tempIceCandidates: []webrtc.ICECandidateInit{},
 	}
 }
 
 func (c *CallClient) resetClient() {
-	c.peerConnection.Close()
+	if c.peerConnection != nil {
+		c.peerConnection.Close()
+	}
 	time.Sleep(1 * time.Second)
 
 	for _, pipeline := range c.receivePipelines {
@@ -98,11 +102,12 @@ func (c *CallClient) WrapJingleMessage(jingleMessage *Jingle) (*IQ, error) {
 	}, nil
 }
 
-func (c *CallClient) SetState(state JingleState, role JingleRole) {
+func (c *CallClient) SetState(state JingleState, role JingleRole, sid string) {
 	c.mu.Lock()
 	defer c.mu.Unlock()
 	c.state = state
 	c.role = role
+	c.sid = sid
 }
 
 // Return current state synchronously. (state, role, sid)
@@ -224,6 +229,15 @@ func (c *CallClient) AcceptIncomingCall(jingle *Jingle) (*Jingle, error) {
 		return nil, err
 	}
 
+	// Pushing ice candidate from temp storage
+	for _, ice := range c.tempIceCandidates {
+		err = peerConnection.AddICECandidate(ice)
+		if err != nil {
+			return nil, err
+		}
+	}
+	c.tempIceCandidates = []webrtc.ICECandidateInit{}
+
 	// Converting SDP into jingle
 	jingleResponse := FromSDP(answer.SDP)
 
@@ -313,6 +327,12 @@ func (c *CallClient) TerminateCall() (*Jingle, error) {
 func (c *CallClient) RegisterICECandidate(ice *ICECandidate) error {
 	c.mu.Lock()
 	defer c.mu.Unlock()
+
+	if c.peerConnection == nil {
+		c.tempIceCandidates = append(c.tempIceCandidates, webrtc.ICECandidateInit{
+			Candidate: ice.toSDP(),
+		})
+	}
 
 	err := c.peerConnection.AddICECandidate(webrtc.ICECandidateInit{
 		Candidate: ice.toSDP(),
