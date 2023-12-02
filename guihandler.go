@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"encoding/xml"
 	"log"
 	"time"
 
@@ -11,11 +12,13 @@ import (
 
 	"mellium.im/communique/internal/client"
 	"mellium.im/communique/internal/client/event"
+	"mellium.im/communique/internal/client/omemo"
 	"mellium.im/communique/internal/gui"
 	"mellium.im/communique/internal/storage"
 	"mellium.im/xmpp/crypto"
 	"mellium.im/xmpp/disco"
 	"mellium.im/xmpp/jid"
+	"mellium.im/xmpp/stanza"
 )
 
 func newFyneGUIHandler(g *gui.GUI, db *storage.DB, c *client.Client, logger, debug *log.Logger) func(interface{}) {
@@ -32,7 +35,92 @@ func newFyneGUIHandler(g *gui.GUI, db *storage.DB, c *client.Client, logger, deb
 				ctx, cancel := context.WithTimeout(context.Background(), 60*time.Second)
 				defer cancel()
 
-				var err error
+				iqStanza := &omemo.DeviceAnnouncementIQ{
+					IQ: stanza.IQ{
+						Type: stanza.SetIQ,
+						From: c.LocalAddr().Bare(),
+					},
+					DeviceAnnouncement: &omemo.DeviceAnnouncement{
+						Publish: &struct {
+							XMLName xml.Name `xml:"publish"`
+							Node    string   `xml:"node,attr"`
+							Item    *struct {
+								XMLName xml.Name `xml:"item"`
+								ID      string   `xml:"id,attr"`
+								Devices *struct {
+									XMLName xml.Name `xml:"urn:xmpp:omemo:2 devices"`
+									Device  []*struct {
+										XMLName xml.Name `xml:"device"`
+										ID      string   `xml:"id,attr"`
+										Label   string   `xml:"label,attr,omitempty"`
+									} `xml:"device"`
+								} `xml:"devices,omitempty"`
+							} `xml:"item"`
+						}{
+							Node: "urn:xmpp:omemo:2:devices",
+							Item: &struct {
+								XMLName xml.Name `xml:"item"`
+								ID      string   `xml:"id,attr"`
+								Devices *struct {
+									XMLName xml.Name `xml:"urn:xmpp:omemo:2 devices"`
+									Device  []*struct {
+										XMLName xml.Name `xml:"device"`
+										ID      string   `xml:"id,attr"`
+										Label   string   `xml:"label,attr,omitempty"`
+									} `xml:"device"`
+								} `xml:"devices,omitempty"`
+							}{
+								ID: "current",
+								Devices: &struct {
+									XMLName xml.Name `xml:"urn:xmpp:omemo:2 devices"`
+									Device  []*struct {
+										XMLName xml.Name `xml:"device"`
+										ID      string   `xml:"id,attr"`
+										Label   string   `xml:"label,attr,omitempty"`
+									} `xml:"device"`
+								}{
+									Device: []*struct {
+										XMLName xml.Name `xml:"device"`
+										ID      string   `xml:"id,attr"`
+										Label   string   `xml:"label,attr,omitempty"`
+									}{
+										{ID: "12345", Label: "Dino on Lenovo Thinkpad T495"},
+										{ID: "4223"},
+										{ID: "31415", Label: "Conversations on Pixel 3"},
+									},
+								},
+							},
+						},
+						PublishOptions: &omemo.PublishOptions{
+							X: &struct {
+								XMLName xml.Name `xml:"jabber:x:data x"`
+								Type    string   `xml:"type,attr"`
+								Field   []*struct {
+									Var   string `xml:"var,attr"`
+									Type  string `xml:"type,attr,omitempty"`
+									Value string `xml:"value"`
+								} `xml:"field"`
+							}{
+								Type: "submit",
+								Field: []*struct {
+									Var   string `xml:"var,attr"`
+									Type  string `xml:"type,attr,omitempty"`
+									Value string `xml:"value"`
+								}{
+									{Var: "FORM_TYPE", Type: "hidden", Value: "http://jabber.org/protocol/pubsub#publish-options"},
+									{Var: "pubsub#access_model", Value: "open"},
+								},
+							},
+						},
+					},
+				}
+
+				_, err := c.SendIQ(ctx, iqStanza.TokenReader())
+
+				if err != nil {
+					logger.Printf("Error sending device list: %q", err)
+				}
+
 				e, err = c.SendMessage(ctx, e)
 				if err != nil {
 					logger.Printf("error sending message: %v", err)

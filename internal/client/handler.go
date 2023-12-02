@@ -5,10 +5,14 @@
 package client
 
 import (
+	//"context"
 	"encoding/xml"
 	"io"
 
+	//"time"
+
 	"mellium.im/communique/internal/client/event"
+	//"mellium.im/communique/internal/client/omemo"
 	"mellium.im/xmlstream"
 	"mellium.im/xmpp"
 	"mellium.im/xmpp/carbons"
@@ -60,6 +64,7 @@ func newXMPPHandler(c *Client) xmpp.Handler {
 		mux.Message(stanza.GroupChatMessage, xml.Name{Local: "body"}, msgHandler),
 		receipts.Handle(c.receiptsHandler),
 		history.Handle(history.NewHandler(newHistoryHandler(c))),
+		//omemo.PubsubHandle(newOMEMOPubsubHandler(c)),
 	)
 }
 
@@ -159,3 +164,14 @@ func newHistoryHandler(c *Client) mux.MessageHandlerFunc {
 		return nil
 	}
 }
+
+// func newOMEMOPubsubHandler(c *Client) mux.IQHandlerFunc {
+// 	return func(iq stanza.IQ, t xmlstream.TokenReadEncoder, start *xml.StartElement) error {
+// 		ctx, cancel := context.WithTimeout(context.Background(), 60*time.Second)
+// 		defer cancel()
+//
+//
+//
+// 		return err
+// 	}
+// }
