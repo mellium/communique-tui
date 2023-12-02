@@ -332,6 +332,7 @@ func (c *CallClient) RegisterICECandidate(ice *ICECandidate) error {
 		c.tempIceCandidates = append(c.tempIceCandidates, webrtc.ICECandidateInit{
 			Candidate: ice.toSDP(),
 		})
+		return nil
 	}
 
 	err := c.peerConnection.AddICECandidate(webrtc.ICECandidateInit{
