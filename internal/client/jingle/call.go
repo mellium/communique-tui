@@ -117,6 +117,12 @@ func (c *CallClient) GetCurrentState() (JingleState, JingleRole, string) {
 	return c.state, c.role, c.sid
 }
 
+func (c *CallClient) SetPartnerJid(partnerJid jid.JID) {
+	c.mu.Lock()
+	defer c.mu.Unlock()
+	c.partnerJID = partnerJid
+}
+
 func (c *CallClient) GetPartnerJid() jid.JID {
 	c.mu.Lock()
 	defer c.mu.Unlock()
