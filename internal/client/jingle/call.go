@@ -98,6 +98,13 @@ func (c *CallClient) WrapJingleMessage(jingleMessage *Jingle) (*IQ, error) {
 	}, nil
 }
 
+func (c *CallClient) SetState(state JingleState, role JingleRole) {
+	c.mu.Lock()
+	defer c.mu.Unlock()
+	c.state = state
+	c.role = role
+}
+
 // Return current state synchronously. (state, role, sid)
 func (c *CallClient) GetCurrentState() (JingleState, JingleRole, string) {
 	c.mu.Lock()
@@ -187,7 +194,7 @@ func (c *CallClient) AcceptOutgoingCall(jingle *Jingle) error {
 func (c *CallClient) AcceptIncomingCall(jingle *Jingle) (*Jingle, error) {
 	c.mu.Lock()
 	defer c.mu.Unlock()
-	if c.state != Ended {
+	if c.state != Pending {
 		return nil, errors.New("Another call is in progress")
 	}
 

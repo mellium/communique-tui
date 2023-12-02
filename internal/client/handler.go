@@ -245,6 +245,7 @@ func newJingleHandler(c *Client) mux.IQHandlerFunc {
 					return err
 				}
 			}
+			c.CallClient.SetState(jingle.Pending, jingle.Responder)
 			c.handler(event.NewIncomingCall(jingleRequest))
 		case "session-accept":
 			if sid != jingleRequest.SID {
