@@ -280,7 +280,11 @@ func newJingleHandler(c *Client) mux.IQHandlerFunc {
 					return err
 				}
 			}
-			c.handler(event.TerminateCall(""))
+			if state == jingle.Pending {
+				c.handler(event.CancelCall(""))
+			} else {
+				c.handler(event.TerminateCall(""))
+			}
 		case "transport-info":
 			if sid != jingleRequest.SID {
 				_, err := xmlstream.Copy(t, iq.Error(stanza.Error{
