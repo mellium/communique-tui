@@ -12,6 +12,7 @@ import (
 	"fmt"
 	"io"
 	"log"
+	"strconv"
 	"strings"
 	"sync"
 	"time"
@@ -73,11 +74,26 @@ func New(j jid.JID, logger, debug *log.Logger, opts ...Option) *Client {
 		// TODO: mediated muc invitations
 		mucClient: &muc.Client{},
 		channels:  make(map[string]*muc.Channel),
-		idPrivKey: idPrivKey,
-		idPubKey:  idPubKey,
+		idPrivKey: []byte(idPrivKey),
+		idPubKey:  []byte(idPubKey),
 		spkPriv:   spkPriv,
 		spkPub:    spkPub,
 		spkSig:    spkSig,
+		opkList:   []PreKey{}, // different prekey type from the one in omemo package
+	}
+
+	for i := 0; i <= 100; i++ {
+		opkPub, opkPriv, err := ed25519.GenerateKey(nil)
+
+		if err != nil {
+			logger.Printf("Error generating one-time prekey pair: %q", err)
+		}
+
+		c.opkList = append(c.opkList, PreKey{
+			ID:         strconv.Itoa(i),
+			PrivateKey: []byte(opkPriv),
+			PublicKey:  []byte(opkPub),
+		})
 	}
 
 	for _, opt := range opts {
@@ -264,11 +280,12 @@ type Client struct {
 	channels        map[string]*muc.Channel
 	useQuic         bool
 	quicConn        *quic.QuicConn
-	idPrivKey       ed25519.PrivateKey
-	idPubKey        ed25519.PublicKey
+	idPrivKey       []byte
+	idPubKey        []byte
 	spkPriv         []byte
 	spkPub          []byte
 	spkSig          []byte
+	opkList         []PreKey
 }
 
 // Online sets the status to online.
