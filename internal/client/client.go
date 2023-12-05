@@ -6,6 +6,7 @@ package client
 
 import (
 	"context"
+	"crypto/ed25519"
 	"crypto/tls"
 	"encoding/xml"
 	"fmt"
@@ -17,6 +18,7 @@ import (
 
 	"mellium.im/communique/internal/client/event"
 	"mellium.im/communique/internal/client/quic"
+	"mellium.im/communique/internal/client/x3dh"
 	legacybookmarks "mellium.im/legacy/bookmarks"
 	"mellium.im/sasl"
 	"mellium.im/xmlstream"
@@ -39,6 +41,19 @@ func noopHandler(interface{}) {}
 // send an initial presence, etc.
 func New(j jid.JID, logger, debug *log.Logger, opts ...Option) *Client {
 	var c *Client
+
+	idPubKey, idPrivKey, err := ed25519.GenerateKey(nil)
+
+	if err != nil {
+		logger.Printf("Error generating identity key pair: %q", err)
+	}
+
+	spkPub, spkPriv, spkSig, err := x3dh.CreateNewSpk(idPrivKey)
+
+	if err != nil {
+		logger.Printf("Error generating signed prekey pair: %q", err)
+	}
+
 	c = &Client{
 		timeout: 30 * time.Second,
 		addr:    j,
@@ -58,6 +73,11 @@ func New(j jid.JID, logger, debug *log.Logger, opts ...Option) *Client {
 		// TODO: mediated muc invitations
 		mucClient: &muc.Client{},
 		channels:  make(map[string]*muc.Channel),
+		idPrivKey: idPrivKey,
+		idPubKey:  idPubKey,
+		spkPriv:   spkPriv,
+		spkPub:    spkPub,
+		spkSig:    spkSig,
 	}
 
 	for _, opt := range opts {
@@ -244,6 +264,11 @@ type Client struct {
 	channels        map[string]*muc.Channel
 	useQuic         bool
 	quicConn        *quic.QuicConn
+	idPrivKey       ed25519.PrivateKey
+	idPubKey        ed25519.PublicKey
+	spkPriv         []byte
+	spkPub          []byte
+	spkSig          []byte
 }
 
 // Online sets the status to online.
