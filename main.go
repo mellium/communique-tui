@@ -33,6 +33,7 @@ import (
 	"github.com/rivo/tview"
 
 	"mellium.im/communique/internal/client"
+	"mellium.im/communique/internal/client/omemo"
 	"mellium.im/communique/internal/gui"
 	"mellium.im/communique/internal/logwriter"
 	"mellium.im/communique/internal/storage"
@@ -193,7 +194,11 @@ func main() {
 				logger.Printf("initial login failed: %v", err)
 				return
 			}
+
 			debug.Printf("logged in as: %q", c.LocalAddr())
+
+			debug.Printf("Setting up OMEMO...")
+			omemo.SetupClient(c, logger)
 		}()
 
 		window.Run(jidChan)

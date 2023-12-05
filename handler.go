@@ -179,8 +179,7 @@ func newUIHandler(configPath string, acct account, pane *ui.UI, db *storage.DB, 
 				ctx, cancel := context.WithTimeout(context.Background(), 60*time.Second)
 				defer cancel()
 
-				var err error
-				e, err = c.SendMessage(ctx, e)
+				e, err := c.SendMessage(ctx, e)
 				if err != nil {
 					logger.Printf("error sending message: %v", err)
 				}
