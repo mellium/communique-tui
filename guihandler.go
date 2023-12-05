@@ -34,7 +34,7 @@ func newFyneGUIHandler(g *gui.GUI, db *storage.DB, c *client.Client, logger, deb
 				defer cancel()
 
 				logger.Printf("Fetching key bundle...")
-				fetchBundleStanza := omemo.WrapNodeFetch("urn:xmpp:omemo:2:bundles", "123", e.To.Bare(), c)
+				fetchBundleStanza := omemo.WrapNodeFetch("urn:xmpp:omemo:2:bundles", c.DeviceId, e.To.Bare(), c)
 
 				_, err := c.SendIQ(ctx, fetchBundleStanza.TokenReader())
 

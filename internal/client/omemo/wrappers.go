@@ -1,6 +1,7 @@
 package omemo
 
 import (
+	b64 "encoding/base64"
 	"encoding/xml"
 
 	"mellium.im/communique/internal/client"
@@ -72,7 +73,15 @@ func WrapDeviceIds(deviceList []Device, c *client.Client) *DeviceAnnouncementIQ 
 	return iqStanza
 }
 
-func WrapKeyBundle(deviceId string, prekeyList []PreKey, c *client.Client) *KeyBundleAnnouncementIQ {
+func WrapKeyBundle(c *client.Client) *KeyBundleAnnouncementIQ {
+	deviceId, _, idPubKey, _, spkPub, spkSig, opkList := c.KeyBundle()
+
+	var opks []PreKey
+
+	for _, key := range opkList {
+		opks = append(opks, PreKey{ID: key.ID, Text: b64.StdEncoding.EncodeToString(key.PublicKey)})
+	}
+
 	iqStanza := &KeyBundleAnnouncementIQ{
 		IQ: stanza.IQ{
 			Type: stanza.SetIQ,
@@ -99,14 +108,14 @@ func WrapKeyBundle(deviceId string, prekeyList []PreKey, c *client.Client) *KeyB
 							Text string `xml:",chardata"`
 						}{
 							ID:   "0",
-							Text: "b64/encoded/data",
+							Text: b64.StdEncoding.EncodeToString(spkPub),
 						},
-						Spks: "b64/encoded/data",
-						Ik:   "b64/encoded/data",
+						Spks: b64.StdEncoding.EncodeToString(spkSig),
+						Ik:   b64.StdEncoding.EncodeToString(idPubKey),
 						Prekeys: &struct {
 							Pks []PreKey
 						}{
-							Pks: prekeyList,
+							Pks: opks,
 						},
 					},
 				},

@@ -74,6 +74,7 @@ func New(j jid.JID, logger, debug *log.Logger, opts ...Option) *Client {
 		// TODO: mediated muc invitations
 		mucClient: &muc.Client{},
 		channels:  make(map[string]*muc.Channel),
+		DeviceId:  "123",
 		idPrivKey: []byte(idPrivKey),
 		idPubKey:  []byte(idPubKey),
 		spkPriv:   spkPriv,
@@ -82,7 +83,7 @@ func New(j jid.JID, logger, debug *log.Logger, opts ...Option) *Client {
 		opkList:   []PreKey{}, // different prekey type from the one in omemo package
 	}
 
-	for i := 0; i <= 100; i++ {
+	for i := 0; i <= 10; i++ {
 		opkPub, opkPriv, err := ed25519.GenerateKey(nil)
 
 		if err != nil {
@@ -280,12 +281,17 @@ type Client struct {
 	channels        map[string]*muc.Channel
 	useQuic         bool
 	quicConn        *quic.QuicConn
+	DeviceId        string
 	idPrivKey       []byte
 	idPubKey        []byte
 	spkPriv         []byte
 	spkPub          []byte
 	spkSig          []byte
 	opkList         []PreKey
+}
+
+func (c *Client) KeyBundle() (string, []byte, []byte, []byte, []byte, []byte, []PreKey) {
+	return c.DeviceId, c.idPrivKey, c.idPubKey, c.spkPriv, c.spkPub, c.spkSig, c.opkList
 }
 
 // Online sets the status to online.
