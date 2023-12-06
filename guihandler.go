@@ -30,15 +30,10 @@ func newFyneGUIHandler(g *gui.GUI, db *storage.DB, c *client.Client, logger, deb
 			}()
 		case event.ChatMessage:
 			go func() {
-				ctx, cancel := context.WithTimeout(context.Background(), 15*time.Second)
-				defer cancel()
 
-				logger.Printf("Fetching key bundle...")
-				fetchBundleStanza := omemo.WrapNodeFetch("urn:xmpp:omemo:2:bundles", c.DeviceId, e.To.Bare(), c)
+				omemo.InitiateKeyAgreement(c, logger, e.To.Bare())
 
-				_, err := c.SendIQ(ctx, fetchBundleStanza.TokenReader())
-
-				ctx, cancel = context.WithTimeout(context.Background(), 60*time.Second)
+				ctx, cancel := context.WithTimeout(context.Background(), 60*time.Second)
 				defer cancel()
 
 				e, err := c.SendMessage(ctx, e)

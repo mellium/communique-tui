@@ -75,12 +75,12 @@ func New(j jid.JID, logger, debug *log.Logger, opts ...Option) *Client {
 		mucClient: &muc.Client{},
 		channels:  make(map[string]*muc.Channel),
 		DeviceId:  "123",
-		idPrivKey: []byte(idPrivKey),
-		idPubKey:  []byte(idPubKey),
-		spkPriv:   spkPriv,
-		spkPub:    spkPub,
-		spkSig:    spkSig,
-		opkList:   []PreKey{}, // different prekey type from the one in omemo package
+		IdPrivKey: []byte(idPrivKey),
+		IdPubKey:  []byte(idPubKey),
+		SpkPriv:   spkPriv,
+		SpkPub:    spkPub,
+		SpkSig:    spkSig,
+		OpkList:   []PreKey{}, // different prekey type from the one in omemo package
 	}
 
 	for i := 0; i <= 10; i++ {
@@ -90,7 +90,7 @@ func New(j jid.JID, logger, debug *log.Logger, opts ...Option) *Client {
 			logger.Printf("Error generating one-time prekey pair: %q", err)
 		}
 
-		c.opkList = append(c.opkList, PreKey{
+		c.OpkList = append(c.OpkList, PreKey{
 			ID:         strconv.Itoa(i),
 			PrivateKey: []byte(opkPriv),
 			PublicKey:  []byte(opkPub),
@@ -282,16 +282,12 @@ type Client struct {
 	useQuic         bool
 	quicConn        *quic.QuicConn
 	DeviceId        string
-	idPrivKey       []byte
-	idPubKey        []byte
-	spkPriv         []byte
-	spkPub          []byte
-	spkSig          []byte
-	opkList         []PreKey
-}
-
-func (c *Client) KeyBundle() (string, []byte, []byte, []byte, []byte, []byte, []PreKey) {
-	return c.DeviceId, c.idPrivKey, c.idPubKey, c.spkPriv, c.spkPub, c.spkSig, c.opkList
+	IdPrivKey       []byte
+	IdPubKey        []byte
+	SpkPriv         []byte
+	SpkPub          []byte
+	SpkSig          []byte
+	OpkList         []PreKey
 }
 
 // Online sets the status to online.

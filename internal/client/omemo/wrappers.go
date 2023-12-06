@@ -74,11 +74,9 @@ func WrapDeviceIds(deviceList []Device, c *client.Client) *DeviceAnnouncementIQ 
 }
 
 func WrapKeyBundle(c *client.Client) *KeyBundleAnnouncementIQ {
-	deviceId, _, idPubKey, _, spkPub, spkSig, opkList := c.KeyBundle()
-
 	var opks []PreKey
 
-	for _, key := range opkList {
+	for _, key := range c.OpkList {
 		opks = append(opks, PreKey{ID: key.ID, Text: b64.StdEncoding.EncodeToString(key.PublicKey)})
 	}
 
@@ -101,17 +99,17 @@ func WrapKeyBundle(c *client.Client) *KeyBundleAnnouncementIQ {
 					Id        string `xml:"id,attr"`
 					KeyBundle *KeyBundle
 				}{
-					Id: deviceId,
+					Id: c.DeviceId,
 					KeyBundle: &KeyBundle{
 						Spk: &struct {
 							ID   string `xml:"id,attr"`
 							Text string `xml:",chardata"`
 						}{
 							ID:   "0",
-							Text: b64.StdEncoding.EncodeToString(spkPub),
+							Text: b64.StdEncoding.EncodeToString(c.SpkPub),
 						},
-						Spks: b64.StdEncoding.EncodeToString(spkSig),
-						Ik:   b64.StdEncoding.EncodeToString(idPubKey),
+						Spks: b64.StdEncoding.EncodeToString(c.SpkSig),
+						Ik:   b64.StdEncoding.EncodeToString(c.IdPubKey),
 						Prekeys: &struct {
 							Pks []PreKey
 						}{
