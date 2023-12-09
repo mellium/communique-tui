@@ -203,48 +203,41 @@ func WrapEnvelope(text string, c *client.Client) *Envelope {
 
 func WrapEncrypted(targetJid jid.JID, targetDeviceId, omemoKeyExchange, encryptedEnvelope string, c *client.Client) (*EncryptedMessage, stanza.Message) {
 	messageStanza := &EncryptedMessage{
-		Message: stanza.Message{
-			Type: stanza.ChatMessage,
-			From: c.LocalAddr().Bare(),
-			To:   targetJid,
-		},
-		Encrypted: &Encrypted{
-			Header: &struct {
-				Sid  string `xml:"sid,attr"`
-				Keys []struct {
-					JID string `xml:"jid,attr"`
-					Key *struct {
-						Kex  bool   `xml:"kex,attr,omitempty"`
-						Rid  string `xml:"rid,attr"`
-						Text string `xml:",chardata"`
-					} `xml:"key"`
-				} `xml:"keys"`
+		Header: &struct {
+			Sid  string `xml:"sid,attr"`
+			Keys []struct {
+				JID string `xml:"jid,attr"`
+				Key *struct {
+					Kex  bool   `xml:"kex,attr,omitempty"`
+					Rid  string `xml:"rid,attr"`
+					Text string `xml:",chardata"`
+				} `xml:"key"`
+			} `xml:"keys"`
+		}{
+			Sid: c.DeviceId,
+			Keys: []struct {
+				JID string `xml:"jid,attr"`
+				Key *struct {
+					Kex  bool   `xml:"kex,attr,omitempty"`
+					Rid  string `xml:"rid,attr"`
+					Text string `xml:",chardata"`
+				} `xml:"key"`
 			}{
-				Sid: c.DeviceId,
-				Keys: []struct {
-					JID string `xml:"jid,attr"`
-					Key *struct {
+				{
+					JID: targetJid.String(),
+					Key: &struct {
 						Kex  bool   `xml:"kex,attr,omitempty"`
 						Rid  string `xml:"rid,attr"`
 						Text string `xml:",chardata"`
-					} `xml:"key"`
-				}{
-					{
-						JID: targetJid.String(),
-						Key: &struct {
-							Kex  bool   `xml:"kex,attr,omitempty"`
-							Rid  string `xml:"rid,attr"`
-							Text string `xml:",chardata"`
-						}{
-							Kex:  true,
-							Rid:  targetDeviceId,
-							Text: omemoKeyExchange,
-						},
+					}{
+						Kex:  true,
+						Rid:  targetDeviceId,
+						Text: omemoKeyExchange,
 					},
 				},
 			},
-			Payload: encryptedEnvelope,
 		},
+		Payload: encryptedEnvelope,
 	}
 
 	stanzaMessage := stanza.Message{
