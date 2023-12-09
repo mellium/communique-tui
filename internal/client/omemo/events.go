@@ -17,6 +17,7 @@ import (
 	"mellium.im/communique/internal/client/omemo/protobuf"
 	"mellium.im/communique/internal/client/x3dh"
 	"mellium.im/xmpp/jid"
+	"mellium.im/xmpp/stanza"
 )
 
 func SetupClient(c *client.Client, logger *log.Logger) {
@@ -46,7 +47,7 @@ func SetupClient(c *client.Client, logger *log.Logger) {
 
 }
 
-func InitiateKeyAgreement(c *client.Client, logger *log.Logger, targetJID jid.JID) {
+func InitiateKeyAgreement(initialMessage string, c *client.Client, logger *log.Logger, targetJID jid.JID) (*EncryptedMessage, stanza.Message) {
 	ctx, cancel := context.WithTimeout(context.Background(), 20*time.Second)
 	defer cancel()
 
@@ -123,12 +124,12 @@ func InitiateKeyAgreement(c *client.Client, logger *log.Logger, targetJID jid.JI
 		logger.Printf("Failed marshaling OMEMOKeyExchange: %s", err)
 	}
 
-	testMessage := "Hello"
-	envelope := WrapEnvelope(testMessage, c.LocalAddr().Bare().String(), c)
+	envelope := WrapEnvelope(initialMessage, c)
 	envelopeMarshaled, _ := xml.Marshal(envelope)
 	envelopeMarshaledEncoded := b64.StdEncoding.EncodeToString(envelopeMarshaled)
 
 	ciphertext, authKey, err := sess.Encrypt([]byte(envelopeMarshaledEncoded))
+	ciphertextEncoded := b64.StdEncoding.EncodeToString(ciphertext)
 
 	// Sess.Encrypt already handles structuring similar to OMEMOMessage.proto, so we don't have to use OMEMOMessage again
 
@@ -160,4 +161,10 @@ func InitiateKeyAgreement(c *client.Client, logger *log.Logger, targetJID jid.JI
 
 	logger.Print("OMEMOKEYEXCHANGE")
 	logger.Print(omemoKeyExchangeMessage)
+
+	omemoKeyExchangeMessageEncoded := b64.StdEncoding.EncodeToString(omemoKeyExchangeMessage)
+
+	encrypted, stanzaMessage := WrapEncrypted(targetJID, c.DeviceId, omemoKeyExchangeMessageEncoded, ciphertextEncoded, c)
+
+	return encrypted, stanzaMessage
 }

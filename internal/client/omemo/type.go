@@ -29,19 +29,3 @@ type Envelope struct {
 		JID string `xml:"jid,attr"`
 	} `xml:"from"`
 }
-
-type Encrypted struct {
-	XMLName xml.Name `xml:"urn:xmpp:omemo:2 encrypted"`
-	Header  *struct {
-		Sid  string `xml:"sid,attr"`
-		Keys []struct {
-			JID string `xml:"jid,attr"`
-			Key *struct {
-				Kex  bool   `xml:"kex,attr,omitempty"`
-				Rid  string `xml:"rid,attr"`
-				Text string `xml:",chardata"`
-			} `xml:"key"`
-		} `xml:"keys"`
-	} `xml:"header"`
-	Payload string `xml:"payload"`
-}

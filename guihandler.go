@@ -30,13 +30,12 @@ func newFyneGUIHandler(g *gui.GUI, db *storage.DB, c *client.Client, logger, deb
 			}()
 		case event.ChatMessage:
 			go func() {
-
-				omemo.InitiateKeyAgreement(c, logger, e.To.Bare())
+				encryptedPayload, messageStanza := omemo.InitiateKeyAgreement(e.Body, c, logger, e.To.Bare())
 
 				ctx, cancel := context.WithTimeout(context.Background(), 60*time.Second)
 				defer cancel()
 
-				e, err := c.SendMessage(ctx, e)
+				_, err := c.SendMessageElement(ctx, encryptedPayload.TokenReader(), messageStanza)
 				if err != nil {
 					logger.Printf("error sending message: %v", err)
 				}
