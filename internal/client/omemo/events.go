@@ -119,8 +119,16 @@ func InitiateKeyAgreement(c *client.Client, logger *log.Logger, targetJID jid.JI
 		logger.Printf("Failed creating double ratchet session: %s", err)
 	}
 
+	if err != nil {
+		logger.Printf("Failed marshaling OMEMOKeyExchange: %s", err)
+	}
+
 	testMessage := "Hello"
-	ciphertext, authKey, err := sess.Encrypt([]byte(testMessage))
+	envelope := WrapEnvelope(testMessage, c.LocalAddr().Bare().String(), c)
+	envelopeMarshaled, _ := xml.Marshal(envelope)
+	envelopeMarshaledEncoded := b64.StdEncoding.EncodeToString(envelopeMarshaled)
+
+	ciphertext, authKey, err := sess.Encrypt([]byte(envelopeMarshaledEncoded))
 
 	// Sess.Encrypt already handles structuring similar to OMEMOMessage.proto, so we don't have to use OMEMOMessage again
 
@@ -149,10 +157,6 @@ func InitiateKeyAgreement(c *client.Client, logger *log.Logger, targetJID jid.JI
 	}
 
 	omemoKeyExchangeMessage, err := proto.Marshal(keyExchangeMessage)
-
-	if err != nil {
-		logger.Printf("Failed marshaling OMEMOKeyExchange: %s", err)
-	}
 
 	logger.Print("OMEMOKEYEXCHANGE")
 	logger.Print(omemoKeyExchangeMessage)

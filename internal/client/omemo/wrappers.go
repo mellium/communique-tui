@@ -3,6 +3,7 @@ package omemo
 import (
 	b64 "encoding/base64"
 	"encoding/xml"
+	"strings"
 
 	"mellium.im/communique/internal/client"
 	"mellium.im/xmpp/jid"
@@ -174,4 +175,28 @@ func WrapNodeFetch(node string, itemId string, targetJid jid.JID, c *client.Clie
 	}
 
 	return iqStanza
+}
+
+func WrapEnvelope(text, fromJidString string, c *client.Client) *Envelope {
+	envelope := &Envelope{
+		Content: &struct {
+			Body *struct {
+				Text string `xml:",chardata"`
+			} `xml:"jabber:client body"`
+		}{
+			Body: &struct {
+				Text string `xml:",chardata"`
+			}{
+				Text: text,
+			},
+		},
+		Rpad: strings.Repeat("=", 64),
+		From: &struct {
+			JID string `xml:"jid,attr"`
+		}{
+			JID: fromJidString,
+		},
+	}
+
+	return envelope
 }
