@@ -32,8 +32,7 @@
 // is a compromise between a very lossy link and the possibility for an attacker
 // to reserve lots of memory on the victim's machine.
 //
-// 	[0] https://signal.org/docs/specifications/doubleratchet/
-//
+//	[0] https://signal.org/docs/specifications/doubleratchet/
 package doubleratchet
 
 import (
@@ -121,7 +120,7 @@ func (dr *DoubleRatchet) dhStep() (err error) {
 // Encrypt a plaintext message for the other party.
 //
 // The resulting ciphertext will include the necessary header.
-func (dr *DoubleRatchet) Encrypt(plaintext []byte) (ciphertext []byte, err error) {
+func (dr *DoubleRatchet) Encrypt(plaintext []byte) (ciphertext, authKey []byte, err error) {
 	if dr.chainKeySend == nil {
 		err = dr.dhStep()
 		if err != nil {
@@ -147,7 +146,7 @@ func (dr *DoubleRatchet) Encrypt(plaintext []byte) (ciphertext []byte, err error
 		return
 	}
 
-	ciphertext, err = encrypt(msgKey, plaintext, dr.associatedData)
+	ciphertext, authKey, err = encrypt(msgKey, plaintext, dr.associatedData)
 	if err != nil {
 		return
 	}

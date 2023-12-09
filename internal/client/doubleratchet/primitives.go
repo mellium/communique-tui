@@ -13,7 +13,7 @@ import (
 	"bytes"
 	"crypto/aes"
 	"crypto/cipher"
-  "crypto/ed25519"
+	"crypto/ed25519"
 	"crypto/hmac"
 	"crypto/rand"
 	"crypto/sha256"
@@ -30,7 +30,7 @@ import (
 // The Double Ratchet Algorithm specification names this function GENERATE_DH.
 func DhKeyPair() (pubKey, privKey []byte, err error) {
 	privKey = make([]byte, curve25519.ScalarSize)
-  
+
 	if _, err = rand.Read(privKey); err != nil {
 		return
 	}
@@ -40,15 +40,15 @@ func DhKeyPair() (pubKey, privKey []byte, err error) {
 }
 
 func DhKeyPairWithEd25519() (pubKey ed25519.PublicKey, privKey ed25519.PrivateKey, err error) {
-    dhPubKey, dhPrivKey, err := DhKeyPair()
-    if err != nil {
-        return
-    }
+	dhPubKey, dhPrivKey, err := DhKeyPair()
+	if err != nil {
+		return
+	}
 
-    // Convert the private key to the format compatible with ed25519
-    privKey = ed25519.NewKeyFromSeed(dhPrivKey)
+	// Convert the private key to the format compatible with ed25519
+	privKey = ed25519.NewKeyFromSeed(dhPrivKey)
 
-    return dhPubKey, privKey, nil
+	return dhPubKey, privKey, nil
 }
 
 // dh calculates an Elliptic Curve Diffie-Hellman shared secret between a
@@ -149,7 +149,7 @@ func encryptParams(msgKey []byte) (encKey, authKey, iv []byte, err error) {
 // cipher text will be concatenated with the HMAC's result as the final result.
 //
 // The Double Ratchet Algorithm specification names this function ENCRYPT.
-func encrypt(msgKey, plaintext, associatedData []byte) (ciphertext []byte, err error) {
+func encrypt(msgKey, plaintext, associatedData []byte) (ciphertext, authKey []byte, err error) {
 	encKey, authKey, iv, err := encryptParams(msgKey)
 	if err != nil {
 		return

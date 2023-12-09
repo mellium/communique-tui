@@ -2,13 +2,19 @@ package omemo
 
 import (
 	"context"
+	"crypto/hmac"
+	"crypto/sha256"
 	b64 "encoding/base64"
 	"encoding/xml"
 	"log"
 	"math/rand"
+	"strconv"
 	"time"
 
+	"google.golang.org/protobuf/proto"
 	"mellium.im/communique/internal/client"
+	"mellium.im/communique/internal/client/doubleratchet"
+	"mellium.im/communique/internal/client/omemo/protobuf"
 	"mellium.im/communique/internal/client/x3dh"
 	"mellium.im/xmpp/jid"
 )
@@ -66,6 +72,7 @@ func InitiateKeyAgreement(c *client.Client, logger *log.Logger, targetJID jid.JI
 	var targetSpkPub, targetSpkSig, targetIdKeyPub []byte
 	var opkList []PreKey
 	var opkId string
+	var spkId string
 
 	for t, _ := payload.Token(); t != nil; t, _ = payload.Token() {
 		switch se := t.(type) {
@@ -73,6 +80,8 @@ func InitiateKeyAgreement(c *client.Client, logger *log.Logger, targetJID jid.JI
 			currentEl = se.Name.Local
 			if se.Name.Local == "pk" {
 				opkId = se.Attr[0].Value
+			} else if se.Name.Local == "spk" {
+				spkId = se.Attr[0].Value
 			}
 		case xml.CharData:
 			content := string(se[:])
@@ -91,10 +100,60 @@ func InitiateKeyAgreement(c *client.Client, logger *log.Logger, targetJID jid.JI
 
 	randomIndex := rand.Intn(len(opkList))
 	opk := opkList[randomIndex]
+	chosenOpkId, err := strconv.Atoi(opk.ID)
+	chosenOpkIdUint := uint32(chosenOpkId)
+
 	opkPub, _ := b64.StdEncoding.DecodeString(opk.Text)
 
 	sharedKey, associatedData, ekPub, err := x3dh.CreateInitialMessage(c.IdPrivKey, targetIdKeyPub, opkPub, targetSpkPub, targetSpkSig)
+	logger.Print("SHARED KEY")
 	logger.Print(sharedKey)
+	logger.Print("ASSOCIATED DATA")
 	logger.Print(associatedData)
+	logger.Print("EK PUB")
 	logger.Print(ekPub)
+
+	sess, err := doubleratchet.CreateActive(sharedKey, associatedData, targetIdKeyPub)
+
+	if err != nil {
+		logger.Printf("Failed creating double ratchet session: %s", err)
+	}
+
+	testMessage := "Hello"
+	ciphertext, authKey, err := sess.Encrypt([]byte(testMessage))
+
+	// Sess.Encrypt already handles structuring similar to OMEMOMessage.proto, so we don't have to use OMEMOMessage again
+
+	if err != nil {
+		logger.Printf("Failed encrypting message with double ratchet session: %s", err)
+	}
+
+	mac := hmac.New(sha256.New, authKey)
+	mac.Write(ciphertext)
+	macResult := mac.Sum(nil)
+
+	authenticatedMessage := &protobuf.OMEMOAuthenticatedMessage{
+		Mac:     macResult,
+		Message: ciphertext,
+	}
+
+	chosenSpkId, _ := strconv.Atoi(string(spkId))
+	chosenSpkIdUint := uint32(chosenSpkId)
+
+	keyExchangeMessage := &protobuf.OMEMOKeyExchange{
+		PkId:    &chosenOpkIdUint,
+		SpkId:   &chosenSpkIdUint,
+		Ik:      c.IdPubKey,
+		Ek:      ekPub,
+		Message: authenticatedMessage,
+	}
+
+	omemoKeyExchangeMessage, err := proto.Marshal(keyExchangeMessage)
+
+	if err != nil {
+		logger.Printf("Failed marshaling OMEMOKeyExchange: %s", err)
+	}
+
+	logger.Print("OMEMOKEYEXCHANGE")
+	logger.Print(omemoKeyExchangeMessage)
 }
