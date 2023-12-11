@@ -146,6 +146,7 @@ func newMessageHandler(c *Client) mux.MessageHandlerFunc {
 func newOMEMOMessageHandler(c *Client) mux.MessageHandlerFunc {
 	return func(_ stanza.Message, r xmlstream.TokenReadEncoder) error {
 		var currentEl, currentJid, currentRid string
+		var fromJid, toJid jid.JID
 		var keyElement, payload string
 		keyExchange := false
 
@@ -155,14 +156,25 @@ func newOMEMOMessageHandler(c *Client) mux.MessageHandlerFunc {
 				currentEl = se.Name.Local
 
 				switch se.Name.Local {
+				case "message":
+					for _, attr := range se.Attr {
+						switch attr.Name.Local {
+						case "to":
+							toJid = jid.MustParse(attr.Value)
+						case "from":
+							fromJid = jid.MustParse(attr.Value)
+						}
+					}
 				case "keys":
 					currentJid = se.Attr[0].Value
 				case "key":
-					if len(se.Attr) == 1 {
-						currentRid = se.Attr[0].Value
-					} else {
-						keyExchange, _ = strconv.ParseBool(se.Attr[0].Value)
-						currentRid = se.Attr[1].Value
+					for _, attr := range se.Attr {
+						switch attr.Name.Local {
+						case "kex":
+							keyExchange, _ = strconv.ParseBool(attr.Value)
+						case "rid":
+							currentRid = attr.Value
+						}
 					}
 				}
 			case xml.CharData:
@@ -181,6 +193,8 @@ func newOMEMOMessageHandler(c *Client) mux.MessageHandlerFunc {
 		c.logger.Print(keyExchange)
 		c.logger.Print(keyElement)
 		c.logger.Print(payload)
+		c.logger.Print(fromJid.Bare().String())
+		c.logger.Print(toJid.Bare().String())
 
 		// msg := event.ChatMessage{}
 		// c.handler(msg)
