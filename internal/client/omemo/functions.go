@@ -70,7 +70,7 @@ func InitiateKeyAgreement(initialMessage string, c *client.Client, logger *log.L
 	}()
 
 	var currentEl string
-	var targetSpkPub, targetSpkSig, targetIdKeyPub []byte
+	var targetSpkPub, targetSpkSig, targetIdKeyPub, targetDhKeyPub []byte
 	var opkList []PreKey
 	var opkId string
 	var spkId string
@@ -95,6 +95,8 @@ func InitiateKeyAgreement(initialMessage string, c *client.Client, logger *log.L
 				targetIdKeyPub, _ = b64.StdEncoding.DecodeString(content)
 			case "pk":
 				opkList = append(opkList, PreKey{ID: opkId, Text: content})
+			case "dhk":
+				targetDhKeyPub, _ = b64.StdEncoding.DecodeString(content)
 			}
 		}
 	}
@@ -103,6 +105,11 @@ func InitiateKeyAgreement(initialMessage string, c *client.Client, logger *log.L
 	opk := opkList[randomIndex]
 	chosenOpkId, err := strconv.Atoi(opk.ID)
 	chosenOpkIdUint := uint32(chosenOpkId)
+
+	logger.Print("CHOSEN OPK")
+	logger.Print(opk.ID)
+	logger.Print("CHOSEN OPK VALUE")
+	logger.Print(opk.Text)
 
 	opkPub, _ := b64.StdEncoding.DecodeString(opk.Text)
 
@@ -114,7 +121,7 @@ func InitiateKeyAgreement(initialMessage string, c *client.Client, logger *log.L
 	logger.Print("EK PUB")
 	logger.Print(ekPub)
 
-	sess, err := doubleratchet.CreateActive(sharedKey, associatedData, targetIdKeyPub)
+	sess, err := doubleratchet.CreateActive(sharedKey, associatedData, targetDhKeyPub)
 
 	if err != nil {
 		logger.Printf("Failed creating double ratchet session: %s", err)
@@ -130,56 +137,6 @@ func InitiateKeyAgreement(initialMessage string, c *client.Client, logger *log.L
 	return EncryptMessage(initialMessage, true, &chosenOpkIdUint, &chosenSpkIdUint, ekPub, c, logger, targetJID)
 }
 
-func ReceiveKeyAgreement(keyElementB64, peerJid string, c *client.Client, logger *log.Logger) {
-	keyElement, err := b64.StdEncoding.DecodeString(keyElementB64)
-
-	if err != nil {
-		logger.Printf("Error decoding key element: %s", err)
-		return
-	}
-
-	keyExchangeMessage := &protobuf.OMEMOKeyExchange{}
-
-	err = proto.Unmarshal(keyElement, keyExchangeMessage)
-
-	if err != nil {
-		logger.Printf("Error unmarshaling key element protobuf: %s", err)
-		return
-	}
-
-	opkId := strconv.FormatUint(uint64(*keyExchangeMessage.PkId), 10)
-	peerIdPubKey := keyExchangeMessage.Ik
-	ekPub := keyExchangeMessage.Ek
-	var opkPriv []byte
-
-	for _, opk := range c.OpkList {
-		if opk.ID == opkId {
-			opkPriv = opk.PrivateKey
-		}
-	}
-
-	if len(opkPriv) == 0 {
-		logger.Print("OPK not found.")
-		return
-	}
-
-	sharedKey, associatedData, err := x3dh.ReceiveInitialMessage(c.IdPrivKey, opkPriv, peerIdPubKey, c.SpkPriv, ekPub)
-
-	if err != nil {
-		logger.Printf("Failed performing X3DH: %s", err)
-	}
-
-	sess, err := doubleratchet.CreatePassive(sharedKey, associatedData, c.IdPubKey, c.IdPrivKey)
-
-	if err != nil {
-		logger.Printf("Failed setting up Double Ratchet session: %s", err)
-	}
-
-	jdid := peerJid + ":" + c.DeviceId
-
-	c.MessageSession[jdid] = sess
-}
-
 func EncryptMessage(initialMessage string, keyExchange bool, opkId *uint32, spkId *uint32, ek []byte, c *client.Client, logger *log.Logger, targetJID jid.JID) (*EncryptedMessage, stanza.Message) {
 	jdid := targetJID.Bare().String() + ":" + c.DeviceId
 	sess := c.MessageSession[jdid]
@@ -188,8 +145,13 @@ func EncryptMessage(initialMessage string, keyExchange bool, opkId *uint32, spkI
 	envelopeMarshaled, _ := xml.Marshal(envelope)
 	envelopeMarshaledEncoded := b64.StdEncoding.EncodeToString(envelopeMarshaled)
 
+	logger.Print("PLAINTEXT")
+	logger.Print(envelopeMarshaledEncoded)
+
 	ciphertext, authKey, err := sess.Encrypt([]byte(envelopeMarshaledEncoded))
-	ciphertextEncoded := b64.StdEncoding.EncodeToString(ciphertext)
+	logger.Print("CIPHERTEXT")
+	logger.Print(ciphertext)
+	ciphertextEncoded := b64.RawStdEncoding.EncodeToString(ciphertext)
 
 	// Sess.Encrypt already handles structuring similar to OMEMOMessage.proto, so we don't have to use OMEMOMessage again
 

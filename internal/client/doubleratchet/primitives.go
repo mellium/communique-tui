@@ -19,6 +19,7 @@ import (
 	"crypto/sha256"
 	"fmt"
 	"io"
+	"os"
 
 	"golang.org/x/crypto/curve25519"
 	"golang.org/x/crypto/hkdf"
@@ -160,6 +161,14 @@ func encrypt(msgKey, plaintext, associatedData []byte) (ciphertext, authKey []by
 		return
 	}
 
+	d1 := padded
+	_ = os.WriteFile("tounpadddddd1111111111", d1, 0644)
+
+	_, err = pkcs7Unpad(padded, aes.BlockSize)
+	if err != nil {
+		return
+	}
+
 	block, err := aes.NewCipher(encKey)
 	if err != nil {
 		return
@@ -209,6 +218,9 @@ func decrypt(msgKey, ciphertext, associatedData []byte) (plaintext []byte, err e
 	padded := make([]byte, len(aesCipher))
 	mode := cipher.NewCBCDecrypter(block, iv)
 	mode.CryptBlocks(padded, aesCipher)
+
+	d1 := padded
+	_ = os.WriteFile("tounpadddddd2222222", d1, 0644)
 
 	plaintext, err = pkcs7Unpad(padded, aes.BlockSize)
 	if err != nil {

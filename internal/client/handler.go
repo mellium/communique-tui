@@ -13,6 +13,8 @@ import (
 	//"time"
 
 	"mellium.im/communique/internal/client/event"
+	omemoresponse "mellium.im/communique/internal/client/omemo/response"
+
 	//"mellium.im/communique/internal/client/omemo"
 	"mellium.im/xmlstream"
 	"mellium.im/xmpp"
@@ -195,6 +197,10 @@ func newOMEMOMessageHandler(c *Client) mux.MessageHandlerFunc {
 		c.logger.Print(payload)
 		c.logger.Print(fromJid.Bare().String())
 		c.logger.Print(toJid.Bare().String())
+
+		if keyExchange {
+			omemoresponse.ReceiveKeyAgreement(keyElement, payload, fromJid.Bare().String(), c.DeviceId, c.IdPrivKey, c.SpkPriv, c.TmpDhPrivKey, c.TmpDhPubKey, c.OpkList, c.MessageSession, c.logger)
+		}
 
 		// msg := event.ChatMessage{}
 		// c.handler(msg)

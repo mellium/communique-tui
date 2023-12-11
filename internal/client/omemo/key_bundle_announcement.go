@@ -52,6 +52,7 @@ type KeyBundle struct {
 	} `xml:"spk"`
 	Spks    string `xml:"spks"`
 	Ik      string `xml:"ik"`
+	Dhk     string `xml:"dhk"`
 	Prekeys *struct {
 		Pks []PreKey
 	} `xml:"prekeys"`

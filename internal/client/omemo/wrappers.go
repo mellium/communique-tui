@@ -111,6 +111,7 @@ func WrapKeyBundle(c *client.Client) *KeyBundleAnnouncementIQ {
 						},
 						Spks: b64.StdEncoding.EncodeToString(c.SpkSig),
 						Ik:   b64.StdEncoding.EncodeToString(c.IdPubKey),
+						Dhk:  b64.StdEncoding.EncodeToString(c.TmpDhPubKey),
 						Prekeys: &struct {
 							Pks []PreKey
 						}{

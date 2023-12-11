@@ -1,4 +1,4 @@
-package client
+package omemoresponse
 
 type PreKey struct {
 	ID         string

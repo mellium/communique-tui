@@ -19,6 +19,7 @@ import (
 
 	"mellium.im/communique/internal/client/doubleratchet"
 	"mellium.im/communique/internal/client/event"
+	omemoresponse "mellium.im/communique/internal/client/omemo/response"
 	"mellium.im/communique/internal/client/quic"
 	"mellium.im/communique/internal/client/x3dh"
 	legacybookmarks "mellium.im/legacy/bookmarks"
@@ -46,6 +47,9 @@ func New(j jid.JID, logger, debug *log.Logger, opts ...Option) *Client {
 
 	idPubKey, idPrivKey, err := ed25519.GenerateKey(nil)
 
+	logger.Print("IDPRIVKEY 1")
+	logger.Print(idPrivKey)
+
 	if err != nil {
 		logger.Printf("Error generating identity key pair: %q", err)
 	}
@@ -54,6 +58,12 @@ func New(j jid.JID, logger, debug *log.Logger, opts ...Option) *Client {
 
 	if err != nil {
 		logger.Printf("Error generating signed prekey pair: %q", err)
+	}
+
+	tmpDhPubKey, tmpDhPrivKey, err := doubleratchet.DhKeyPair()
+
+	if err != nil {
+		logger.Printf("Error generating Diffie-Hellman key pair: %q", err)
 	}
 
 	c = &Client{
@@ -81,7 +91,9 @@ func New(j jid.JID, logger, debug *log.Logger, opts ...Option) *Client {
 		SpkPriv:        spkPriv,
 		SpkPub:         spkPub,
 		SpkSig:         spkSig,
-		OpkList:        []PreKey{}, // different prekey type from the one in omemo package
+		OpkList:        []omemoresponse.PreKey{}, // different prekey type from the one in omemo package
+		TmpDhPrivKey:   tmpDhPrivKey,
+		TmpDhPubKey:    tmpDhPubKey,
 		MessageSession: make(map[string]*doubleratchet.DoubleRatchet),
 	}
 
@@ -92,7 +104,7 @@ func New(j jid.JID, logger, debug *log.Logger, opts ...Option) *Client {
 			logger.Printf("Error generating one-time prekey pair: %q", err)
 		}
 
-		c.OpkList = append(c.OpkList, PreKey{
+		c.OpkList = append(c.OpkList, omemoresponse.PreKey{
 			ID:         strconv.Itoa(i),
 			PrivateKey: []byte(opkPriv),
 			PublicKey:  []byte(opkPub),
@@ -289,7 +301,9 @@ type Client struct {
 	SpkPriv         []byte
 	SpkPub          []byte
 	SpkSig          []byte
-	OpkList         []PreKey
+	OpkList         []omemoresponse.PreKey
+	TmpDhPrivKey    []byte
+	TmpDhPubKey     []byte
 	DebugBool       bool
 	MessageSession  map[string]*doubleratchet.DoubleRatchet
 }
