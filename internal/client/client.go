@@ -17,6 +17,7 @@ import (
 	"sync"
 	"time"
 
+	"mellium.im/communique/internal/client/doubleratchet"
 	"mellium.im/communique/internal/client/event"
 	"mellium.im/communique/internal/client/quic"
 	"mellium.im/communique/internal/client/x3dh"
@@ -72,15 +73,16 @@ func New(j jid.JID, logger, debug *log.Logger, opts ...Option) *Client {
 			Unhandled: func(id string) { c.handler(event.Receipt(id)) },
 		},
 		// TODO: mediated muc invitations
-		mucClient: &muc.Client{},
-		channels:  make(map[string]*muc.Channel),
-		DeviceId:  "123",
-		IdPrivKey: []byte(idPrivKey),
-		IdPubKey:  []byte(idPubKey),
-		SpkPriv:   spkPriv,
-		SpkPub:    spkPub,
-		SpkSig:    spkSig,
-		OpkList:   []PreKey{}, // different prekey type from the one in omemo package
+		mucClient:      &muc.Client{},
+		channels:       make(map[string]*muc.Channel),
+		DeviceId:       "123",
+		IdPrivKey:      []byte(idPrivKey),
+		IdPubKey:       []byte(idPubKey),
+		SpkPriv:        spkPriv,
+		SpkPub:         spkPub,
+		SpkSig:         spkSig,
+		OpkList:        []PreKey{}, // different prekey type from the one in omemo package
+		MessageSession: make(map[string]*doubleratchet.DoubleRatchet),
 	}
 
 	for i := 0; i <= 10; i++ {
@@ -288,6 +290,8 @@ type Client struct {
 	SpkPub          []byte
 	SpkSig          []byte
 	OpkList         []PreKey
+	DebugBool       bool
+	MessageSession  map[string]*doubleratchet.DoubleRatchet
 }
 
 // Online sets the status to online.

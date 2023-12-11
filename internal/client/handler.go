@@ -28,6 +28,7 @@ import (
 
 func newXMPPHandler(c *Client) xmpp.Handler {
 	msgHandler := newMessageHandler(c)
+	omemoHandler := newOMEMOMessageHandler(c)
 	return mux.New(
 		c.In().XMLNS,
 		disco.Handle(),
@@ -61,10 +62,10 @@ func newXMPPHandler(c *Client) xmpp.Handler {
 		mux.Presence("", xml.Name{}, newPresenceHandler(c)),
 		mux.Message(stanza.NormalMessage, xml.Name{Local: "body"}, msgHandler),
 		mux.Message(stanza.ChatMessage, xml.Name{Local: "body"}, msgHandler),
+		mux.Message(stanza.ChatMessage, xml.Name{Local: "encrypted"}, omemoHandler),
 		mux.Message(stanza.GroupChatMessage, xml.Name{Local: "body"}, msgHandler),
 		receipts.Handle(c.receiptsHandler),
 		history.Handle(history.NewHandler(newHistoryHandler(c))),
-		//omemo.PubsubHandle(newOMEMOPubsubHandler(c)),
 	)
 }
 
@@ -141,6 +142,28 @@ func newMessageHandler(c *Client) mux.MessageHandlerFunc {
 	}
 }
 
+func newOMEMOMessageHandler(c *Client) mux.MessageHandlerFunc {
+	return func(_ stanza.Message, r xmlstream.TokenReadEncoder) error {
+		c.logger.Print("testfunc")
+		msg := event.ChatMessage{}
+
+		d := xml.NewTokenDecoder(r)
+		err := d.Decode(&msg)
+		if err != nil {
+			c.logger.Printf("Error decoding: %s", err)
+			return err
+		}
+		fromBare := msg.From.Bare()
+		if fromBare.Equal(jid.JID{}) || fromBare.Equal(c.addr.Bare()) {
+			msg.Account = true
+		}
+
+		// c.handler(msg)
+
+		return nil
+	}
+}
+
 func newHistoryHandler(c *Client) mux.MessageHandlerFunc {
 	return func(m stanza.Message, r xmlstream.TokenReadEncoder) error {
 		msg := event.HistoryMessage{Message: m}
@@ -164,14 +187,3 @@ func newHistoryHandler(c *Client) mux.MessageHandlerFunc {
 		return nil
 	}
 }
-
-// func newOMEMOPubsubHandler(c *Client) mux.IQHandlerFunc {
-// 	return func(iq stanza.IQ, t xmlstream.TokenReadEncoder, start *xml.StartElement) error {
-// 		ctx, cancel := context.WithTimeout(context.Background(), 60*time.Second)
-// 		defer cancel()
-//
-//
-//
-// 		return err
-// 	}
-// }

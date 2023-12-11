@@ -201,7 +201,7 @@ func WrapEnvelope(text string, c *client.Client) *Envelope {
 	return envelope
 }
 
-func WrapEncrypted(targetJid jid.JID, targetDeviceId, omemoKeyExchange, encryptedEnvelope string, c *client.Client) (*EncryptedMessage, stanza.Message) {
+func WrapEncrypted(targetJid jid.JID, targetDeviceId, keyElement, encryptedEnvelope string, keyExchange bool, c *client.Client) (*EncryptedMessage, stanza.Message) {
 	messageStanza := &EncryptedMessage{
 		Header: &struct {
 			Sid  string `xml:"sid,attr"`
@@ -230,9 +230,9 @@ func WrapEncrypted(targetJid jid.JID, targetDeviceId, omemoKeyExchange, encrypte
 						Rid  string `xml:"rid,attr"`
 						Text string `xml:",chardata"`
 					}{
-						Kex:  true,
+						Kex:  keyExchange,
 						Rid:  targetDeviceId,
-						Text: omemoKeyExchange,
+						Text: keyElement,
 					},
 				},
 			},

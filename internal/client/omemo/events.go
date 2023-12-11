@@ -124,6 +124,20 @@ func InitiateKeyAgreement(initialMessage string, c *client.Client, logger *log.L
 		logger.Printf("Failed marshaling OMEMOKeyExchange: %s", err)
 	}
 
+	chosenSpkId, _ := strconv.Atoi(string(spkId))
+	chosenSpkIdUint := uint32(chosenSpkId)
+
+	jdid := targetJID.Bare().String() + ":" + c.DeviceId
+
+	c.MessageSession[jdid] = sess
+
+	return EncryptMessage(initialMessage, true, &chosenOpkIdUint, &chosenSpkIdUint, ekPub, c, logger, targetJID)
+}
+
+func EncryptMessage(initialMessage string, keyExchange bool, opkId *uint32, spkId *uint32, ek []byte, c *client.Client, logger *log.Logger, targetJID jid.JID) (*EncryptedMessage, stanza.Message) {
+	jdid := targetJID.Bare().String() + ":" + c.DeviceId
+	sess := c.MessageSession[jdid]
+
 	envelope := WrapEnvelope(initialMessage, c)
 	envelopeMarshaled, _ := xml.Marshal(envelope)
 	envelopeMarshaledEncoded := b64.StdEncoding.EncodeToString(envelopeMarshaled)
@@ -146,25 +160,41 @@ func InitiateKeyAgreement(initialMessage string, c *client.Client, logger *log.L
 		Message: ciphertext,
 	}
 
-	chosenSpkId, _ := strconv.Atoi(string(spkId))
-	chosenSpkIdUint := uint32(chosenSpkId)
+	var keyElement string
 
-	keyExchangeMessage := &protobuf.OMEMOKeyExchange{
-		PkId:    &chosenOpkIdUint,
-		SpkId:   &chosenSpkIdUint,
-		Ik:      c.IdPubKey,
-		Ek:      ekPub,
-		Message: authenticatedMessage,
+	if keyExchange {
+		keyExchangeMessage := &protobuf.OMEMOKeyExchange{
+			PkId:    opkId,
+			SpkId:   spkId,
+			Ik:      c.IdPubKey,
+			Ek:      ek,
+			Message: authenticatedMessage,
+		}
+
+		omemoKeyExchangeMessage, err := proto.Marshal(keyExchangeMessage)
+
+		if err != nil {
+			logger.Printf("Failed marshaling OMEMOKeyExchange: %s", err)
+		}
+
+		logger.Print("OMEMOKEYEXCHANGE")
+		logger.Print(omemoKeyExchangeMessage)
+
+		keyElement = b64.StdEncoding.EncodeToString(omemoKeyExchangeMessage)
+	} else {
+		authenticatedMessage, err := proto.Marshal(authenticatedMessage)
+
+		if err != nil {
+			logger.Printf("Failed marshaling OMEMOAuthenticatedMessage: %s", err)
+		}
+
+		logger.Print("OMEMOAUTHMSG")
+		logger.Print(authenticatedMessage)
+
+		keyElement = b64.StdEncoding.EncodeToString(authenticatedMessage)
 	}
 
-	omemoKeyExchangeMessage, err := proto.Marshal(keyExchangeMessage)
-
-	logger.Print("OMEMOKEYEXCHANGE")
-	logger.Print(omemoKeyExchangeMessage)
-
-	omemoKeyExchangeMessageEncoded := b64.StdEncoding.EncodeToString(omemoKeyExchangeMessage)
-
-	encrypted, stanzaMessage := WrapEncrypted(targetJID, c.DeviceId, omemoKeyExchangeMessageEncoded, ciphertextEncoded, c)
+	encrypted, stanzaMessage := WrapEncrypted(targetJID, c.DeviceId, keyElement, ciphertextEncoded, keyExchange, c)
 
 	return encrypted, stanzaMessage
 }

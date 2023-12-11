@@ -17,6 +17,7 @@ import (
 	"mellium.im/xmpp/crypto"
 	"mellium.im/xmpp/disco"
 	"mellium.im/xmpp/jid"
+	"mellium.im/xmpp/stanza"
 )
 
 func newFyneGUIHandler(g *gui.GUI, db *storage.DB, c *client.Client, logger, debug *log.Logger) func(interface{}) {
@@ -30,9 +31,18 @@ func newFyneGUIHandler(g *gui.GUI, db *storage.DB, c *client.Client, logger, deb
 			}()
 		case event.ChatMessage:
 			go func() {
-				encryptedPayload, messageStanza := omemo.InitiateKeyAgreement(e.Body, c, logger, e.To.Bare())
+				var encryptedPayload *omemo.EncryptedMessage
+				var messageStanza stanza.Message
 
-				ctx, cancel := context.WithTimeout(context.Background(), 60*time.Second)
+				jdid := e.To.Bare().String() + ":" + c.DeviceId
+
+				if _, prs := c.MessageSession[jdid]; prs {
+					encryptedPayload, messageStanza = omemo.EncryptMessage(e.Body, false, nil, nil, nil, c, logger, e.To.Bare())
+				} else {
+					encryptedPayload, messageStanza = omemo.InitiateKeyAgreement(e.Body, c, logger, e.To.Bare())
+				}
+
+				ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 				defer cancel()
 
 				_, err := c.SendMessageElement(ctx, encryptedPayload.TokenReader(), messageStanza)
