@@ -134,6 +134,10 @@ func InitiateKeyAgreement(initialMessage string, c *client.Client, logger *log.L
 	return EncryptMessage(initialMessage, true, &chosenOpkIdUint, &chosenSpkIdUint, ekPub, c, logger, targetJID)
 }
 
+func ReceiveKeyAgreement(c *client.Client, logger *log.Logger, targetJID jid.JID) {
+
+}
+
 func EncryptMessage(initialMessage string, keyExchange bool, opkId *uint32, spkId *uint32, ek []byte, c *client.Client, logger *log.Logger, targetJID jid.JID) (*EncryptedMessage, stanza.Message) {
 	jdid := targetJID.Bare().String() + ":" + c.DeviceId
 	sess := c.MessageSession[jdid]

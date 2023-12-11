@@ -8,6 +8,7 @@ import (
 	//"context"
 	"encoding/xml"
 	"io"
+	"strconv"
 
 	//"time"
 
@@ -144,20 +145,44 @@ func newMessageHandler(c *Client) mux.MessageHandlerFunc {
 
 func newOMEMOMessageHandler(c *Client) mux.MessageHandlerFunc {
 	return func(_ stanza.Message, r xmlstream.TokenReadEncoder) error {
-		c.logger.Print("testfunc")
-		msg := event.ChatMessage{}
+		var currentEl, currentJid, currentRid string
+		var keyElement, payload string
+		keyExchange := false
 
-		d := xml.NewTokenDecoder(r)
-		err := d.Decode(&msg)
-		if err != nil {
-			c.logger.Printf("Error decoding: %s", err)
-			return err
-		}
-		fromBare := msg.From.Bare()
-		if fromBare.Equal(jid.JID{}) || fromBare.Equal(c.addr.Bare()) {
-			msg.Account = true
+		for t, _ := r.Token(); t != nil; t, _ = r.Token() {
+			switch se := t.(type) {
+			case xml.StartElement:
+				currentEl = se.Name.Local
+
+				switch se.Name.Local {
+				case "keys":
+					currentJid = se.Attr[0].Value
+				case "key":
+					if len(se.Attr) == 1 {
+						currentRid = se.Attr[0].Value
+					} else {
+						keyExchange, _ = strconv.ParseBool(se.Attr[0].Value)
+						currentRid = se.Attr[1].Value
+					}
+				}
+			case xml.CharData:
+				content := string(se[:])
+				switch currentEl {
+				case "key":
+					if currentJid == c.addr.Bare().String() && currentRid == c.DeviceId {
+						keyElement = content
+					}
+				case "payload":
+					payload = content
+				}
+			}
 		}
 
+		c.logger.Print(keyExchange)
+		c.logger.Print(keyElement)
+		c.logger.Print(payload)
+
+		// msg := event.ChatMessage{}
 		// c.handler(msg)
 
 		return nil
