@@ -106,20 +106,9 @@ func InitiateKeyAgreement(initialMessage string, c *client.Client, logger *log.L
 	chosenOpkId, err := strconv.Atoi(opk.ID)
 	chosenOpkIdUint := uint32(chosenOpkId)
 
-	logger.Print("CHOSEN OPK")
-	logger.Print(opk.ID)
-	logger.Print("CHOSEN OPK VALUE")
-	logger.Print(opk.Text)
-
 	opkPub, _ := b64.StdEncoding.DecodeString(opk.Text)
 
 	sharedKey, associatedData, ekPub, err := x3dh.CreateInitialMessage(c.IdPrivKey, targetIdKeyPub, opkPub, targetSpkPub, targetSpkSig)
-	logger.Print("SHARED KEY")
-	logger.Print(sharedKey)
-	logger.Print("ASSOCIATED DATA")
-	logger.Print(associatedData)
-	logger.Print("EK PUB")
-	logger.Print(ekPub)
 
 	sess, err := doubleratchet.CreateActive(sharedKey, associatedData, targetDhKeyPub)
 
@@ -145,12 +134,7 @@ func EncryptMessage(initialMessage string, keyExchange bool, opkId *uint32, spkI
 	envelopeMarshaled, _ := xml.Marshal(envelope)
 	envelopeMarshaledEncoded := b64.StdEncoding.EncodeToString(envelopeMarshaled)
 
-	logger.Print("PLAINTEXT")
-	logger.Print(envelopeMarshaledEncoded)
-
 	ciphertext, authKey, err := sess.Encrypt([]byte(envelopeMarshaledEncoded))
-	logger.Print("CIPHERTEXT")
-	logger.Print(ciphertext)
 	ciphertextEncoded := b64.RawStdEncoding.EncodeToString(ciphertext)
 
 	// Sess.Encrypt already handles structuring similar to OMEMOMessage.proto, so we don't have to use OMEMOMessage again
@@ -185,9 +169,6 @@ func EncryptMessage(initialMessage string, keyExchange bool, opkId *uint32, spkI
 			logger.Printf("Failed marshaling OMEMOKeyExchange: %s", err)
 		}
 
-		logger.Print("OMEMOKEYEXCHANGE")
-		logger.Print(omemoKeyExchangeMessage)
-
 		keyElement = b64.StdEncoding.EncodeToString(omemoKeyExchangeMessage)
 	} else {
 		authenticatedMessage, err := proto.Marshal(authenticatedMessage)
@@ -195,9 +176,6 @@ func EncryptMessage(initialMessage string, keyExchange bool, opkId *uint32, spkI
 		if err != nil {
 			logger.Printf("Failed marshaling OMEMOAuthenticatedMessage: %s", err)
 		}
-
-		logger.Print("OMEMOAUTHMSG")
-		logger.Print(authenticatedMessage)
 
 		keyElement = b64.StdEncoding.EncodeToString(authenticatedMessage)
 	}

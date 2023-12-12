@@ -6,6 +6,7 @@ import (
 	"strings"
 
 	"mellium.im/communique/internal/client"
+	omemoreceiver "mellium.im/communique/internal/client/omemo/receiver"
 	"mellium.im/xmpp/jid"
 	"mellium.im/xmpp/stanza"
 )
@@ -178,8 +179,8 @@ func WrapNodeFetch(node string, itemId string, targetJid jid.JID, c *client.Clie
 	return iqStanza
 }
 
-func WrapEnvelope(text string, c *client.Client) *Envelope {
-	envelope := &Envelope{
+func WrapEnvelope(text string, c *client.Client) *omemoreceiver.Envelope {
+	envelope := &omemoreceiver.Envelope{
 		Content: &struct {
 			Body *struct {
 				Text string `xml:",chardata"`

@@ -19,7 +19,7 @@ import (
 
 	"mellium.im/communique/internal/client/doubleratchet"
 	"mellium.im/communique/internal/client/event"
-	omemoresponse "mellium.im/communique/internal/client/omemo/response"
+	omemoreceiver "mellium.im/communique/internal/client/omemo/receiver"
 	"mellium.im/communique/internal/client/quic"
 	"mellium.im/communique/internal/client/x3dh"
 	legacybookmarks "mellium.im/legacy/bookmarks"
@@ -91,7 +91,7 @@ func New(j jid.JID, logger, debug *log.Logger, opts ...Option) *Client {
 		SpkPriv:        spkPriv,
 		SpkPub:         spkPub,
 		SpkSig:         spkSig,
-		OpkList:        []omemoresponse.PreKey{}, // different prekey type from the one in omemo package
+		OpkList:        []omemoreceiver.PreKey{}, // different prekey type from the one in omemo package
 		TmpDhPrivKey:   tmpDhPrivKey,
 		TmpDhPubKey:    tmpDhPubKey,
 		MessageSession: make(map[string]*doubleratchet.DoubleRatchet),
@@ -104,7 +104,7 @@ func New(j jid.JID, logger, debug *log.Logger, opts ...Option) *Client {
 			logger.Printf("Error generating one-time prekey pair: %q", err)
 		}
 
-		c.OpkList = append(c.OpkList, omemoresponse.PreKey{
+		c.OpkList = append(c.OpkList, omemoreceiver.PreKey{
 			ID:         strconv.Itoa(i),
 			PrivateKey: []byte(opkPriv),
 			PublicKey:  []byte(opkPub),
@@ -301,7 +301,7 @@ type Client struct {
 	SpkPriv         []byte
 	SpkPub          []byte
 	SpkSig          []byte
-	OpkList         []omemoresponse.PreKey
+	OpkList         []omemoreceiver.PreKey
 	TmpDhPrivKey    []byte
 	TmpDhPubKey     []byte
 	DebugBool       bool

@@ -13,9 +13,9 @@ import (
 	//"time"
 
 	"mellium.im/communique/internal/client/event"
-	omemoresponse "mellium.im/communique/internal/client/omemo/response"
 
 	//"mellium.im/communique/internal/client/omemo"
+	omemoreceiver "mellium.im/communique/internal/client/omemo/receiver"
 	"mellium.im/xmlstream"
 	"mellium.im/xmpp"
 	"mellium.im/xmpp/carbons"
@@ -146,9 +146,9 @@ func newMessageHandler(c *Client) mux.MessageHandlerFunc {
 }
 
 func newOMEMOMessageHandler(c *Client) mux.MessageHandlerFunc {
-	return func(_ stanza.Message, r xmlstream.TokenReadEncoder) error {
+	return func(sm stanza.Message, r xmlstream.TokenReadEncoder) error {
 		var currentEl, currentJid, currentRid string
-		var fromJid, toJid jid.JID
+		var fromJid jid.JID
 		var keyElement, payload string
 		keyExchange := false
 
@@ -161,8 +161,6 @@ func newOMEMOMessageHandler(c *Client) mux.MessageHandlerFunc {
 				case "message":
 					for _, attr := range se.Attr {
 						switch attr.Name.Local {
-						case "to":
-							toJid = jid.MustParse(attr.Value)
 						case "from":
 							fromJid = jid.MustParse(attr.Value)
 						}
@@ -192,18 +190,25 @@ func newOMEMOMessageHandler(c *Client) mux.MessageHandlerFunc {
 			}
 		}
 
-		c.logger.Print(keyExchange)
-		c.logger.Print(keyElement)
-		c.logger.Print(payload)
-		c.logger.Print(fromJid.Bare().String())
-		c.logger.Print(toJid.Bare().String())
+		var msgBody, opkId string
+		var err error
 
 		if keyExchange {
-			omemoresponse.ReceiveKeyAgreement(keyElement, payload, fromJid.Bare().String(), c.DeviceId, c.IdPrivKey, c.SpkPriv, c.TmpDhPrivKey, c.TmpDhPubKey, c.OpkList, c.MessageSession, c.logger)
+			msgBody, opkId = omemoreceiver.ReceiveKeyAgreement(keyElement, payload, fromJid.Bare().String(), c.DeviceId, c.IdPrivKey, c.SpkPriv, c.TmpDhPrivKey, c.TmpDhPubKey, c.OpkList, c.MessageSession, c.logger)
+		} else {
+			msgBody, err = omemoreceiver.ReceiveEncryptedMessage(payload, fromJid.Bare().String(), c.DeviceId, c.MessageSession, c.logger)
+			if err != nil {
+				return nil
+			}
 		}
 
-		// msg := event.ChatMessage{}
-		// c.handler(msg)
+		c.logger.Print(opkId)
+
+		msg := event.ChatMessage{}
+		msg.Message = sm
+		msg.Body = msgBody
+
+		c.handler(msg)
 
 		return nil
 	}
