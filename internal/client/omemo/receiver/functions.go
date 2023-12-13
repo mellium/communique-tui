@@ -76,6 +76,12 @@ func ReceiveKeyAgreement(keyElementB64, payloadB64, peerJid, peerDeviceId string
 	return ParseEnvelope(string(envelope[:]), logger), opkId
 }
 
+func PublishKeyBundle(deviceId, fromJid string, idPubKey, spkPub, spkSig, tmpDhPubKey []byte, opkList []PreKey, logger *log.Logger) xml.TokenReader {
+	keyBundleAnnouncementStanza := WrapKeyBundle(deviceId, fromJid, idPubKey, spkPub, spkSig, tmpDhPubKey, opkList)
+
+	return keyBundleAnnouncementStanza.TokenReader()
+}
+
 func ReceiveEncryptedMessage(payloadB64, peerJid, peerDeviceId string, messageSession map[string]*doubleratchet.DoubleRatchet, logger *log.Logger) (string, error) {
 	jdid := peerJid + ":" + peerDeviceId
 

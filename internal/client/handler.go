@@ -6,9 +6,11 @@ package client
 
 import (
 	//"context"
+	"context"
 	"encoding/xml"
 	"io"
 	"strconv"
+	"time"
 
 	//"time"
 
@@ -195,6 +197,18 @@ func newOMEMOMessageHandler(c *Client) mux.MessageHandlerFunc {
 
 		if keyExchange {
 			msgBody, opkId = omemoreceiver.ReceiveKeyAgreement(keyElement, payload, fromJid.Bare().String(), c.DeviceId, c.IdPrivKey, c.SpkPriv, c.TmpDhPrivKey, c.TmpDhPubKey, c.OpkList, c.MessageSession, c.logger)
+			c.RenewKeys(opkId)
+			tokenReader := omemoreceiver.PublishKeyBundle(c.DeviceId, c.LocalAddr().Bare().String(), c.IdPubKey, c.SpkPub, c.SpkSig, c.TmpDhPubKey, c.OpkList, c.logger)
+
+			ctx, cancel := context.WithTimeout(context.Background(), 15*time.Second)
+			defer cancel()
+
+			err := c.UnmarshalIQ(ctx, tokenReader, nil)
+
+			if err != nil {
+				c.logger.Printf("Error sending key bundle: %q", err)
+			}
+
 		} else {
 			msgBody, err = omemoreceiver.ReceiveEncryptedMessage(payload, fromJid.Bare().String(), c.DeviceId, c.MessageSession, c.logger)
 			if err != nil {

@@ -12,6 +12,7 @@ import (
 	"fmt"
 	"io"
 	"log"
+	"slices"
 	"strconv"
 	"strings"
 	"sync"
@@ -46,9 +47,6 @@ func New(j jid.JID, logger, debug *log.Logger, opts ...Option) *Client {
 	var c *Client
 
 	idPubKey, idPrivKey, err := ed25519.GenerateKey(nil)
-
-	logger.Print("IDPRIVKEY 1")
-	logger.Print(idPrivKey)
 
 	if err != nil {
 		logger.Printf("Error generating identity key pair: %q", err)
@@ -572,4 +570,44 @@ func (c *Client) LeaveMUC(ctx context.Context, room jid.JID, reason string) erro
 	}
 	delete(c.channels, s)
 	return nil
+}
+
+func (c *Client) RenewKeys(usedOpkId string) {
+	tmpDhPubKey, tmpDhPrivKey, err := doubleratchet.DhKeyPair()
+
+	if err != nil {
+		c.logger.Printf("Error generating Diffie-Hellman key pair: %q", err)
+	}
+
+	c.TmpDhPrivKey = tmpDhPrivKey
+	c.TmpDhPubKey = tmpDhPubKey
+
+	var opkIdx int
+	var maxId = -1
+
+	for i, opk := range c.OpkList {
+		if opk.ID == usedOpkId {
+			opkIdx = i
+		}
+
+		idNum, _ := strconv.Atoi(opk.ID)
+
+		if idNum > maxId {
+			maxId = idNum
+		}
+	}
+
+	slices.Delete(c.OpkList, opkIdx, opkIdx+1)
+
+	opkPub, opkPriv, err := ed25519.GenerateKey(nil)
+
+	if err != nil {
+		c.logger.Printf("Error generating new one-time prekey pair: %q", err)
+	}
+
+	c.OpkList = append(c.OpkList, omemoreceiver.PreKey{
+		ID:         strconv.Itoa(maxId + 1),
+		PrivateKey: []byte(opkPriv),
+		PublicKey:  []byte(opkPub),
+	})
 }

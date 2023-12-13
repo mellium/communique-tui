@@ -21,6 +21,11 @@ import (
 )
 
 func SetupClient(c *client.Client, logger *log.Logger) {
+	PublishKeys(c, logger)
+	// PublishDevices(c, logger)
+}
+
+func PublishKeys(c *client.Client, logger *log.Logger) {
 	ctx, cancel := context.WithTimeout(context.Background(), 15*time.Second)
 	defer cancel()
 
@@ -31,20 +36,21 @@ func SetupClient(c *client.Client, logger *log.Logger) {
 	if err != nil {
 		logger.Printf("Error sending key bundle: %q", err)
 	}
+}
 
-	// ctx, cancel = context.WithTimeout(context.Background(), 15*time.Second)
-	// defer cancel()
+func PublishDevices(c *client.Client, logger *log.Logger) {
+	ctx, cancel := context.WithTimeout(context.Background(), 15*time.Second)
+	defer cancel()
 
-	// deviceAnnouncementStanza := WrapDeviceIds([]Device{
-	// 	{ID: "1", Label: "Acer Aspire 3"},
-	// }, c)
+	deviceAnnouncementStanza := WrapDeviceIds([]Device{
+		{ID: "1", Label: "Acer Aspire 3"},
+	}, c)
 
-	// _, err = c.SendIQ(ctx, deviceAnnouncementStanza.TokenReader())
+	_, err := c.SendIQ(ctx, deviceAnnouncementStanza.TokenReader())
 
-	// if err != nil {
-	// 	logger.Printf("Error sending device list: %q", err)
-	// }
-
+	if err != nil {
+		logger.Printf("Error sending device list: %q", err)
+	}
 }
 
 func InitiateKeyAgreement(initialMessage string, c *client.Client, logger *log.Logger, targetJID jid.JID) (*EncryptedMessage, stanza.Message) {
