@@ -24,7 +24,6 @@ import (
 	"mellium.im/xmlstream"
 	"mellium.im/xmpp"
 	"mellium.im/xmpp/bookmarks"
-	"mellium.im/xmpp/carbons"
 	"mellium.im/xmpp/dial"
 	"mellium.im/xmpp/disco"
 	"mellium.im/xmpp/jid"
@@ -209,14 +208,14 @@ func (c *Client) reconnect(ctx context.Context) error {
 	}
 
 	// Enable message carbons.
-	c.debug.Println("Enabling message carbons")
-	carbonsCtx, carbonsCancel := context.WithTimeout(context.Background(), c.timeout)
-	defer carbonsCancel()
-	err = carbons.Enable(carbonsCtx, c.Session)
-	if err != nil {
-		c.debug.Printf("error enabling carbons: %q", err)
-		return err
-	}
+	// c.debug.Println("Enabling message carbons")
+	// carbonsCtx, carbonsCancel := context.WithTimeout(context.Background(), c.timeout)
+	// defer carbonsCancel()
+	// err = carbons.Enable(carbonsCtx, c.Session)
+	// if err != nil {
+	// 	c.debug.Printf("error enabling carbons: %q", err)
+	// 	return err
+	// }
 
 	// Fetch the roster
 	c.debug.Println("Fetching roster")
@@ -228,13 +227,13 @@ func (c *Client) reconnect(ctx context.Context) error {
 	}
 
 	// Fetch the bookmarks
-	c.debug.Println("Fetching bookmarks")
-	bookmarksCtx, bookmarksCancel := context.WithTimeout(context.Background(), c.timeout)
-	defer bookmarksCancel()
-	err = c.Bookmarks(bookmarksCtx)
-	if err != nil {
-		c.logger.Printf("error fetching bookmarks: %q", err)
-	}
+	// c.debug.Println("Fetching bookmarks")
+	// bookmarksCtx, bookmarksCancel := context.WithTimeout(context.Background(), c.timeout)
+	// defer bookmarksCancel()
+	// err = c.Bookmarks(bookmarksCtx)
+	// if err != nil {
+	// 	c.logger.Printf("error fetching bookmarks: %q", err)
+	// }
 
 	// Init CallClient
 	c.CallClient = jingle.New(c.LocalAddr(), newOnIceCandidateHandler(c), c.debug)
