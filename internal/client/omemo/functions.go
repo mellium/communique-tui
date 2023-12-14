@@ -21,8 +21,8 @@ import (
 )
 
 func SetupClient(c *client.Client, logger *log.Logger) {
+	PublishDevices(c, logger)
 	PublishKeys(c, logger)
-	// PublishDevices(c, logger)
 }
 
 func PublishKeys(c *client.Client, logger *log.Logger) {
@@ -46,7 +46,7 @@ func PublishDevices(c *client.Client, logger *log.Logger) {
 		{ID: "1", Label: "Acer Aspire 3"},
 	}, c)
 
-	_, err := c.SendIQ(ctx, deviceAnnouncementStanza.TokenReader())
+	err := c.UnmarshalIQ(ctx, deviceAnnouncementStanza.TokenReader(), nil)
 
 	if err != nil {
 		logger.Printf("Error sending device list: %q", err)
@@ -67,13 +67,6 @@ func InitiateKeyAgreement(initialMessage string, c *client.Client, logger *log.L
 	}
 
 	logger.Printf("Decoding key bundle for " + targetJID.String() + " ...")
-
-	defer func() {
-		payload := payload
-		if err != nil {
-			payload.Close()
-		}
-	}()
 
 	var currentEl string
 	var targetSpkPub, targetSpkSig, targetIdKeyPub, targetDhKeyPub []byte
@@ -109,12 +102,16 @@ func InitiateKeyAgreement(initialMessage string, c *client.Client, logger *log.L
 
 	randomIndex := rand.Intn(len(opkList))
 	opk := opkList[randomIndex]
-	chosenOpkId, err := strconv.Atoi(opk.ID)
+	chosenOpkId, _ := strconv.Atoi(opk.ID)
 	chosenOpkIdUint := uint32(chosenOpkId)
 
 	opkPub, _ := b64.StdEncoding.DecodeString(opk.Text)
 
 	sharedKey, associatedData, ekPub, err := x3dh.CreateInitialMessage(c.IdPrivKey, targetIdKeyPub, opkPub, targetSpkPub, targetSpkSig)
+
+	if err != nil {
+		logger.Printf("Failed performing initial X3DH: %s", err)
+	}
 
 	sess, err := doubleratchet.CreateActive(sharedKey, associatedData, targetDhKeyPub)
 
@@ -128,6 +125,8 @@ func InitiateKeyAgreement(initialMessage string, c *client.Client, logger *log.L
 	jdid := targetJID.Bare().String() + ":" + c.DeviceId
 
 	c.MessageSession[jdid] = sess
+
+	payload.Close()
 
 	return EncryptMessage(initialMessage, true, &chosenOpkIdUint, &chosenSpkIdUint, ekPub, c, logger, targetJID)
 }

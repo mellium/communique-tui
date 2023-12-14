@@ -302,7 +302,6 @@ type Client struct {
 	OpkList         []omemoreceiver.PreKey
 	TmpDhPrivKey    []byte
 	TmpDhPubKey     []byte
-	DebugBool       bool
 	MessageSession  map[string]*doubleratchet.DoubleRatchet
 }
 
