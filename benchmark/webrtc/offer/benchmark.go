@@ -1,31 +1,30 @@
 package main
 
 import (
-	"fmt"
 	"sync"
 	"time"
 
 	"github.com/pion/webrtc/v3"
 )
 
-func rttPingTest(dataChannel *webrtc.DataChannel, idx int) (float64, error) {
+func rttPingTest(dataChannel *webrtc.DataChannel, idx int) (int64, error) {
 	start := time.Now()
 	dataChannel.SendText("ping")
 	<-boolChanList[idx]
 	elapsed := time.Since(start)
-	fmt.Printf("PeerConnection %d rtt took %s\n", idx, elapsed)
+	// fmt.Printf("PeerConnection %d rtt took %s\n", idx, elapsed)
 
-	return elapsed.Seconds(), nil
+	return elapsed.Milliseconds(), nil
 }
 
 func rttBatchTest() float64 {
 	var wg sync.WaitGroup
 	var (
-		totalTime float64
+		totalTime int64
 		totalTest int
 		totalMu   sync.Mutex
 	)
-	updateTotal := func(elapsedTime float64) {
+	updateTotal := func(elapsedTime int64) {
 		totalMu.Lock()
 		defer totalMu.Unlock()
 		totalTime += elapsedTime
@@ -43,5 +42,5 @@ func rttBatchTest() float64 {
 	}
 	wg.Wait()
 
-	return totalTime / float64(totalTest)
+	return float64(totalTime) / float64(totalTest)
 }

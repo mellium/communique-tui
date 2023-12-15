@@ -16,7 +16,7 @@ import (
 
 func signalCandidate(addr string, c *webrtc.ICECandidate, idx int) error {
 	payload := []byte(c.ToJSON().Candidate)
-	fmt.Printf("sending candidate: %s\n", string(payload))
+	// fmt.Printf("sending candidate: %s\n", string(payload))
 	resp, err := http.Post(
 		fmt.Sprintf("http://%s/candidate/%d", addr, idx),
 		"application/json; charset=utf-8",
@@ -58,7 +58,7 @@ func createNewPeerConnection(idx int, config webrtc.Configuration, answerAddr st
 			return
 		}
 
-		if c.Typ != webrtc.ICECandidateTypeRelay {
+		if relayOnly && c.Typ != webrtc.ICECandidateTypeRelay {
 			return
 		}
 

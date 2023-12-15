@@ -21,12 +21,14 @@ var (
 	videoTrackList     []*webrtc.TrackLocalStaticSample = make([]*webrtc.TrackLocalStaticSample, 0)
 	audioTrackList     []*webrtc.TrackLocalStaticSample = make([]*webrtc.TrackLocalStaticSample, 0)
 	connWg             sync.WaitGroup
+	relayOnly          bool
 )
 
 func main() {
 	offerAddr := flag.String("offer-address", "localhost:50000", "Address that the Offer HTTP server is hosted on.")
 	answerAddr := flag.String("answer-address", ":60000", "Address that the Answer HTTP server is hosted on.")
 	connNumber := flag.Int("conn", 1, "Specify number of peerconnection")
+	flag.BoolVar(&relayOnly, "relay", relayOnly, "Use relay only")
 	flag.Parse()
 
 	config := webrtc.Configuration{

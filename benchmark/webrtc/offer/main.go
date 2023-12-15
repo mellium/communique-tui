@@ -24,12 +24,14 @@ var (
 	dataChannelList    []*webrtc.DataChannel            = make([]*webrtc.DataChannel, 0)
 	boolChanList       []chan bool                      = make([]chan bool, 0)
 	connWg             sync.WaitGroup
+	relayOnly          bool
 )
 
 func main() {
 	offerAddr := flag.String("offer-address", ":50000", "Address that the Offer HTTP server is hosted on.")
 	answerAddr := flag.String("answer-address", "127.0.0.1:60000", "Address that the Answer HTTP server is hosted on.")
 	connNumber := flag.Int("conn", 1, "Specify number of peerconnection")
+	flag.BoolVar(&relayOnly, "relay", relayOnly, "Use relay only")
 	flag.Parse()
 
 	config := webrtc.Configuration{
@@ -71,7 +73,8 @@ func main() {
 	time.Sleep(5 * time.Second)
 
 	for {
-		rttBatchTest()
+		averageTime := rttBatchTest()
+		fmt.Printf("Average latency is %fms\n", averageTime)
 		time.Sleep(5 * time.Second)
 	}
 }
