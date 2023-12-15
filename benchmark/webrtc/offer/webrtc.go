@@ -8,7 +8,9 @@ import (
 	"net/http"
 	"os"
 	"sync"
+	"time"
 
+	"github.com/pion/rtcp"
 	"github.com/pion/webrtc/v3"
 )
 
@@ -134,6 +136,28 @@ func createNewPeerConnection(idx int, config webrtc.Configuration, answerAddr st
 
 	dataChannel.OnMessage(func(msg webrtc.DataChannelMessage) {
 		boolChanList[idx] <- true
+	})
+
+	peerConnection.OnTrack(func(track *webrtc.TrackRemote, receiver *webrtc.RTPReceiver) {
+		go func() {
+			ticker := time.NewTicker(time.Second * 3)
+			for range ticker.C {
+				peerConnection.WriteRTCP([]rtcp.Packet{&rtcp.PictureLossIndication{MediaSSRC: uint32(track.SSRC())}})
+				if peerConnection.ConnectionState() != webrtc.PeerConnectionStateConnected {
+					return
+				}
+			}
+			buf := make([]byte, 1400)
+			for {
+				_, _, readErr := track.Read(buf)
+				if readErr != nil {
+					return
+				}
+				if peerConnection.ConnectionState() != webrtc.PeerConnectionStateConnected {
+					return
+				}
+			}
+		}()
 	})
 
 	peerConnectionList = append(peerConnectionList, peerConnection)

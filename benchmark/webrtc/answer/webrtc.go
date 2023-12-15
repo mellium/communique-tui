@@ -37,6 +37,22 @@ func createNewPeerConnection(idx int, config webrtc.Configuration, offerAddr str
 	var candidatesMux sync.Mutex
 	pendingCandidates := make([]*webrtc.ICECandidate, 0)
 
+	opusTrack, err := webrtc.NewTrackLocalStaticSample(webrtc.RTPCodecCapability{MimeType: "audio/opus"}, "audio", "pion1")
+	if err != nil {
+		panic(err)
+	} else if _, err = peerConnection.AddTrack(opusTrack); err != nil {
+		panic(err)
+	}
+	audioTrackList = append(audioTrackList, opusTrack)
+
+	vp8Track, err := webrtc.NewTrackLocalStaticSample(webrtc.RTPCodecCapability{MimeType: "video/vp8"}, "video", "pion2")
+	if err != nil {
+		panic(err)
+	} else if _, err = peerConnection.AddTrack(vp8Track); err != nil {
+		panic(err)
+	}
+	videoTrackList = append(videoTrackList, vp8Track)
+
 	peerConnection.OnICECandidate(func(c *webrtc.ICECandidate) {
 		if c == nil {
 			return
@@ -123,6 +139,10 @@ func createNewPeerConnection(idx int, config webrtc.Configuration, offerAddr str
 			// PeerConnection was explicitly closed. This usually happens from a DTLS CloseNotify
 			fmt.Println("Peer Connection has gone to closed exiting")
 			os.Exit(0)
+		}
+
+		if s == webrtc.PeerConnectionStateConnected {
+			connWg.Done()
 		}
 	})
 

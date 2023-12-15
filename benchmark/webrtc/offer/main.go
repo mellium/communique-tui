@@ -53,8 +53,8 @@ func main() {
 
 	for i := 0; i < *connNumber; i++ {
 		idx := i
+		connWg.Add(1)
 		go func() {
-			connWg.Add(1)
 			startPeerConnection(peerConnectionList[idx], idx, *answerAddr)
 		}()
 	}

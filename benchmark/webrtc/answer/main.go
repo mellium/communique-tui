@@ -4,8 +4,10 @@ import (
 	"flag"
 	"fmt"
 	"net/http"
+	"sync"
 
 	"github.com/pion/webrtc/v3"
+	"mellium.im/communique/internal/client/gst"
 )
 
 const (
@@ -15,7 +17,10 @@ const (
 )
 
 var (
-	peerConnectionList []*webrtc.PeerConnection = make([]*webrtc.PeerConnection, 0)
+	peerConnectionList []*webrtc.PeerConnection         = make([]*webrtc.PeerConnection, 0)
+	videoTrackList     []*webrtc.TrackLocalStaticSample = make([]*webrtc.TrackLocalStaticSample, 0)
+	audioTrackList     []*webrtc.TrackLocalStaticSample = make([]*webrtc.TrackLocalStaticSample, 0)
+	connWg             sync.WaitGroup
 )
 
 func main() {
@@ -34,11 +39,25 @@ func main() {
 		},
 	}
 
+	gst.GstreamerInit()
+
 	for i := 0; i < *connNumber; i++ {
+		connWg.Add(1)
 		createNewPeerConnection(i, config, *offerAddr)
 	}
 
 	fmt.Println("Finished initiating PeerConnections, Waiting for offer...")
 
-	panic(http.ListenAndServe(*answerAddr, nil))
+	go func() { panic(http.ListenAndServe(*answerAddr, nil)) }()
+
+	connWg.Wait()
+	fmt.Println("Starting media pipeline...")
+
+	audioPipeline, _ := gst.CreateSendPipeline("audiotest", audioTrackList)
+	videoPipeline, _ := gst.CreateSendPipeline("videotest", videoTrackList)
+	audioPipeline.Start()
+	videoPipeline.Start()
+
+	// Block forever
+	select {}
 }

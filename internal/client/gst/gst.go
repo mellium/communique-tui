@@ -117,10 +117,10 @@ func CreateSendPipeline(codecName string, tracks []*webrtc.TrackLocalStaticSampl
 		pipelineStr = pipelineAudioSrc + " ! audio/x-raw, rate=8000 ! alawenc ! " + pipelineStr
 		clockRate = pcmClockRate
 	case "videotest":
-		pipelineStr = "videotestsrc ! videoconvert ! vp8enc error-resilient=partitions keyframe-max-dist=10 auto-alt-ref=true cpu-used=5 deadline=1 ! queue ! appsink name=appsink"
+		pipelineStr = "autovideosrc ! video/x-raw, width=320, height=240 ! videoconvert ! vp8enc error-resilient=partitions keyframe-max-dist=10 auto-alt-ref=true cpu-used=5 deadline=1 ! queue ! appsink name=appsink"
 		clockRate = videoClockRate
 	case "audiotest":
-		pipelineStr = "audiotestsrc ! queue ! audioconvert ! opusenc ! " + pipelineStr
+		pipelineStr = "autoaudiosrc ! queue ! audioconvert ! opusenc ! " + pipelineStr
 		clockRate = audioClockRate
 	default:
 		return nil, errors.New("Unhandled codec " + codecName)
