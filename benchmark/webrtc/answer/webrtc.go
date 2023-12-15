@@ -16,6 +16,7 @@ import (
 
 func signalCandidate(addr string, c *webrtc.ICECandidate, idx int) error {
 	payload := []byte(c.ToJSON().Candidate)
+	fmt.Printf("sending candidate: %s\n", string(payload))
 	resp, err := http.Post(
 		fmt.Sprintf("http://%s/candidate/%d", addr, idx),
 		"application/json; charset=utf-8",
