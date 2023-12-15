@@ -33,11 +33,11 @@ func rttBatchTest() float64 {
 
 	for i := 0; i < len(dataChannelList); i++ {
 		idx := i
+		wg.Add(1)
 		go func() {
-			wg.Add(1)
-			defer wg.Done()
 			elapsedTime, _ := rttPingTest(dataChannelList[idx], idx)
 			updateTotal(elapsedTime)
+			wg.Done()
 		}()
 	}
 	wg.Wait()

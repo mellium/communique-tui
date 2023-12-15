@@ -62,6 +62,10 @@ func createNewPeerConnection(idx int, config webrtc.Configuration, answerAddr st
 			return
 		}
 
+		if !relayOnly && c.Typ != webrtc.ICECandidateTypeSrflx {
+			return
+		}
+
 		candidatesMux.Lock()
 		defer candidatesMux.Unlock()
 
