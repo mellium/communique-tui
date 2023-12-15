@@ -4,7 +4,10 @@ import (
 	"flag"
 	"fmt"
 	"net/http"
+	"os"
+	"os/signal"
 	"sync"
+	"syscall"
 	"time"
 
 	"github.com/pion/webrtc/v3"
@@ -71,6 +74,20 @@ func main() {
 
 	fmt.Println("Waiting for a while before starting a ping test...")
 	time.Sleep(5 * time.Second)
+
+	go func() {
+		sigCh := make(chan os.Signal)
+		signal.Notify(sigCh, os.Interrupt, syscall.SIGTERM)
+		select {
+		case <-sigCh:
+			fmt.Println("Gracefully shutting down all peerConnection...")
+			for _, peerConnection := range peerConnectionList {
+				peerConnection.Close()
+			}
+			fmt.Println("done")
+			os.Exit(0)
+		}
+	}()
 
 	for {
 		averageTime := rttBatchTest()
