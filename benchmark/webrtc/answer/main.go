@@ -4,7 +4,10 @@ import (
 	"flag"
 	"fmt"
 	"net/http"
+	"os"
+	"os/signal"
 	"sync"
+	"syscall"
 
 	"github.com/pion/webrtc/v3"
 	"mellium.im/communique/internal/client/gst"
@@ -60,6 +63,15 @@ func main() {
 	audioPipeline.Start()
 	videoPipeline.Start()
 
+	sigCh := make(chan os.Signal)
+	signal.Notify(sigCh, os.Interrupt, syscall.SIGTERM)
 	// Block forever
-	select {}
+	select {
+	case <-sigCh:
+		fmt.Println("Gracefully shutting down all peerConnection...")
+		for _, peerConnection := range peerConnectionList {
+			peerConnection.Close()
+		}
+		fmt.Println("done")
+	}
 }

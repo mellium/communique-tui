@@ -41,9 +41,11 @@ func main() {
 		panic(err)
 	}
 
+	defer closeClient()
 	for clientCount < 1000 {
 		startMultiConn(50)
 		fmt.Printf("Created %d clients\n", clientCount)
+		time.Sleep(2 * time.Second)
 		curTime := time.Now()
 		var averageTime float64
 		if isC2C {
@@ -51,8 +53,10 @@ func main() {
 		} else {
 			averageTime = c2sBatchTest()
 		}
+		fmt.Printf("Average time for %d clients is %f\n", clientCount, averageTime)
 		if _, err := file.WriteString(fmt.Sprintf("%s, %d, %f\n", curTime.Format(time.RFC3339), clientCount, averageTime)); err != nil {
 			panic(err)
 		}
+		time.Sleep(3 * time.Second)
 	}
 }

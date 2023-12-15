@@ -25,6 +25,14 @@ var (
 	clientMu    sync.Mutex
 )
 
+func closeClient() {
+	clientMu.Lock()
+	defer clientMu.Unlock()
+	for _, client := range clientList {
+		client.Close()
+	}
+}
+
 func addClient(c *client.Client) {
 	clientMu.Lock()
 	defer clientMu.Unlock()

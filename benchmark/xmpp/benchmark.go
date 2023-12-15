@@ -39,7 +39,7 @@ func c2cMessageTest(ctx context.Context, c *client.Client, to jid.JID, id string
 	<-messageIds[id]
 
 	elapsed := time.Since(start)
-	fmt.Printf("Message %s took %s\n", id, elapsed)
+	// fmt.Printf("Message %s took %s\n", id, elapsed)
 
 	return elapsed.Seconds(), nil
 }
@@ -51,7 +51,7 @@ func c2sPingTest(ctx context.Context, c *client.Client) (float64, error) {
 		return 0, err
 	}
 	elapsed := time.Since(start)
-	fmt.Printf("Ping took %s\n", elapsed)
+	// fmt.Printf("Ping took %s\n", elapsed)
 
 	return elapsed.Seconds(), nil
 }
