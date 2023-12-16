@@ -79,8 +79,8 @@ func c2cBatchTest() float64 {
 		idx1 := i
 		idx2 := (i + 1) % int(clientCount)
 		// fmt.Printf("Starting Message test from client %d to client %d\n", idx1, idx2)
+		wg.Add(1)
 		go func() {
-			wg.Add(1)
 			defer wg.Done()
 			ctx, cancel := context.WithTimeout(context.Background(), 60*time.Second)
 			defer cancel()
@@ -115,8 +115,8 @@ func c2sBatchTest() float64 {
 	}
 	for i := 0; i < int(clientCount); i++ {
 		idx := 1
+		wg.Add(1)
 		go func() {
-			wg.Add(1)
 			defer wg.Done()
 			ctx, cancel := context.WithTimeout(context.Background(), 60*time.Second)
 			defer cancel()
