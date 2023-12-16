@@ -2,7 +2,9 @@ package main
 
 import (
 	"context"
+	"encoding/xml"
 	"log"
+	"strings"
 	"time"
 
 	/* #nosec */
@@ -42,10 +44,25 @@ func newFyneGUIHandler(g *gui.GUI, db *storage.DB, c *client.Client, logger, deb
 					encryptedPayload, messageStanza = omemo.InitiateKeyAgreement(e.Body, c, logger, e.To.Bare())
 				}
 
+				rr := omemo.ReceiptRequest{}
+
+				var result strings.Builder
+				encoder := xml.NewEncoder(&result)
+
+				if err := encoder.Encode(encryptedPayload); err != nil {
+					panic(err)
+				}
+				if err := encoder.Encode(rr); err != nil {
+					panic(err)
+				}
+
+				xmlReader := xml.NewDecoder(strings.NewReader(result.String()))
+				messageReader := messageStanza.Wrap(xmlReader)
+
 				ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 				defer cancel()
 
-				_, err := c.SendMessageElement(ctx, encryptedPayload.TokenReader(), messageStanza)
+				err := c.Session.Send(ctx, messageReader)
 				if err != nil {
 					logger.Printf("error sending message: %v", err)
 				}

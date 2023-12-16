@@ -113,7 +113,7 @@ func CreateInitialMessage(
 
 	idXKey := ed25519PrivateKeyToCurve25519(idKey)
 	peerIdXKey := ed25519PublicKeyToCurve25519(peerIdKey)
-  opkPubXKey := ed25519PublicKeyToCurve25519(opkPub)
+	opkPubXKey := ed25519PublicKeyToCurve25519(opkPub)
 
 	dhOut := make([]byte, 4*curve25519.ScalarSize)
 	dhSteps := [][][]byte{{idXKey, spkPub}, {ekPriv, peerIdXKey}, {ekPriv, spkPub}, {ekPriv, opkPubXKey}}
@@ -142,23 +142,41 @@ func CreateInitialMessage(
 // Therefore the same calculation is performed as for CreateInitialMessage,
 // just in reverse.
 func ReceiveInitialMessage(
-	idKey, opkPriv ed25519.PrivateKey, peerIdKey ed25519.PublicKey, spkPriv, ekPub []byte,
+	idKey ed25519.PrivateKey, opkPriv []byte, peerIdKey ed25519.PublicKey, spkPriv, ekPub []byte,
 ) (sessKey, associatedData []byte, err error) {
 	if len(peerIdKey) != ed25519.PublicKeySize {
 		err = fmt.Errorf("invalid peer public key size")
 		return
 	}
 
+	isOpkValid := len(opkPriv) > 0
+
+	var opkPrivXKey []byte
+
 	idXKey := ed25519PrivateKeyToCurve25519(idKey)
-  opkPrivXKey := ed25519PrivateKeyToCurve25519(opkPriv)
+	if isOpkValid {
+		opkPrivXKey = ed25519PrivateKeyToCurve25519(opkPriv)
+	}
+
 	peerIdXKey := ed25519PublicKeyToCurve25519(peerIdKey)
 
 	dhOut := make([]byte, 4*curve25519.ScalarSize)
-	dhSteps := [][][]byte{
-		{spkPriv, peerIdXKey},
-		{idXKey, ekPub},
-		{spkPriv, ekPub},
-    {opkPrivXKey, ekPub},
+
+	var dhSteps [][][]byte
+
+	if isOpkValid {
+		dhSteps = [][][]byte{
+			{spkPriv, peerIdXKey},
+			{idXKey, ekPub},
+			{spkPriv, ekPub},
+			{opkPrivXKey, ekPub},
+		}
+	} else {
+		dhSteps = [][][]byte{
+			{spkPriv, peerIdXKey},
+			{idXKey, ekPub},
+			{spkPriv, ekPub},
+		}
 	}
 
 	for _, dhStep := range dhSteps {

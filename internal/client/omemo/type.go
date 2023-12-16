@@ -2,6 +2,7 @@ package omemo
 
 import (
 	"encoding/xml"
+	"strings"
 )
 
 type PublishOptions struct {
@@ -15,4 +16,21 @@ type PublishOptions struct {
 			Value string `xml:"value"`
 		} `xml:"field"`
 	} `xml:"x"`
+}
+
+type ReceiptRequest struct {
+	XMLName xml.Name `xml:"urn:xmpp:receipts request"`
+}
+
+func (rr *ReceiptRequest) TokenReader() xml.TokenReader {
+	xmlData, err := xml.Marshal(rr)
+	if err != nil {
+		panic(err)
+	}
+
+	reader := strings.NewReader(string(xmlData))
+
+	decoder := xml.NewDecoder(reader)
+
+	return decoder
 }

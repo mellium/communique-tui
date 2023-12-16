@@ -45,6 +45,7 @@ func ReceiveKeyAgreement(keyElementB64, payloadB64, peerJid, peerDeviceId string
 		logger.Print("OPK not found.")
 	}
 
+	fmt.Print()
 	sharedKey, associatedData, err := x3dh.ReceiveInitialMessage(idPrivKey, opkPriv, peerIdPubKey, spkPriv, ekPub)
 
 	if err != nil {
@@ -114,11 +115,14 @@ func ParseEnvelope(envelopeB64 string, logger *log.Logger) string {
 	}
 
 	var envelope Envelope
+	ret := ""
 
 	err = xml.Unmarshal([]byte(rawEnvelope), &envelope)
 	if err != nil {
-		fmt.Printf("Error parsing envelope XML: %s", err)
+		// fmt.Printf("Error parsing envelope XML: %s", err)
+	} else {
+		ret = envelope.Content.Body.Text
 	}
 
-	return envelope.Content.Body.Text
+	return ret
 }

@@ -57,16 +57,21 @@ func InitiateKeyAgreement(initialMessage string, c *client.Client, logger *log.L
 	ctx, cancel := context.WithTimeout(context.Background(), 20*time.Second)
 	defer cancel()
 
-	logger.Printf("Fetching key bundle for " + targetJID.String() + " ...")
+	if logger != nil {
+		logger.Printf("Fetching key bundle for " + targetJID.String() + " ...")
+	}
+
 	fetchBundleStanza := WrapNodeFetch("urn:xmpp:omemo:2:bundles", c.DeviceId, targetJID, c)
 
 	payload, err := c.SendIQ(ctx, fetchBundleStanza.TokenReader())
 
-	if err != nil {
+	if err != nil && logger != nil {
 		logger.Printf("Error fetching key bundle: %v", err)
 	}
 
-	logger.Printf("Decoding key bundle for " + targetJID.String() + " ...")
+	if logger != nil {
+		logger.Printf("Decoding key bundle for " + targetJID.String() + " ...")
+	}
 
 	var currentEl string
 	var targetSpkPub, targetSpkSig, targetIdKeyPub, targetDhKeyPub []byte
@@ -109,13 +114,13 @@ func InitiateKeyAgreement(initialMessage string, c *client.Client, logger *log.L
 
 	sharedKey, associatedData, ekPub, err := x3dh.CreateInitialMessage(c.IdPrivKey, targetIdKeyPub, opkPub, targetSpkPub, targetSpkSig)
 
-	if err != nil {
+	if err != nil && logger != nil {
 		logger.Printf("Failed performing initial X3DH: %s", err)
 	}
 
 	sess, err := doubleratchet.CreateActive(sharedKey, associatedData, targetDhKeyPub)
 
-	if err != nil {
+	if err != nil && logger != nil {
 		logger.Printf("Failed creating double ratchet session: %s", err)
 	}
 
@@ -144,7 +149,7 @@ func EncryptMessage(initialMessage string, keyExchange bool, opkId *uint32, spkI
 
 	// Sess.Encrypt already handles structuring similar to OMEMOMessage.proto, so we don't have to use OMEMOMessage again
 
-	if err != nil {
+	if err != nil && logger != nil {
 		logger.Printf("Failed encrypting message with double ratchet session: %s", err)
 	}
 
@@ -170,7 +175,7 @@ func EncryptMessage(initialMessage string, keyExchange bool, opkId *uint32, spkI
 
 		omemoKeyExchangeMessage, err := proto.Marshal(keyExchangeMessage)
 
-		if err != nil {
+		if err != nil && logger != nil {
 			logger.Printf("Failed marshaling OMEMOKeyExchange: %s", err)
 		}
 
@@ -178,7 +183,7 @@ func EncryptMessage(initialMessage string, keyExchange bool, opkId *uint32, spkI
 	} else {
 		authenticatedMessage, err := proto.Marshal(authenticatedMessage)
 
-		if err != nil {
+		if err != nil && logger != nil {
 			logger.Printf("Failed marshaling OMEMOAuthenticatedMessage: %s", err)
 		}
 

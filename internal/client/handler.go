@@ -205,8 +205,6 @@ func newOMEMOMessageHandler(c *Client) mux.MessageHandlerFunc {
 			}
 		}
 
-		c.logger.Print(opkId)
-
 		msg := event.ChatMessage{}
 		msg.Message = sm
 		msg.Body = msgBody
@@ -216,7 +214,7 @@ func newOMEMOMessageHandler(c *Client) mux.MessageHandlerFunc {
 		if keyExchange {
 			tokenReader := omemoreceiver.PublishKeyBundle(c.DeviceId, c.LocalAddr().Bare().String(), c.IdPubKey, c.SpkPub, c.SpkSig, c.TmpDhPubKey, c.OpkList, c.logger)
 
-			ctx, cancel := context.WithTimeout(context.Background(), 15*time.Second)
+			ctx, cancel := context.WithTimeout(context.Background(), 0*time.Second)
 			defer cancel()
 
 			err := c.UnmarshalIQ(ctx, tokenReader, nil)
