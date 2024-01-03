@@ -142,7 +142,7 @@ func EncryptMessage(initialMessage string, keyExchange bool, opkId *uint32, spkI
 
 	envelope := WrapEnvelope(initialMessage, c)
 	envelopeMarshaled, _ := xml.Marshal(envelope)
-	envelopeMarshaledEncoded := b64.StdEncoding.EncodeToString(envelopeMarshaled)
+	envelopeMarshaledEncoded := b64.RawStdEncoding.EncodeToString(envelopeMarshaled)
 
 	ciphertext, authKey, err := sess.Encrypt([]byte(envelopeMarshaledEncoded))
 	ciphertextEncoded := b64.RawStdEncoding.EncodeToString(ciphertext)

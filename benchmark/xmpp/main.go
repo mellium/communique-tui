@@ -43,7 +43,7 @@ func main() {
 
 	defer closeClient()
 	for clientCount < 50 {
-		startMultiConn(50)
+		startMultiConn(5)
 		fmt.Printf("Created %d clients\n", clientCount)
 		time.Sleep(2 * time.Second)
 		curTime := time.Now()
