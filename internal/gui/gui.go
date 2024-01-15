@@ -14,14 +14,17 @@ import (
 )
 
 type GUI struct {
-	app               fyne.App
-	conversationsList binding.StringList
-	conversationsMap  map[string]*conversation
-	isRunning         bool
-	mainWindow        fyne.Window
-	debug             *log.Logger
-	accountCard       *widget.Card
-	handler           func(interface{})
+	app                fyne.App
+	conversationsList  binding.StringList
+	conversationsMap   map[string]*conversation
+	isRunning          bool
+	mainWindow         fyne.Window
+	outgoingCallWindow fyne.Window
+	incomingCallWindow fyne.Window
+	callSessionWindow  fyne.Window
+	debug              *log.Logger
+	accountCard        *widget.Card
+	handler            func(interface{})
 }
 
 type LoginData struct {

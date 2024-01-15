@@ -6,6 +6,7 @@
 package event // import "mellium.im/communique/internal/client/event"
 
 import (
+	"mellium.im/communique/internal/client/jingle"
 	"mellium.im/xmpp/bookmarks"
 	"mellium.im/xmpp/commands"
 	"mellium.im/xmpp/delay"
@@ -134,4 +135,22 @@ type (
 			Err  error
 		}
 	}
+
+	// NewOutgoingCall is sent when there's a new request to start a call from current client
+	NewOutgoingCall jid.JID
+
+	// OutgoingCallAccepted is sent to gui when responder accept this client call initation request
+	OutgoingCallAccepted *jingle.Jingle
+
+	// NewIncomingCall is sent to gui to show calling window when a new call request arrive from client
+	NewIncomingCall *jingle.Jingle
+
+	// AcceptIncomingCall is sent from gui to indicate acceptance oh call initiation request
+	AcceptIncomingCall *jingle.Jingle
+
+	// CancelCall is sent when current client or another client cancel a call request
+	CancelCall string
+
+	// TerminateCall is sent when current client or another client want to terminate call session
+	TerminateCall string
 )

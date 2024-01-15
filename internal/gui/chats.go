@@ -41,16 +41,23 @@ func makeChatBox(c *conversation, g *GUI) fyne.CanvasObject {
 
 	c.messageList.AddListener(c.dataListener)
 
-	toolbar := makeToolbar(c)
+	toolbar := makeToolbar(c, g)
 	input := makeInput(c, g)
 	return container.NewBorder(toolbar, input, nil, nil, chats)
 }
 
-func makeToolbar(c *conversation) fyne.CanvasObject {
+func makeToolbar(c *conversation, g *GUI) fyne.CanvasObject {
 	addressCard := widget.NewCard(c.email, "", nil)
 	toolbar := widget.NewToolbar(
-		widget.NewToolbarAction(theme.MediaPlayIcon(), func() {}),
-		widget.NewToolbarAction(theme.MediaVideoIcon(), func() {}),
+		widget.NewToolbarAction(theme.MediaPlayIcon(), func() {
+		}),
+		widget.NewToolbarAction(theme.MediaVideoIcon(), func() {
+			fullJid := c.email
+			if c.resource != "" {
+				fullJid += "/" + c.resource
+			}
+			g.handler(event.NewOutgoingCall(jid.MustParse(fullJid)))
+		}),
 	)
 	return container.NewBorder(nil, nil, nil, toolbar, addressCard)
 }

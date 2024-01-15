@@ -33,6 +33,7 @@ import (
 	"github.com/rivo/tview"
 
 	"mellium.im/communique/internal/client"
+	"mellium.im/communique/internal/client/gst"
 	"mellium.im/communique/internal/client/omemo"
 	"mellium.im/communique/internal/gui"
 	"mellium.im/communique/internal/logwriter"
@@ -112,6 +113,7 @@ func main() {
 
 	// GUI Code is here
 	if useGui {
+		gst.GstreamerInit()
 		// TODO: Implement windows to display different type of debug output
 		// Currently displaying all in one main terminal
 		debug.SetOutput(io.MultiWriter(earlyLogs, os.Stderr))
@@ -171,14 +173,14 @@ func main() {
 					MinVersion: tls.VersionTLS12,
 				},
 				NoLookup: false,
-				NoTLS:    false,
+				NoTLS:    true,
 			}
 
 			c := client.New(
 				j, logger, debug,
 				client.Timeout(timeout),
 				client.Dialer(dialer),
-				client.NoTLS(false),
+				client.NoTLS(true),
 				client.Tee(logwriter.New(xmlInLog), logwriter.New(xmlOutLog)),
 				client.Password(getPass),
 				client.RosterVer(rosterVer),

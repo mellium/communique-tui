@@ -12,6 +12,7 @@ import (
 	"fmt"
 	"io"
 	"log"
+	"net"
 	"slices"
 	"strconv"
 	"strings"
@@ -20,6 +21,7 @@ import (
 
 	"mellium.im/communique/internal/client/doubleratchet"
 	"mellium.im/communique/internal/client/event"
+	"mellium.im/communique/internal/client/jingle"
 	omemoreceiver "mellium.im/communique/internal/client/omemo/receiver"
 	"mellium.im/communique/internal/client/quic"
 	"mellium.im/communique/internal/client/x3dh"
@@ -162,7 +164,21 @@ func (c *Client) reconnect(ctx context.Context) error {
 	if c.useQuic {
 		quicConn, err = quic.Connect(ctx, c.addr, c.logger)
 	} else {
-		conn, err = c.dialer.Dial(ctx, "tcp", c.addr)
+		var dialConn net.Conn
+		dialConn, err = c.dialer.Dial(ctx, "tcp", c.addr)
+		if err != nil {
+			return fmt.Errorf("error dialing connection: %v", err)
+		}
+		tcpConn := dialConn.(*net.TCPConn)
+		err = tcpConn.SetReadBuffer(1048576)
+		if err != nil {
+			c.logger.Println(err)
+		}
+		err = tcpConn.SetWriteBuffer(1048576)
+		if err != nil {
+			c.logger.Println(err)
+		}
+		conn = tcpConn
 	}
 	if err != nil {
 		return fmt.Errorf("error dialing connection: %v", err)
@@ -173,9 +189,9 @@ func (c *Client) reconnect(ctx context.Context) error {
 	}
 
 	saslFeature := xmpp.SASL("", pass,
-		sasl.ScramSha256Plus,
-		sasl.ScramSha1Plus,
-		sasl.ScramSha256,
+		// sasl.ScramSha256Plus,
+		// sasl.ScramSha1Plus,
+		// sasl.ScramSha256,
 		sasl.ScramSha1,
 		sasl.Plain,
 	)
@@ -268,6 +284,9 @@ func (c *Client) reconnect(ctx context.Context) error {
 	// 	c.logger.Printf("error fetching bookmarks: %q", err)
 	// }
 
+	// Init CallClient
+	c.CallClient = jingle.New(c.LocalAddr(), newOnIceCandidateHandler(c), c.debug)
+
 	return nil
 }
 
@@ -302,6 +321,7 @@ type Client struct {
 	TmpDhPrivKey    []byte
 	TmpDhPubKey     []byte
 	MessageSession  map[string]*doubleratchet.DoubleRatchet
+	CallClient      *jingle.CallClient
 }
 
 // Online sets the status to online.

@@ -5,18 +5,17 @@
 package client
 
 import (
-	//"context"
 	"context"
 	"encoding/xml"
 	"io"
 	"strconv"
 	"time"
 
-	//"time"
-
+	"github.com/pion/webrtc/v3"
 	"mellium.im/communique/internal/client/event"
 
 	//"mellium.im/communique/internal/client/omemo"
+	"mellium.im/communique/internal/client/jingle"
 	omemoreceiver "mellium.im/communique/internal/client/omemo/receiver"
 	"mellium.im/xmlstream"
 	"mellium.im/xmpp"
@@ -71,6 +70,7 @@ func newXMPPHandler(c *Client) xmpp.Handler {
 		mux.Message(stanza.GroupChatMessage, xml.Name{Local: "body"}, msgHandler),
 		receipts.Handle(c.receiptsHandler),
 		history.Handle(history.NewHandler(newHistoryHandler(c))),
+		jingle.Handle(newJingleHandler(c)),
 	)
 }
 
@@ -249,5 +249,177 @@ func newHistoryHandler(c *Client) mux.MessageHandlerFunc {
 		msg.Result.Forward.Msg.Delay = msg.Result.Forward.Delay
 		c.handler(msg)
 		return nil
+	}
+}
+
+func newJingleHandler(c *Client) mux.IQHandlerFunc {
+	return func(iq stanza.IQ, t xmlstream.TokenReadEncoder, start *xml.StartElement) error {
+		jingleRequest := &jingle.Jingle{}
+
+		// Getting jingle attr
+		for _, attr := range start.Attr {
+			switch attr.Name.Local {
+			case "action":
+				jingleRequest.Action = attr.Value
+			case "initiator":
+				jingleRequest.Initiator = attr.Value
+			case "responder":
+				jingleRequest.Responder = attr.Value
+			case "sid":
+				jingleRequest.SID = attr.Value
+			}
+		}
+
+		// Decoding child elements (Group, Content, Reason)
+		d := xml.NewTokenDecoder(t)
+		for tok, _ := d.Token(); tok != nil; tok, _ = d.Token() {
+			switch se := tok.(type) {
+			case xml.StartElement:
+				switch se.Name.Local {
+				case "group":
+					group := &struct {
+						Semantics string "xml:\"semantics,attr,omitempty\""
+						Contents  []struct {
+							Name string "xml:\"name,attr,omitempty\""
+						} "xml:\"content,omitempty\""
+					}{}
+					d.DecodeElement(group, &se)
+					jingleRequest.Group = group
+				case "content":
+					if jingleRequest.Contents == nil {
+						jingleRequest.Contents = []*jingle.Content{}
+					}
+					content := &jingle.Content{}
+					d.DecodeElement(content, &se)
+					jingleRequest.Contents = append(jingleRequest.Contents, content)
+				case "reason":
+					reason := &struct {
+						Condition *struct {
+							XMLName xml.Name "xml:\",omitempty\""
+							Details string   "xml:\",chardata\""
+						}
+					}{}
+					d.DecodeElement(reason, &se)
+					jingleRequest.Reason = reason
+				}
+			}
+		}
+
+		state, _, sid := c.CallClient.GetCurrentState()
+
+		switch jingleRequest.Action {
+		case "session-initiate":
+			if (sid != jingleRequest.SID) && (state != jingle.Ended) {
+				_, err := xmlstream.Copy(t, iq.Error(stanza.Error{
+					Type:      stanza.Wait,
+					Condition: stanza.ResourceConstraint,
+				}))
+				return err
+			}
+			if sid == jingleRequest.SID {
+				if state == jingle.Pending {
+					_, err := xmlstream.Copy(t, iq.Error(stanza.Error{
+						Type:      stanza.Cancel,
+						Condition: stanza.Conflict,
+					}))
+					return err
+				}
+				if state == jingle.Active {
+					_, err := xmlstream.Copy(t, iq.Error(stanza.Error{
+						Type:      stanza.Cancel,
+						Condition: stanza.UnexpectedRequest,
+					}))
+					return err
+				}
+			}
+			c.CallClient.SetState(jingle.Pending, jingle.Responder, jingleRequest.SID)
+			c.CallClient.SetPartnerJid(iq.From)
+			c.handler(event.NewIncomingCall(jingleRequest))
+		case "session-accept":
+			if sid != jingleRequest.SID {
+				_, err := xmlstream.Copy(t, iq.Error(stanza.Error{
+					Type:      stanza.Cancel,
+					Condition: stanza.ItemNotFound,
+				}))
+				return err
+			} else {
+				if state != jingle.Pending {
+					_, err := xmlstream.Copy(t, iq.Error(stanza.Error{
+						Type:      stanza.Cancel,
+						Condition: stanza.UnexpectedRequest,
+					}))
+					return err
+				}
+			}
+			c.handler(event.OutgoingCallAccepted(jingleRequest))
+		case "session-terminate":
+			if sid != jingleRequest.SID {
+				_, err := xmlstream.Copy(t, iq.Error(stanza.Error{
+					Type:      stanza.Cancel,
+					Condition: stanza.ItemNotFound,
+				}))
+				return err
+			} else {
+				if state == jingle.Ended {
+					_, err := xmlstream.Copy(t, iq.Error(stanza.Error{
+						Type:      stanza.Cancel,
+						Condition: stanza.UnexpectedRequest,
+					}))
+					return err
+				}
+			}
+			if state == jingle.Pending {
+				c.handler(event.CancelCall(""))
+			} else {
+				c.handler(event.TerminateCall(""))
+			}
+		case "transport-info":
+			if sid != jingleRequest.SID {
+				_, err := xmlstream.Copy(t, iq.Error(stanza.Error{
+					Type:      stanza.Cancel,
+					Condition: stanza.ItemNotFound,
+				}))
+				return err
+			} else {
+				if state == jingle.Ended {
+					_, err := xmlstream.Copy(t, iq.Error(stanza.Error{
+						Type:      stanza.Cancel,
+						Condition: stanza.UnexpectedRequest,
+					}))
+					return err
+				}
+			}
+			err := c.CallClient.RegisterICECandidate(jingleRequest.Contents[0].Transport.Candidates[0])
+			if err != nil {
+				c.logger.Printf("Error adding ice candidate: %q", err)
+			}
+		}
+		_, err := xmlstream.Copy(t, iq.Result(nil))
+		return err
+	}
+}
+
+func newOnIceCandidateHandler(c *Client) func(ice *webrtc.ICECandidate) {
+	return func(ice *webrtc.ICECandidate) {
+		if ice == nil {
+			return
+		}
+
+		jingleMessage, err := c.CallClient.CreateICECandidateMessage(ice)
+		if err != nil {
+			c.logger.Printf("Error handling new ice candidate: %q", err)
+		}
+
+		jingleIQ, err := c.CallClient.WrapJingleMessage(jingleMessage)
+		if err != nil {
+			c.logger.Printf("Error wrapping jingle message: %q", err)
+		}
+
+		ctx, cancel := context.WithTimeout(context.Background(), 60*time.Second)
+		defer cancel()
+		err = c.UnmarshalIQ(ctx, jingleIQ.TokenReader(), nil)
+		if err != nil {
+			c.logger.Printf("Error sending ice candidate: %q", err)
+		}
 	}
 }
