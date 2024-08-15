@@ -112,7 +112,7 @@ func (c *Client) reconnect(ctx context.Context) error {
 	ctx, cancel = context.WithTimeout(ctx, c.timeout)
 	defer cancel()
 
-	conn, err := c.dialer.Dial(ctx, "tc8p", c.addr)
+	conn, err := c.dialer.Dial(ctx, "tcp", c.addr)
 	if err != nil {
 		return fmt.Errorf("error dialing connection: %w", err)
 	}
