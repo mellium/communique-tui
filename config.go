@@ -60,10 +60,10 @@ func printConfig(w io.Writer) error {
 #   - $HOME/.config/communiqué/config.toml
 #   - /etc/communiqué/config.toml
 #
-# The only required field is "jid". The "password_eval" field should be set to a
-# command that writes the password to standard out. Normally this should decrypt
-# an encrypted file containing the password. If it is not specified, the user
-# will be prompted to enter a password.
+# The only required field is "address". The "password_eval" field should be set
+# to a command that writes the password to standard out. Normally this should
+# decrypt an encrypted file containing the password. If it is not specified, the
+# user will be prompted to enter a password.
 `)
 	if err != nil {
 		return err
