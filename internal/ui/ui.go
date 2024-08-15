@@ -236,6 +236,7 @@ func New(p *message.Printer, opts ...Option) *UI {
 		passPrompt:       make(chan string),
 		chatsOpen:        &syncBool{},
 		debug:            log.New(io.Discard, "", 0),
+		p:                p,
 	}
 	ui.cmdPane = cmdPane()
 	for _, o := range opts {
