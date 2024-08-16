@@ -160,7 +160,7 @@ Try running '%s -config' to generate a default config file.`, err, os.Args[0]))
 	}
 
 	// Open the database
-	dbCtx, cancel := context.WithTimeout(context.Background(), 1*time.Second)
+	dbCtx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
 	defer cancel()
 	account, err := jid.Parse(acct.Address)
 	if err != nil {
