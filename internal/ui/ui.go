@@ -841,37 +841,39 @@ func (ui *UI) ShowHelpPrompt() {
 	mod := tview.NewModal().
 		SetText(`Global :
 
-q⃣: quit or close
-⎋⃣: close
-K⃣: help
+q: quit or close
+Escape: close
+K: help
 
 
 Navigation:
 
-⇥⃣, ⇤⃣ focus to next/prev
-g⃣ g⃣, ⇱⃣ scroll to top
-G⃣, ⇲⃣ scroll to bottom
-h⃣, ←⃣ move left
-j⃣, ↓⃣ move down
-k⃣, ↑⃣ move up
-l⃣, →⃣ move right
-⇞⃣, ⇟⃣ move up/down one page
-1⃣ 0⃣ k⃣ move 10 lines up
-1⃣ 0⃣ j⃣ move 10 lines down
-/⃣ search forward
-?⃣ search backward
-n⃣ next search result
-N⃣ previous search result
+Tab, Shift+Tab: focus to next/prev
+gg, Home: scroll to top
+G, End: scroll to bottom
+h, ← move left
+j, ↓: move down
+k, ↑: move up
+l, →: move right
+PageUp, PageDown: move up/down one page
+<n>k: move <n> lines up
+<n>j: move <n> lines down
+/: search forward
+?: search backward
+n: next search result
+N: previous search result
+gt: next sidebar tab
+gT: previous sidebar tab
 
 
 Roster:
 
-c⃣ start chat
-i⃣, ⏎⃣ open chat
-I⃣ more info
-o⃣, O⃣ open next/prev unread
-d⃣ d⃣ remove contact
-!⃣ execute command
+c: start chat
+i, Enter: open chat
+I: more info
+o, O: open next/prev unread
+dd: remove contact
+!: execute command
 `).
 		SetDoneFunc(func(int, string) {
 			onEsc()
