@@ -96,6 +96,11 @@ func OpenDB(ctx context.Context, appName, account, dbFile, schema string, debug 
 	// Create the path to the db file if it does not exist.
 	fPath = ""
 	for _, p := range paths {
+		if p == ":memory:" {
+			fPath = p
+			break
+		}
+
 		err := os.MkdirAll(filepath.Dir(p), 0750)
 		if err != nil {
 			debug.Printf("error creating db dir, skipping: %v", err)
