@@ -1,0 +1,121 @@
+.Dd August 2024
+.Dt COMMUNIQUÉ 1
+.Os
+.
+.Sh NAME
+.Nm communiqué
+.Nd An instant messaging client with a terminal-based user interface.
+.
+.Sh DESCRIPTION
+.Nm
+is a TUI IM client for the XMPP protocol. It was originally intended as an alternative to
+.Xr mcabber 1 .
+Apart from the basic instant messaging functionality,
+.Nm
+currently also supports MUCs.
+.
+.Sh KEY BINDINGS
+.Ss Global
+.Bl -tag -width Ds -compact
+.It Ic q
+Quit or close.
+.It Ic Escape
+Close.
+.It Ic K, F1
+Display this manual page.
+.El
+.
+.Ss Navigation
+.Bl -tag -width Ds -compact
+.It Ic Tab. Shift+Tab
+Focus the next/previous window.
+.It Ic gg, Home
+Scroll to the top.
+.It Ic G, End
+Scroll to the bottom.
+.It Ic h, ←
+Move left.
+.It Ic j, ↓
+Move down.
+.It Ic k, ↑
+Move up.
+.It Ic l, →
+Move right.
+.It Ic PageUp, PageDown
+Move up/down one page.
+.It Ar n Ic k
+Move
+.Ar n
+lines up.
+.It Ar n Ic j
+Move
+.Ar n
+lines down.
+.It Ic /
+Search forward.
+.It Ic ?
+Search backward.
+.It Ic n
+Select the next search result.
+.It Ic N
+Select the previous search result.
+.It Ic gt
+Switch to the next sidebar tab.
+.It Ic gT
+Switch to the previous sidebar tab.
+.El
+.
+.Ss Roster
+.Bl -tag -width Ds -compact
+.It Ic c
+Start a chat.
+.It Ic i, Enter
+Open a chat.
+.It Ic I
+Display more information.
+.It Ic o, O
+Open the next/previous unread conversation.
+.It Ic dd
+Remove contact.
+.It Ic !
+Execute command.
+.El
+.
+.Sh FILES
+.Bl -column
+.It Pa communiqué.toml
+.It Pa $XDG_CONFIG_HOME/communiqué/config.toml
+.It Pa $HOME/communiqué/config.toml
+.It Pa /etc/communiqué/config.toml
+.El
+.D1 Configuration file locations are attempted in this order.
+.
+.Bl -column
+.It Pa $XDG_DATA_HOME/communiqué/jid.db
+.It Pa $HOME/.local/share/communiqué/jid.db
+.It Pa jid.db
+.El
+.D1 Database locations are attempted in this order.
+.
+.Sh STANDARDS
+.Bl -item
+.It
+.Rs
+.%T RFC 6120: Extensible Messaging and Presence Protocol (XMPP): Core
+.Re
+.It
+.Rs
+.%T XEP-0045: Multi-User Chat
+.Re
+.El
+.
+.Sh AUTHORS
+.An The Mellium Contributors .
+.
+.Sh REPORTING BUGS
+The project is hosted at
+.Lk https://codeberg.org/mellium/communique-tui ,
+please report issues there. For security issues, please send an email to
+.Mt security@mellium.im
+instead. For support you may also visit the XMPP chat at
+.Mt users@mellium.im .
