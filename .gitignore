@@ -8,6 +8,5 @@ coverage.html
 history/
 *.out
 *.svg
-*.sw[op]
 vendor/
 *.xml
