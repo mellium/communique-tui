@@ -41,7 +41,7 @@ func newUIHandler(configPath string, acct account, pane *ui.UI, db *storage.DB, 
 				debug.Print(p.Sprintf("executing command: %+v", e))
 				resp, trc, err := commands.Command(e).Execute(ctx, nil, c.Session)
 				if err != nil {
-					logger.Printf(p.Sprintf("error executing command %q on %q: %v", e.Node, e.JID, err))
+					logger.Print(p.Sprintf("error executing command %q on %q: %v", e.Node, e.JID, err))
 				}
 				err = showCmd(pane, c, resp, trc, debug)
 				if err != nil {
