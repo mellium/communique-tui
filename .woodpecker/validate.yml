@@ -7,6 +7,8 @@ pipeline:
     commands:
       - go version
       - go env
+    when:
+      - event: [tag, push, pull_request, release, manual]
   lint:
     << : *info
     commands:
