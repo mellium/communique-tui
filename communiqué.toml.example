@@ -46,11 +46,12 @@
 #     password_eval="echo -n password"
 
 # The path to the sqlite3 database. If left empty the following files are
-# attempted, falling back in this order:
+# attempted, falling back in this order (where {account} is the name of the
+# account):
 #
-#  - $XDG_DATA_HOME/communiqué/db,
-#  - $HOME/.local/share/communiqué/db
-#  - ./communiqué.db
+#  - $XDG_DATA_HOME/communiqué/{account}.db,
+#  - $HOME/.local/share/communiqué/{account}.db
+#  - ./{account}.db
 #
 # db_file = ""
 
