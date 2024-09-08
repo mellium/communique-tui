@@ -9,6 +9,8 @@ import (
 	"fmt"
 	"io"
 	"log"
+	"os"
+	"os/exec"
 	"strings"
 	"sync"
 	"text/tabwriter"
@@ -286,8 +288,11 @@ func New(p *message.Printer, opts ...Option) *UI {
 		case eventRune == 'q':
 			ui.ShowQuitPrompt()
 			return nil
-		case eventRune == 'K' || key == tcell.KeyF1 || key == tcell.KeyHelp:
+		case eventRune == 'K':
 			ui.ShowHelpPrompt()
+			return nil
+		case key == tcell.KeyF1 || key == tcell.KeyHelp:
+			ui.ShowManualPage()
 			return nil
 		case eventRune == 'I':
 			ui.ShowRosterInfo()
@@ -843,7 +848,8 @@ func (ui *UI) ShowHelpPrompt() {
 
 q: quit or close
 Escape: close
-K: help
+F1: help
+K: key bindings quick help
 
 
 Navigation:
@@ -885,6 +891,20 @@ dd: remove contact
 	ui.pages.ShowPage(helpPageName)
 	ui.pages.SendToFront(helpPageName)
 	ui.app.SetFocus(ui.pages)
+}
+
+// ShowManualPage suspends the application and invokes man(1) to view the
+// manual page.
+func (ui *UI) ShowManualPage() {
+	ui.app.Suspend(func() {
+		cmd := exec.Command("man", "1", "communiqué")
+		cmd.Stdout = os.Stdout
+		cmd.Stdin = os.Stdin
+		cmd.Stderr = os.Stderr
+		if err := cmd.Run(); err != nil {
+			ui.debug.Print(err)
+		}
+	})
 }
 
 // GetRosterJID gets the currently selected roster or bookmark JID.
