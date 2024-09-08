@@ -5,7 +5,6 @@
 package ui
 
 import (
-	"fmt"
 	"strings"
 	"sync"
 
@@ -47,7 +46,7 @@ type Conversations struct {
 }
 
 // newConversations creates a new widget with the provided options.
-func newConversations(p *message.Printer, onStatus func()) *Conversations {
+func newConversations(p *message.Printer) *Conversations {
 	c := &Conversations{
 		items:    make(map[string]Conversation),
 		itemLock: &sync.Mutex{},
@@ -61,39 +60,7 @@ func newConversations(p *message.Printer, onStatus func()) *Conversations {
 		SetDirection(tview.FlexRow)
 	c.list.SetTitle(p.Sprintf("Conversations"))
 
-	// Add default status indicator.
-	c.Upsert(Conversation{idx: 0}, func(Conversation) { onStatus() })
-	c.Offline()
-
 	return c
-}
-
-// Offline sets the state of the roster to show the user as offline.
-func (c Conversations) Offline() {
-	c.setStatus("silver::d", c.p.Sprintf("Offline"))
-}
-
-// Online sets the state of the roster to show the user as online.
-func (c Conversations) Online() {
-	c.setStatus("green", c.p.Sprintf("Online"))
-}
-
-// Away sets the state of the roster to show the user as away.
-func (c Conversations) Away() {
-	c.setStatus("orange", c.p.Sprintf("Away"))
-}
-
-// Busy sets the state of the roster to show the user as busy.
-func (c Conversations) Busy() {
-	c.setStatus("red", c.p.Sprintf("Busy"))
-}
-
-func (c Conversations) setStatus(color, name string) {
-	var width int
-	if c.Width > 4 {
-		width = c.Width - 4
-	}
-	c.list.SetItemText(0, name, fmt.Sprintf("[%s]%s", color, strings.Repeat("─", width)))
 }
 
 // Delete removes an item from the list.
@@ -169,7 +136,7 @@ func (c Conversations) InputHandler() func(event *tcell.EventKey, setFocus func(
 
 // Focus implements tview.Primitive foc Conversations.
 func (c Conversations) Focus(delegate func(p tview.Primitive)) {
-	if c.changed != nil {
+	if c.list.GetItemCount() > 0 && c.changed != nil {
 		idx := c.list.GetCurrentItem()
 		main, secondary := c.list.GetItemText(idx)
 		c.changed(idx, main, secondary, 0)

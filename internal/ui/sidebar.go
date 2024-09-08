@@ -13,6 +13,7 @@ import (
 
 	"github.com/gdamore/tcell/v2"
 	"github.com/rivo/tview"
+	"golang.org/x/text/message"
 
 	"mellium.im/xmpp/jid"
 )
@@ -34,17 +35,23 @@ type Sidebar struct {
 	ui            *UI
 	events        *bytes.Buffer
 	eventsM       *sync.Mutex
+	statusButton  *tview.Button
+	p             *message.Printer
+	statusSelect  func()
 }
 
 // newSidebar creates a new widget with the provided options.
-func newSidebar(ui *UI) *Sidebar {
+func newSidebar(p *message.Printer, ui *UI, statusSelect func()) *Sidebar {
 	r := &Sidebar{
-		pages:    tview.NewPages(),
-		dropDown: tview.NewDropDown().SetFieldBackgroundColor(tview.Styles.PrimitiveBackgroundColor),
-		search:   tview.NewInputField(),
-		ui:       ui,
-		events:   &bytes.Buffer{},
-		eventsM:  &sync.Mutex{},
+		pages:        tview.NewPages(),
+		dropDown:     tview.NewDropDown().SetFieldBackgroundColor(tview.Styles.PrimitiveBackgroundColor),
+		search:       tview.NewInputField(),
+		ui:           ui,
+		events:       &bytes.Buffer{},
+		eventsM:      &sync.Mutex{},
+		statusButton: tview.NewButton("").SetSelectedFunc(statusSelect),
+		statusSelect: statusSelect,
+		p:            p,
 	}
 	r.roster = newRoster(func() {
 		ui.pages.ShowPage(delRosterPageName)
@@ -64,11 +71,7 @@ func newSidebar(ui *UI) *Sidebar {
 		main = strings.TrimPrefix(main, highlightTag)
 		ui.statusBar.SetText(fmt.Sprintf("Chat: %q (%s)", main, secondary))
 	})
-	r.conversations = newConversations(ui.p, func() {
-		ui.pages.ShowPage(setStatusPageName)
-		ui.pages.SendToFront(setStatusPageName)
-		ui.app.SetFocus(ui.pages)
-	})
+	r.conversations = newConversations(ui.p)
 	r.conversations.OnChanged(func(idx int, main string, secondary string, shortcut rune) {
 		if idx == 0 {
 			ui.statusBar.SetText("Status: " + main)
@@ -91,17 +94,20 @@ func newSidebar(ui *UI) *Sidebar {
 	})
 	r.dropDown.SetCurrentOption(0)
 
-	//r.dropDown.SetTitleAlign(tview.AlignCenter)
+	// Add default status indicator.
+	r.Offline()
+
 	r.Flex = tview.NewFlex().
 		SetDirection(tview.FlexRow).
 		AddItem(r.dropDown, 1, 1, false).
+		AddItem(r.statusButton, 1, 0, false).
 		AddItem(r.pages, 0, 1, true)
 
 	r.search.SetPlaceholder("Search").
 		SetFieldBackgroundColor(tview.Styles.PrimitiveBackgroundColor).
 		SetDoneFunc(func(key tcell.Key) {
 			switch key {
-			case tcell.KeyTab, tcell.KeyBacktab:
+			case tcell.KeyTAB, tcell.KeyBacktab:
 				return
 			case tcell.KeyESC:
 			case tcell.KeyEnter:
@@ -315,6 +321,8 @@ func (s *Sidebar) InputHandler() func(event *tcell.EventKey, setFocus func(p tvi
 				}
 				i.Delete(c.JID.String())
 			}
+		case 's':
+			s.statusSelect()
 		case '1', '2', '3', '4', '5', '6', '7', '8', '9', '0':
 			// Don't reset events, after a number we may provide an action such as
 			// '10j'.
@@ -443,22 +451,22 @@ func (s *Sidebar) ShowStatus(show bool) {
 
 // Offline sets the state of the roster to show the user as offline.
 func (s Sidebar) Offline() {
-	s.conversations.Offline()
+	s.setStatus("silver::d", s.p.Sprintf("Offline"))
 }
 
 // Online sets the state of the roster to show the user as online.
 func (s Sidebar) Online() {
-	s.conversations.Online()
+	s.setStatus("green", s.p.Sprintf("Online"))
 }
 
 // Away sets the state of the roster to show the user as away.
 func (s Sidebar) Away() {
-	s.conversations.Away()
+	s.setStatus("orange", s.p.Sprintf("Away"))
 }
 
 // Busy sets the state of the roster to show the user as busy.
 func (s Sidebar) Busy() {
-	s.conversations.Busy()
+	s.setStatus("red", s.p.Sprintf("Busy"))
 }
 
 // UpsertPresence updates an existing roster item or bookmark with a newly seen
@@ -468,4 +476,15 @@ func (s Sidebar) UpsertPresence(j jid.JID, status string) bool {
 	rosterOk := s.roster.UpsertPresence(j, status)
 	conversationOk := s.conversations.UpsertPresence(j, status)
 	return rosterOk || conversationOk
+}
+
+func (s Sidebar) setStatus(color, name string) {
+	var width int
+	if s.Width > 4 {
+		width = s.Width - 4
+	}
+	s.statusButton.SetStyle(tcell.StyleDefault.
+		Background(tcell.ColorDefault).
+		Foreground(tcell.GetColor(color)))
+	s.statusButton.SetLabel(strings.Repeat("─", width))
 }

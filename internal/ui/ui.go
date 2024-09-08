@@ -191,7 +191,12 @@ func New(p *message.Printer, opts ...Option) *UI {
 		debug:        log.New(io.Discard, "", 0),
 		p:            p,
 	}
-	sidebarBox := newSidebar(ui)
+	statusSelect := func() {
+		pages.ShowPage(setStatusPageName)
+		pages.SendToFront(setStatusPageName)
+		app.SetFocus(pages)
+	}
+	sidebarBox := newSidebar(p, ui, statusSelect)
 	ui.sidebar = sidebarBox
 	ui.cmdPane = cmdPane()
 	for _, o := range opts {
@@ -760,7 +765,8 @@ i, Enter: open chat
 I: more info
 o, O: open next/prev unread
 dd: remove contact
-!: execute command`).
+!: execute command
+s: change status`).
 		SetDoneFunc(func(int, string) {
 			onEsc()
 		})
