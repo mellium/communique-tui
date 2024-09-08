@@ -310,3 +310,8 @@ func (r Roster) Unread(j string) bool {
 func (r *Roster) Len() int {
 	return len(r.items)
 }
+
+// PasteHandler implements tview.Primitive.
+func (Roster) PasteHandler() func(string, func(tview.Primitive)) {
+	return nil
+}

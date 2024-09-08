@@ -329,3 +329,8 @@ func (c Conversations) Unread(j string) bool {
 func (c *Conversations) Len() int {
 	return len(c.items)
 }
+
+// PasteHandler implements tview.Primitive.
+func (Conversations) PasteHandler() func(string, func(tview.Primitive)) {
+	return nil
+}

@@ -187,3 +187,8 @@ func (b *Bookmarks) OnChanged(f func(int, string, string, rune)) {
 	b.changed = f
 	b.list.SetChangedFunc(f)
 }
+
+// PasteHandler implements tview.Primitive.
+func (Bookmarks) PasteHandler() func(string, func(tview.Primitive)) {
+	return nil
+}
