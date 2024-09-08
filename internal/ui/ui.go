@@ -851,7 +851,7 @@ Navigation:
 Tab, Shift+Tab: focus to next/prev
 gg, Home: scroll to top
 G, End: scroll to bottom
-h, ← move left
+h, ←: move left
 j, ↓: move down
 k, ↑: move up
 l, →: move right
