@@ -274,7 +274,7 @@ func newUIHandler(configPath string, acct account, pane *ui.UI, db *storage.DB, 
 				_, err = history.Fetch(ctx, history.Query{
 					With:    e.JID,
 					End:     t,
-					Limit:   uint64(2 * screenHeight),
+					Limit:   uint64(2 * screenHeight), // #nosec G115
 					Reverse: true,
 					Last:    true,
 				}, c.Session.LocalAddr().Bare(), c.Session)
@@ -373,7 +373,7 @@ func newClientHandler(configPath string, client *client.Client, pane *ui.UI, db 
 					_, err := history.Fetch(ctx, history.Query{
 						With:    item.JID.Bare(),
 						End:     time.Now(),
-						Limit:   uint64(2 * screenHeight),
+						Limit:   uint64(2 * screenHeight), // #nosec G115
 						Reverse: true,
 						Last:    true,
 					}, accountBare, client.Session)
