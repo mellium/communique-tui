@@ -10,7 +10,8 @@
 
 [[account]]
 
-# The address to log in as.
+# The address to log in as. If only the domain part is provided, the SASL
+# ANONYMOUS mechanism will be attempted on the given server.
 # If it matches the global default_account option the settings from this account
 # will be used when logging in.
 # address=""

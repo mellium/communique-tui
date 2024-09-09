@@ -117,13 +117,19 @@ func (c *Client) reconnect(ctx context.Context) error {
 		return fmt.Errorf("error dialing connection: %w", err)
 	}
 
-	saslFeature := xmpp.SASL("", pass,
-		sasl.ScramSha256Plus,
-		sasl.ScramSha1Plus,
-		sasl.ScramSha256,
-		sasl.ScramSha1,
-		sasl.Plain,
-	)
+	var mechanisms []sasl.Mechanism
+	if c.addr.Localpart() == "" {
+		mechanisms = []sasl.Mechanism{sasl.Anonymous}
+	} else {
+		mechanisms = []sasl.Mechanism{
+			sasl.ScramSha256Plus,
+			sasl.ScramSha1Plus,
+			sasl.ScramSha256,
+			sasl.ScramSha1,
+			sasl.Plain,
+		}
+	}
+	saslFeature := xmpp.SASL("", pass, mechanisms...)
 	if c.noTLS {
 		saslFeature.Necessary &^= xmpp.Secure
 	}

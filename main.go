@@ -246,6 +246,9 @@ Go %s %s
 		if p := pass.String(); p != "" {
 			return strings.TrimSuffix(p, "\n"), nil
 		}
+		if account.Localpart() == "" {
+			return "", nil
+		}
 		return pane.ShowPasswordPrompt(), nil
 	}
 

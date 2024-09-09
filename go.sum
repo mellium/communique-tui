@@ -88,8 +88,8 @@ mellium.im/legacy v0.0.0-20230112141526-2de8dec13009 h1:qu5ZMzv476sZIVJoG4W8M29s
 mellium.im/legacy v0.0.0-20230112141526-2de8dec13009/go.mod h1:+wL/qz9ttPOR35+kVqQfQ/PTSPyOg2Kf5r7TDjjXIcY=
 mellium.im/reader v0.1.0 h1:UUEMev16gdvaxxZC7fC08j7IzuDKh310nB6BlwnxTww=
 mellium.im/reader v0.1.0/go.mod h1:F+X5HXpkIfJ9EE1zHQG9lM/hO946iYAmU7xjg5dsQHI=
-mellium.im/sasl v0.3.1 h1:wE0LW6g7U83vhvxjC1IY8DnXM+EU095yeo8XClvCdfo=
-mellium.im/sasl v0.3.1/go.mod h1:xm59PUYpZHhgQ9ZqoJ5QaCqzWMi8IeS49dhp6plPCzw=
+mellium.im/sasl v0.3.2 h1:PT6Xp7ccn9XaXAnJ03FcEjmAn7kK1x7aoXV6F+Vmrl0=
+mellium.im/sasl v0.3.2/go.mod h1:NKXDi1zkr+BlMHLQjY3ofYuU4KSPFxknb8mfEu6SveY=
 mellium.im/xmlstream v0.15.4 h1:gLKxcWl4rLMUpKgtzrTBvr4OexPeO/edYus+uK3F6ZI=
 mellium.im/xmlstream v0.15.4/go.mod h1:yXaCW2++fmVO4L9piKVkyLDqnCmictVYF7FDQW8prb4=
 mellium.im/xmpp v0.21.4 h1:hhAGFC/mGt2Bbmx46vPn+kQT0pJec7uaq+9xckkr9uI=
