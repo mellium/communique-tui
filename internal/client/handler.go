@@ -128,7 +128,7 @@ func newMessageHandler(c *Client) mux.MessageHandlerFunc {
 			return err
 		}
 		fromBare := msg.From.Bare()
-		if fromBare.Equal(jid.JID{}) || fromBare.Equal(c.addr.Bare()) {
+		if fromBare.Equal(jid.JID{}) || fromBare.Equal(c.LocalAddr().Bare()) {
 			msg.Account = true
 		}
 		c.handler(msg)
@@ -146,15 +146,15 @@ func newHistoryHandler(c *Client) mux.MessageHandlerFunc {
 		if err != nil {
 			return err
 		}
-		if !msg.From.Equal(jid.JID{}) && !msg.From.Equal(c.addr.Bare()) {
+		if !msg.From.Equal(jid.JID{}) && !msg.From.Equal(c.LocalAddr().Bare()) {
 			c.debug.Print(p.Sprintf("possibly spoofed history message from %s", msg.From))
 			return nil
 		}
 		fromBare := msg.Result.Forward.Msg.From.Bare()
-		if fromBare.Equal(jid.JID{}) || fromBare.Equal(c.addr.Bare()) {
+		if fromBare.Equal(jid.JID{}) || fromBare.Equal(c.LocalAddr().Bare()) {
 			msg.Result.Forward.Msg.Account = true
 		}
-		msg.Result.Forward.Msg.Sent = fromBare.Equal(c.addr.Bare())
+		msg.Result.Forward.Msg.Sent = fromBare.Equal(c.LocalAddr().Bare())
 		msg.Result.Forward.Msg.Delay = msg.Result.Forward.Delay
 		c.handler(msg)
 		return nil
