@@ -9,9 +9,13 @@ import (
 )
 
 func statusModal(done func(buttonIndex int, buttonLabel string)) *tview.Modal {
-	return tview.NewModal().
+	mod := tview.NewModal().
 		SetText("Set Status").
 		AddButtons([]string{"Online [green]●", "Away [orange]◓", "Busy [red]◑", "Offline ○"}).
 		SetDoneFunc(done).
 		SetBackgroundColor(tview.Styles.PrimitiveBackgroundColor)
+	mod.SetInputCapture(modalClose(func() {
+		done(-1, "")
+	}))
+	return mod
 }
