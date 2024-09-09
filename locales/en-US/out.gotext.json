@@ -2,670 +2,6 @@
     "language": "en-US",
     "messages": [
         {
-            "id": "Prev",
-            "message": "Prev",
-            "translation": "Prev",
-            "translatorComment": "Copied from source.",
-            "fuzzy": true
-        },
-        {
-            "id": "Next",
-            "message": "Next",
-            "translation": "Next",
-            "translatorComment": "Copied from source.",
-            "fuzzy": true
-        },
-        {
-            "id": "Complete",
-            "message": "Complete",
-            "translation": "Complete",
-            "translatorComment": "Copied from source.",
-            "fuzzy": true
-        },
-        {
-            "id": "Cancel",
-            "message": "Cancel",
-            "translation": "Cancel",
-            "translatorComment": "Copied from source.",
-            "fuzzy": true
-        },
-        {
-            "id": "executing command: {ExecCommand}",
-            "message": "executing command: {ExecCommand}",
-            "translation": "executing command: {ExecCommand}",
-            "translatorComment": "Copied from source.",
-            "placeholders": [
-                {
-                    "id": "ExecCommand",
-                    "string": "%+[1]v",
-                    "type": "mellium.im/communique/internal/client/event.ExecCommand",
-                    "underlyingType": "struct{JID mellium.im/xmpp/jid.JID \"xml:\\\"jid,attr\\\"\"; Action string \"xml:\\\"action,attr\\\"\"; Name string \"xml:\\\"name,attr\\\"\"; Node string \"xml:\\\"node,attr\\\"\"; SID string \"xml:\\\"sessionid,attr\\\"\"}",
-                    "argNum": 1,
-                    "expr": "e"
-                }
-            ],
-            "fuzzy": true
-        },
-        {
-            "id": "error executing command {Node} on {JID}: {Err}",
-            "message": "error executing command {Node} on {JID}: {Err}",
-            "translation": "error executing command {Node} on {JID}: {Err}",
-            "translatorComment": "Copied from source.",
-            "placeholders": [
-                {
-                    "id": "Node",
-                    "string": "%[1]q",
-                    "type": "string",
-                    "underlyingType": "string",
-                    "argNum": 1,
-                    "expr": "e.Node"
-                },
-                {
-                    "id": "JID",
-                    "string": "%[2]q",
-                    "type": "mellium.im/xmpp/jid.JID",
-                    "underlyingType": "struct{locallen int; domainlen int; data []byte}",
-                    "argNum": 2,
-                    "expr": "e.JID"
-                },
-                {
-                    "id": "Err",
-                    "string": "%[3]v",
-                    "type": "error",
-                    "underlyingType": "interface{Error() string}",
-                    "argNum": 3,
-                    "expr": "err"
-                }
-            ],
-            "fuzzy": true
-        },
-        {
-            "id": "error showing next command for {JID}: {Err}",
-            "message": "error showing next command for {JID}: {Err}",
-            "translation": "error showing next command for {JID}: {Err}",
-            "translatorComment": "Copied from source.",
-            "placeholders": [
-                {
-                    "id": "JID",
-                    "string": "%[1]q",
-                    "type": "mellium.im/xmpp/jid.JID",
-                    "underlyingType": "struct{locallen int; domainlen int; data []byte}",
-                    "argNum": 1,
-                    "expr": "e.JID"
-                },
-                {
-                    "id": "Err",
-                    "string": "%[2]v",
-                    "type": "error",
-                    "underlyingType": "interface{Error() string}",
-                    "argNum": 2,
-                    "expr": "err"
-                }
-            ],
-            "fuzzy": true
-        },
-        {
-            "id": "error fetching commands for {JID}: {Err}",
-            "message": "error fetching commands for {JID}: {Err}",
-            "translation": "error fetching commands for {JID}: {Err}",
-            "translatorComment": "Copied from source.",
-            "placeholders": [
-                {
-                    "id": "JID",
-                    "string": "%[1]q",
-                    "type": "mellium.im/xmpp/jid.JID",
-                    "underlyingType": "struct{locallen int; domainlen int; data []byte}",
-                    "argNum": 1,
-                    "expr": "j"
-                },
-                {
-                    "id": "Err",
-                    "string": "%[2]v",
-                    "type": "error",
-                    "underlyingType": "interface{Error() string}",
-                    "argNum": 2,
-                    "expr": "err"
-                }
-            ],
-            "fuzzy": true
-        },
-        {
-            "id": "error closing commands iter for {JID}: {Err}",
-            "message": "error closing commands iter for {JID}: {Err}",
-            "translation": "error closing commands iter for {JID}: {Err}",
-            "translatorComment": "Copied from source.",
-            "placeholders": [
-                {
-                    "id": "JID",
-                    "string": "%[1]q",
-                    "type": "mellium.im/xmpp/jid.JID",
-                    "underlyingType": "struct{locallen int; domainlen int; data []byte}",
-                    "argNum": 1,
-                    "expr": "j"
-                },
-                {
-                    "id": "Err",
-                    "string": "%[2]v",
-                    "type": "error",
-                    "underlyingType": "interface{Error() string}",
-                    "argNum": 2,
-                    "expr": "err"
-                }
-            ],
-            "fuzzy": true
-        },
-        {
-            "id": "error setting away status: {Err}",
-            "message": "error setting away status: {Err}",
-            "translation": "error setting away status: {Err}",
-            "translatorComment": "Copied from source.",
-            "placeholders": [
-                {
-                    "id": "Err",
-                    "string": "%[1]v",
-                    "type": "error",
-                    "underlyingType": "interface{Error() string}",
-                    "argNum": 1,
-                    "expr": "err"
-                }
-            ],
-            "fuzzy": true
-        },
-        {
-            "id": "error setting online status: {Err}",
-            "message": "error setting online status: {Err}",
-            "translation": "error setting online status: {Err}",
-            "translatorComment": "Copied from source.",
-            "placeholders": [
-                {
-                    "id": "Err",
-                    "string": "%[1]v",
-                    "type": "error",
-                    "underlyingType": "interface{Error() string}",
-                    "argNum": 1,
-                    "expr": "err"
-                }
-            ],
-            "fuzzy": true
-        },
-        {
-            "id": "error setting busy status: {Err}",
-            "message": "error setting busy status: {Err}",
-            "translation": "error setting busy status: {Err}",
-            "translatorComment": "Copied from source.",
-            "placeholders": [
-                {
-                    "id": "Err",
-                    "string": "%[1]v",
-                    "type": "error",
-                    "underlyingType": "interface{Error() string}",
-                    "argNum": 1,
-                    "expr": "err"
-                }
-            ],
-            "fuzzy": true
-        },
-        {
-            "id": "error going offline: {Err}",
-            "message": "error going offline: {Err}",
-            "translation": "error going offline: {Err}",
-            "translatorComment": "Copied from source.",
-            "placeholders": [
-                {
-                    "id": "Err",
-                    "string": "%[1]v",
-                    "type": "error",
-                    "underlyingType": "interface{Error() string}",
-                    "argNum": 1,
-                    "expr": "err"
-                }
-            ],
-            "fuzzy": true
-        },
-        {
-            "id": "error adding roster item {JID}: {Err}",
-            "message": "error adding roster item {JID}: {Err}",
-            "translation": "error adding roster item {JID}: {Err}",
-            "translatorComment": "Copied from source.",
-            "placeholders": [
-                {
-                    "id": "JID",
-                    "string": "%[1]s",
-                    "type": "mellium.im/xmpp/jid.JID",
-                    "underlyingType": "struct{locallen int; domainlen int; data []byte}",
-                    "argNum": 1,
-                    "expr": "e.JID"
-                },
-                {
-                    "id": "Err",
-                    "string": "%[2]v",
-                    "type": "error",
-                    "underlyingType": "interface{Error() string}",
-                    "argNum": 2,
-                    "expr": "err"
-                }
-            ],
-            "fuzzy": true
-        },
-        {
-            "id": "error removing roster item {JID}: {Err}",
-            "message": "error removing roster item {JID}: {Err}",
-            "translation": "error removing roster item {JID}: {Err}",
-            "translatorComment": "Copied from source.",
-            "placeholders": [
-                {
-                    "id": "JID",
-                    "string": "%[1]s",
-                    "type": "mellium.im/xmpp/jid.JID",
-                    "underlyingType": "struct{locallen int; domainlen int; data []byte}",
-                    "argNum": 1,
-                    "expr": "e.JID"
-                },
-                {
-                    "id": "Err",
-                    "string": "%[2]v",
-                    "type": "error",
-                    "underlyingType": "interface{Error() string}",
-                    "argNum": 2,
-                    "expr": "err"
-                }
-            ],
-            "fuzzy": true
-        },
-        {
-            "id": "error discovering bookmarks support: {Err}",
-            "message": "error discovering bookmarks support: {Err}",
-            "translation": "error discovering bookmarks support: {Err}",
-            "translatorComment": "Copied from source.",
-            "placeholders": [
-                {
-                    "id": "Err",
-                    "string": "%[1]v",
-                    "type": "error",
-                    "underlyingType": "interface{Error() string}",
-                    "argNum": 1,
-                    "expr": "err"
-                }
-            ],
-            "fuzzy": true
-        },
-        {
-            "id": "error publishing legacy bookmark {JID}: {Err}",
-            "message": "error publishing legacy bookmark {JID}: {Err}",
-            "translation": "error publishing legacy bookmark {JID}: {Err}",
-            "translatorComment": "Copied from source.",
-            "placeholders": [
-                {
-                    "id": "JID",
-                    "string": "%[1]s",
-                    "type": "mellium.im/xmpp/jid.JID",
-                    "underlyingType": "struct{locallen int; domainlen int; data []byte}",
-                    "argNum": 1,
-                    "expr": "e.JID"
-                },
-                {
-                    "id": "Err",
-                    "string": "%[2]v",
-                    "type": "error",
-                    "underlyingType": "interface{Error() string}",
-                    "argNum": 2,
-                    "expr": "err"
-                }
-            ],
-            "fuzzy": true
-        },
-        {
-            "id": "error publishing bookmark {JID}: {Err}",
-            "message": "error publishing bookmark {JID}: {Err}",
-            "translation": "error publishing bookmark {JID}: {Err}",
-            "translatorComment": "Copied from source.",
-            "placeholders": [
-                {
-                    "id": "JID",
-                    "string": "%[1]s",
-                    "type": "mellium.im/xmpp/jid.JID",
-                    "underlyingType": "struct{locallen int; domainlen int; data []byte}",
-                    "argNum": 1,
-                    "expr": "e.JID"
-                },
-                {
-                    "id": "Err",
-                    "string": "%[2]v",
-                    "type": "error",
-                    "underlyingType": "interface{Error() string}",
-                    "argNum": 2,
-                    "expr": "err"
-                }
-            ],
-            "fuzzy": true
-        },
-        {
-            "id": "error removing legacy bookmark {JID}: {Err}",
-            "message": "error removing legacy bookmark {JID}: {Err}",
-            "translation": "error removing legacy bookmark {JID}: {Err}",
-            "translatorComment": "Copied from source.",
-            "placeholders": [
-                {
-                    "id": "JID",
-                    "string": "%[1]s",
-                    "type": "mellium.im/xmpp/jid.JID",
-                    "underlyingType": "struct{locallen int; domainlen int; data []byte}",
-                    "argNum": 1,
-                    "expr": "e.JID"
-                },
-                {
-                    "id": "Err",
-                    "string": "%[2]v",
-                    "type": "error",
-                    "underlyingType": "interface{Error() string}",
-                    "argNum": 2,
-                    "expr": "err"
-                }
-            ],
-            "fuzzy": true
-        },
-        {
-            "id": "error removing bookmark {JID}: {Err}",
-            "message": "error removing bookmark {JID}: {Err}",
-            "translation": "error removing bookmark {JID}: {Err}",
-            "translatorComment": "Copied from source.",
-            "placeholders": [
-                {
-                    "id": "JID",
-                    "string": "%[1]s",
-                    "type": "mellium.im/xmpp/jid.JID",
-                    "underlyingType": "struct{locallen int; domainlen int; data []byte}",
-                    "argNum": 1,
-                    "expr": "e.JID"
-                },
-                {
-                    "id": "Err",
-                    "string": "%[2]v",
-                    "type": "error",
-                    "underlyingType": "interface{Error() string}",
-                    "argNum": 2,
-                    "expr": "err"
-                }
-            ],
-            "fuzzy": true
-        },
-        {
-            "id": "invalid nick {Name} in config: {Err}",
-            "message": "invalid nick {Name} in config: {Err}",
-            "translation": "invalid nick {Name} in config: {Err}",
-            "translatorComment": "Copied from source.",
-            "placeholders": [
-                {
-                    "id": "Name",
-                    "string": "%[1]s",
-                    "type": "string",
-                    "underlyingType": "string",
-                    "argNum": 1,
-                    "expr": "acct.Name"
-                },
-                {
-                    "id": "Err",
-                    "string": "%[2]v",
-                    "type": "error",
-                    "underlyingType": "interface{Error() string}",
-                    "argNum": 2,
-                    "expr": "err"
-                }
-            ],
-            "fuzzy": true
-        },
-        {
-            "id": "joining room {JID}…",
-            "message": "joining room {JID}…",
-            "translation": "joining room {JID}…",
-            "translatorComment": "Copied from source.",
-            "placeholders": [
-                {
-                    "id": "JID",
-                    "string": "%[1]v",
-                    "type": "mellium.im/xmpp/jid.JID",
-                    "underlyingType": "struct{locallen int; domainlen int; data []byte}",
-                    "argNum": 1,
-                    "expr": "j"
-                }
-            ],
-            "fuzzy": true
-        },
-        {
-            "id": "error joining room {JID}: {Err}",
-            "message": "error joining room {JID}: {Err}",
-            "translation": "error joining room {JID}: {Err}",
-            "translatorComment": "Copied from source.",
-            "placeholders": [
-                {
-                    "id": "JID",
-                    "string": "%[1]s",
-                    "type": "mellium.im/xmpp/jid.JID",
-                    "underlyingType": "struct{locallen int; domainlen int; data []byte}",
-                    "argNum": 1,
-                    "expr": "e.JID"
-                },
-                {
-                    "id": "Err",
-                    "string": "%[2]v",
-                    "type": "error",
-                    "underlyingType": "interface{Error() string}",
-                    "argNum": 2,
-                    "expr": "err"
-                }
-            ],
-            "fuzzy": true
-        },
-        {
-            "id": "error loading chat: {Err}",
-            "message": "error loading chat: {Err}",
-            "translation": "error loading chat: {Err}",
-            "translatorComment": "Copied from source.",
-            "placeholders": [
-                {
-                    "id": "Err",
-                    "string": "%[1]v",
-                    "type": "error",
-                    "underlyingType": "interface{Error() string}",
-                    "argNum": 1,
-                    "expr": "err"
-                }
-            ],
-            "fuzzy": true
-        },
-        {
-            "id": "error sending presence pre-approval to {JIDe}: {Err}",
-            "message": "error sending presence pre-approval to {JIDe}: {Err}",
-            "translation": "error sending presence pre-approval to {JIDe}: {Err}",
-            "translatorComment": "Copied from source.",
-            "placeholders": [
-                {
-                    "id": "JIDe",
-                    "string": "%[1]s",
-                    "type": "mellium.im/xmpp/jid.JID",
-                    "underlyingType": "struct{locallen int; domainlen int; data []byte}",
-                    "argNum": 1,
-                    "expr": "jid.JID(e)"
-                },
-                {
-                    "id": "Err",
-                    "string": "%[2]v",
-                    "type": "error",
-                    "underlyingType": "interface{Error() string}",
-                    "argNum": 2,
-                    "expr": "err"
-                }
-            ],
-            "fuzzy": true
-        },
-        {
-            "id": "error sending presence request to {JIDe}: {Err}",
-            "message": "error sending presence request to {JIDe}: {Err}",
-            "translation": "error sending presence request to {JIDe}: {Err}",
-            "translatorComment": "Copied from source.",
-            "placeholders": [
-                {
-                    "id": "JIDe",
-                    "string": "%[1]s",
-                    "type": "mellium.im/xmpp/jid.JID",
-                    "underlyingType": "struct{locallen int; domainlen int; data []byte}",
-                    "argNum": 1,
-                    "expr": "jid.JID(e)"
-                },
-                {
-                    "id": "Err",
-                    "string": "%[2]v",
-                    "type": "error",
-                    "underlyingType": "interface{Error() string}",
-                    "argNum": 2,
-                    "expr": "err"
-                }
-            ],
-            "fuzzy": true
-        },
-        {
-            "id": "error fetching earliest message info for {PullToRefreshChat} from database: {Err}",
-            "message": "error fetching earliest message info for {PullToRefreshChat} from database: {Err}",
-            "translation": "error fetching earliest message info for {PullToRefreshChat} from database: {Err}",
-            "translatorComment": "Copied from source.",
-            "placeholders": [
-                {
-                    "id": "PullToRefreshChat",
-                    "string": "%[1]v",
-                    "type": "mellium.im/communique/internal/client/event.PullToRefreshChat",
-                    "underlyingType": "struct{JID mellium.im/xmpp/jid.JID \"xml:\\\"jid,attr,omitempty\\\"\"; Name string \"xml:\\\"name,attr,omitempty\\\"\"; Subscription string \"xml:\\\"subscription,attr,omitempty\\\"\"; Group []string \"xml:\\\"group,omitempty\\\"\"}",
-                    "argNum": 1,
-                    "expr": "e"
-                },
-                {
-                    "id": "Err",
-                    "string": "%[2]v",
-                    "type": "error",
-                    "underlyingType": "interface{Error() string}",
-                    "argNum": 2,
-                    "expr": "err"
-                }
-            ],
-            "fuzzy": true
-        },
-        {
-            "id": "no scrollback for {JID}",
-            "message": "no scrollback for {JID}",
-            "translation": "no scrollback for {JID}",
-            "translatorComment": "Copied from source.",
-            "placeholders": [
-                {
-                    "id": "JID",
-                    "string": "%[1]v",
-                    "type": "mellium.im/xmpp/jid.JID",
-                    "underlyingType": "struct{locallen int; domainlen int; data []byte}",
-                    "argNum": 1,
-                    "expr": "e.JID"
-                }
-            ],
-            "fuzzy": true
-        },
-        {
-            "id": "fetching scrollback before {Time} for {JID}…",
-            "message": "fetching scrollback before {Time} for {JID}…",
-            "translation": "fetching scrollback before {Time} for {JID}…",
-            "translatorComment": "Copied from source.",
-            "placeholders": [
-                {
-                    "id": "Time",
-                    "string": "%[1]v",
-                    "type": "time.Time",
-                    "underlyingType": "struct{wall uint64; ext int64; loc *time.Location}",
-                    "argNum": 1,
-                    "expr": "t"
-                },
-                {
-                    "id": "JID",
-                    "string": "%[2]v",
-                    "type": "mellium.im/xmpp/jid.JID",
-                    "underlyingType": "struct{locallen int; domainlen int; data []byte}",
-                    "argNum": 2,
-                    "expr": "e.JID"
-                }
-            ],
-            "fuzzy": true
-        },
-        {
-            "id": "error fetching scrollback for {JID}: {Err}",
-            "message": "error fetching scrollback for {JID}: {Err}",
-            "translation": "error fetching scrollback for {JID}: {Err}",
-            "translatorComment": "Copied from source.",
-            "placeholders": [
-                {
-                    "id": "JID",
-                    "string": "%[1]v",
-                    "type": "mellium.im/xmpp/jid.JID",
-                    "underlyingType": "struct{locallen int; domainlen int; data []byte}",
-                    "argNum": 1,
-                    "expr": "e.JID"
-                },
-                {
-                    "id": "Err",
-                    "string": "%[2]v",
-                    "type": "error",
-                    "underlyingType": "interface{Error() string}",
-                    "argNum": 2,
-                    "expr": "err"
-                }
-            ],
-            "fuzzy": true
-        },
-        {
-            "id": "error scrollback for {JID}: {Err}",
-            "message": "error scrollback for {JID}: {Err}",
-            "translation": "error scrollback for {JID}: {Err}",
-            "translatorComment": "Copied from source.",
-            "placeholders": [
-                {
-                    "id": "JID",
-                    "string": "%[1]v",
-                    "type": "mellium.im/xmpp/jid.JID",
-                    "underlyingType": "struct{locallen int; domainlen int; data []byte}",
-                    "argNum": 1,
-                    "expr": "e.JID"
-                },
-                {
-                    "id": "Err",
-                    "string": "%[2]v",
-                    "type": "error",
-                    "underlyingType": "interface{Error() string}",
-                    "argNum": 2,
-                    "expr": "err"
-                }
-            ],
-            "fuzzy": true
-        },
-        {
-            "id": "unrecognized ui event: {E}({E_1})",
-            "message": "unrecognized ui event: {E}({E_1})",
-            "translation": "unrecognized ui event: {E}({E_1})",
-            "translatorComment": "Copied from source.",
-            "placeholders": [
-                {
-                    "id": "E",
-                    "string": "%[1]T",
-                    "type": "interface{}",
-                    "underlyingType": "interface{}",
-                    "argNum": 1,
-                    "expr": "e"
-                },
-                {
-                    "id": "E_1",
-                    "string": "%[1]q",
-                    "type": "interface{}",
-                    "underlyingType": "interface{}",
-                    "argNum": 1,
-                    "expr": "e"
-                }
-            ],
-            "fuzzy": true
-        },
-        {
             "id": "error updating to roster ver {Ver}: {Err}",
             "message": "error updating to roster ver {Ver}: {Err}",
             "translation": "error updating to roster ver {Ver}: {Err}",
@@ -910,6 +246,31 @@
             "fuzzy": true
         },
         {
+            "id": "unrecognized client event: {E}({E_1})",
+            "message": "unrecognized client event: {E}({E_1})",
+            "translation": "unrecognized client event: {E}({E_1})",
+            "translatorComment": "Copied from source.",
+            "placeholders": [
+                {
+                    "id": "E",
+                    "string": "%[1]T",
+                    "type": "interface{}",
+                    "underlyingType": "interface{}",
+                    "argNum": 1,
+                    "expr": "e"
+                },
+                {
+                    "id": "E_1",
+                    "string": "%[1]q",
+                    "type": "interface{}",
+                    "underlyingType": "interface{}",
+                    "argNum": 1,
+                    "expr": "e"
+                }
+            ],
+            "fuzzy": true
+        },
+        {
             "id": "error fetching info from cache: {Err}",
             "message": "error fetching info from cache: {Err}",
             "translation": "error fetching info from cache: {Err}",
@@ -1033,111 +394,31 @@
             "fuzzy": true
         },
         {
-            "id": "unrecognized client event: {E}({E_1})",
-            "message": "unrecognized client event: {E}({E_1})",
-            "translation": "unrecognized client event: {E}({E_1})",
+            "id": "Prev",
+            "message": "Prev",
+            "translation": "Prev",
             "translatorComment": "Copied from source.",
-            "placeholders": [
-                {
-                    "id": "E",
-                    "string": "%[1]T",
-                    "type": "interface{}",
-                    "underlyingType": "interface{}",
-                    "argNum": 1,
-                    "expr": "e"
-                },
-                {
-                    "id": "E_1",
-                    "string": "%[1]q",
-                    "type": "interface{}",
-                    "underlyingType": "interface{}",
-                    "argNum": 1,
-                    "expr": "e"
-                }
-            ],
             "fuzzy": true
         },
         {
-            "id": "error sending message: {Err}",
-            "message": "error sending message: {Err}",
-            "translation": "error sending message: {Err}",
+            "id": "Next",
+            "message": "Next",
+            "translation": "Next",
             "translatorComment": "Copied from source.",
-            "placeholders": [
-                {
-                    "id": "Err",
-                    "string": "%[1]v",
-                    "type": "error",
-                    "underlyingType": "interface{Error() string}",
-                    "argNum": 1,
-                    "expr": "err"
-                }
-            ],
             "fuzzy": true
         },
         {
-            "id": "error saving sent message to history: {Err}",
-            "message": "error saving sent message to history: {Err}",
-            "translation": "error saving sent message to history: {Err}",
+            "id": "Complete",
+            "message": "Complete",
+            "translation": "Complete",
             "translatorComment": "Copied from source.",
-            "placeholders": [
-                {
-                    "id": "Err",
-                    "string": "%[1]v",
-                    "type": "error",
-                    "underlyingType": "interface{Error() string}",
-                    "argNum": 1,
-                    "expr": "err"
-                }
-            ],
             "fuzzy": true
         },
         {
-            "id": "could not get the upload services: {Err}",
-            "message": "could not get the upload services: {Err}",
-            "translation": "could not get the upload services: {Err}",
+            "id": "Cancel",
+            "message": "Cancel",
+            "translation": "Cancel",
             "translatorComment": "Copied from source.",
-            "placeholders": [
-                {
-                    "id": "Err",
-                    "string": "%[1]v",
-                    "type": "error",
-                    "underlyingType": "interface{Error() string}",
-                    "argNum": 1,
-                    "expr": "err"
-                }
-            ],
-            "fuzzy": true
-        },
-        {
-            "id": "no upload service available",
-            "message": "no upload service available",
-            "translation": "no upload service available",
-            "translatorComment": "Manually copied from source.",
-            "fuzzy": true
-        },
-        {
-            "id": "could not upload {Path}: {Err}",
-            "message": "could not upload {Path}: {Err}",
-            "translation": "could not upload {Path}: {Err}",
-            "translatorComment": "Copied from source.",
-            "placeholders": [
-                {
-                    "id": "Path",
-                    "string": "%[1]q",
-                    "type": "string",
-                    "underlyingType": "string",
-                    "argNum": 1,
-                    "expr": "event.Path"
-                },
-                {
-                    "id": "Err",
-                    "string": "%[2]v",
-                    "type": "error",
-                    "underlyingType": "interface{Error() string}",
-                    "argNum": 2,
-                    "expr": "err"
-                }
-            ],
             "fuzzy": true
         },
         {
@@ -1587,6 +868,725 @@
             "fuzzy": true
         },
         {
+            "id": "executing command: {ExecCommand}",
+            "message": "executing command: {ExecCommand}",
+            "translation": "executing command: {ExecCommand}",
+            "translatorComment": "Copied from source.",
+            "placeholders": [
+                {
+                    "id": "ExecCommand",
+                    "string": "%+[1]v",
+                    "type": "mellium.im/communique/internal/client/event.ExecCommand",
+                    "underlyingType": "struct{JID mellium.im/xmpp/jid.JID \"xml:\\\"jid,attr\\\"\"; Action string \"xml:\\\"action,attr\\\"\"; Name string \"xml:\\\"name,attr\\\"\"; Node string \"xml:\\\"node,attr\\\"\"; SID string \"xml:\\\"sessionid,attr\\\"\"}",
+                    "argNum": 1,
+                    "expr": "e"
+                }
+            ],
+            "fuzzy": true
+        },
+        {
+            "id": "error executing command {Node} on {JID}: {Err}",
+            "message": "error executing command {Node} on {JID}: {Err}",
+            "translation": "error executing command {Node} on {JID}: {Err}",
+            "translatorComment": "Copied from source.",
+            "placeholders": [
+                {
+                    "id": "Node",
+                    "string": "%[1]q",
+                    "type": "string",
+                    "underlyingType": "string",
+                    "argNum": 1,
+                    "expr": "e.Node"
+                },
+                {
+                    "id": "JID",
+                    "string": "%[2]q",
+                    "type": "mellium.im/xmpp/jid.JID",
+                    "underlyingType": "struct{locallen int; domainlen int; data []byte}",
+                    "argNum": 2,
+                    "expr": "e.JID"
+                },
+                {
+                    "id": "Err",
+                    "string": "%[3]v",
+                    "type": "error",
+                    "underlyingType": "interface{Error() string}",
+                    "argNum": 3,
+                    "expr": "err"
+                }
+            ],
+            "fuzzy": true
+        },
+        {
+            "id": "error showing next command for {JID}: {Err}",
+            "message": "error showing next command for {JID}: {Err}",
+            "translation": "error showing next command for {JID}: {Err}",
+            "translatorComment": "Copied from source.",
+            "placeholders": [
+                {
+                    "id": "JID",
+                    "string": "%[1]q",
+                    "type": "mellium.im/xmpp/jid.JID",
+                    "underlyingType": "struct{locallen int; domainlen int; data []byte}",
+                    "argNum": 1,
+                    "expr": "e.JID"
+                },
+                {
+                    "id": "Err",
+                    "string": "%[2]v",
+                    "type": "error",
+                    "underlyingType": "interface{Error() string}",
+                    "argNum": 2,
+                    "expr": "err"
+                }
+            ],
+            "fuzzy": true
+        },
+        {
+            "id": "error fetching commands for {JID}: {Err}",
+            "message": "error fetching commands for {JID}: {Err}",
+            "translation": "error fetching commands for {JID}: {Err}",
+            "translatorComment": "Copied from source.",
+            "placeholders": [
+                {
+                    "id": "JID",
+                    "string": "%[1]q",
+                    "type": "mellium.im/xmpp/jid.JID",
+                    "underlyingType": "struct{locallen int; domainlen int; data []byte}",
+                    "argNum": 1,
+                    "expr": "j"
+                },
+                {
+                    "id": "Err",
+                    "string": "%[2]v",
+                    "type": "error",
+                    "underlyingType": "interface{Error() string}",
+                    "argNum": 2,
+                    "expr": "err"
+                }
+            ],
+            "fuzzy": true
+        },
+        {
+            "id": "error closing commands iter for {JID}: {Err}",
+            "message": "error closing commands iter for {JID}: {Err}",
+            "translation": "error closing commands iter for {JID}: {Err}",
+            "translatorComment": "Copied from source.",
+            "placeholders": [
+                {
+                    "id": "JID",
+                    "string": "%[1]q",
+                    "type": "mellium.im/xmpp/jid.JID",
+                    "underlyingType": "struct{locallen int; domainlen int; data []byte}",
+                    "argNum": 1,
+                    "expr": "j"
+                },
+                {
+                    "id": "Err",
+                    "string": "%[2]v",
+                    "type": "error",
+                    "underlyingType": "interface{Error() string}",
+                    "argNum": 2,
+                    "expr": "err"
+                }
+            ],
+            "fuzzy": true
+        },
+        {
+            "id": "error setting away status: {Err}",
+            "message": "error setting away status: {Err}",
+            "translation": "error setting away status: {Err}",
+            "translatorComment": "Copied from source.",
+            "placeholders": [
+                {
+                    "id": "Err",
+                    "string": "%[1]v",
+                    "type": "error",
+                    "underlyingType": "interface{Error() string}",
+                    "argNum": 1,
+                    "expr": "err"
+                }
+            ],
+            "fuzzy": true
+        },
+        {
+            "id": "error setting online status: {Err}",
+            "message": "error setting online status: {Err}",
+            "translation": "error setting online status: {Err}",
+            "translatorComment": "Copied from source.",
+            "placeholders": [
+                {
+                    "id": "Err",
+                    "string": "%[1]v",
+                    "type": "error",
+                    "underlyingType": "interface{Error() string}",
+                    "argNum": 1,
+                    "expr": "err"
+                }
+            ],
+            "fuzzy": true
+        },
+        {
+            "id": "error setting busy status: {Err}",
+            "message": "error setting busy status: {Err}",
+            "translation": "error setting busy status: {Err}",
+            "translatorComment": "Copied from source.",
+            "placeholders": [
+                {
+                    "id": "Err",
+                    "string": "%[1]v",
+                    "type": "error",
+                    "underlyingType": "interface{Error() string}",
+                    "argNum": 1,
+                    "expr": "err"
+                }
+            ],
+            "fuzzy": true
+        },
+        {
+            "id": "error going offline: {Err}",
+            "message": "error going offline: {Err}",
+            "translation": "error going offline: {Err}",
+            "translatorComment": "Copied from source.",
+            "placeholders": [
+                {
+                    "id": "Err",
+                    "string": "%[1]v",
+                    "type": "error",
+                    "underlyingType": "interface{Error() string}",
+                    "argNum": 1,
+                    "expr": "err"
+                }
+            ],
+            "fuzzy": true
+        },
+        {
+            "id": "no upload service available",
+            "message": "no upload service available",
+            "translation": "no upload service available",
+            "translatorComment": "Manually copied from source.",
+            "fuzzy": true
+        },
+        {
+            "id": "error adding roster item {JID}: {Err}",
+            "message": "error adding roster item {JID}: {Err}",
+            "translation": "error adding roster item {JID}: {Err}",
+            "translatorComment": "Copied from source.",
+            "placeholders": [
+                {
+                    "id": "JID",
+                    "string": "%[1]s",
+                    "type": "mellium.im/xmpp/jid.JID",
+                    "underlyingType": "struct{locallen int; domainlen int; data []byte}",
+                    "argNum": 1,
+                    "expr": "e.JID"
+                },
+                {
+                    "id": "Err",
+                    "string": "%[2]v",
+                    "type": "error",
+                    "underlyingType": "interface{Error() string}",
+                    "argNum": 2,
+                    "expr": "err"
+                }
+            ],
+            "fuzzy": true
+        },
+        {
+            "id": "error removing roster item {JID}: {Err}",
+            "message": "error removing roster item {JID}: {Err}",
+            "translation": "error removing roster item {JID}: {Err}",
+            "translatorComment": "Copied from source.",
+            "placeholders": [
+                {
+                    "id": "JID",
+                    "string": "%[1]s",
+                    "type": "mellium.im/xmpp/jid.JID",
+                    "underlyingType": "struct{locallen int; domainlen int; data []byte}",
+                    "argNum": 1,
+                    "expr": "e.JID"
+                },
+                {
+                    "id": "Err",
+                    "string": "%[2]v",
+                    "type": "error",
+                    "underlyingType": "interface{Error() string}",
+                    "argNum": 2,
+                    "expr": "err"
+                }
+            ],
+            "fuzzy": true
+        },
+        {
+            "id": "error discovering bookmarks support: {Err}",
+            "message": "error discovering bookmarks support: {Err}",
+            "translation": "error discovering bookmarks support: {Err}",
+            "translatorComment": "Copied from source.",
+            "placeholders": [
+                {
+                    "id": "Err",
+                    "string": "%[1]v",
+                    "type": "error",
+                    "underlyingType": "interface{Error() string}",
+                    "argNum": 1,
+                    "expr": "err"
+                }
+            ],
+            "fuzzy": true
+        },
+        {
+            "id": "error publishing legacy bookmark {JID}: {Err}",
+            "message": "error publishing legacy bookmark {JID}: {Err}",
+            "translation": "error publishing legacy bookmark {JID}: {Err}",
+            "translatorComment": "Copied from source.",
+            "placeholders": [
+                {
+                    "id": "JID",
+                    "string": "%[1]s",
+                    "type": "mellium.im/xmpp/jid.JID",
+                    "underlyingType": "struct{locallen int; domainlen int; data []byte}",
+                    "argNum": 1,
+                    "expr": "e.JID"
+                },
+                {
+                    "id": "Err",
+                    "string": "%[2]v",
+                    "type": "error",
+                    "underlyingType": "interface{Error() string}",
+                    "argNum": 2,
+                    "expr": "err"
+                }
+            ],
+            "fuzzy": true
+        },
+        {
+            "id": "error publishing bookmark {JID}: {Err}",
+            "message": "error publishing bookmark {JID}: {Err}",
+            "translation": "error publishing bookmark {JID}: {Err}",
+            "translatorComment": "Copied from source.",
+            "placeholders": [
+                {
+                    "id": "JID",
+                    "string": "%[1]s",
+                    "type": "mellium.im/xmpp/jid.JID",
+                    "underlyingType": "struct{locallen int; domainlen int; data []byte}",
+                    "argNum": 1,
+                    "expr": "e.JID"
+                },
+                {
+                    "id": "Err",
+                    "string": "%[2]v",
+                    "type": "error",
+                    "underlyingType": "interface{Error() string}",
+                    "argNum": 2,
+                    "expr": "err"
+                }
+            ],
+            "fuzzy": true
+        },
+        {
+            "id": "error removing legacy bookmark {JID}: {Err}",
+            "message": "error removing legacy bookmark {JID}: {Err}",
+            "translation": "error removing legacy bookmark {JID}: {Err}",
+            "translatorComment": "Copied from source.",
+            "placeholders": [
+                {
+                    "id": "JID",
+                    "string": "%[1]s",
+                    "type": "mellium.im/xmpp/jid.JID",
+                    "underlyingType": "struct{locallen int; domainlen int; data []byte}",
+                    "argNum": 1,
+                    "expr": "e.JID"
+                },
+                {
+                    "id": "Err",
+                    "string": "%[2]v",
+                    "type": "error",
+                    "underlyingType": "interface{Error() string}",
+                    "argNum": 2,
+                    "expr": "err"
+                }
+            ],
+            "fuzzy": true
+        },
+        {
+            "id": "error removing bookmark {JID}: {Err}",
+            "message": "error removing bookmark {JID}: {Err}",
+            "translation": "error removing bookmark {JID}: {Err}",
+            "translatorComment": "Copied from source.",
+            "placeholders": [
+                {
+                    "id": "JID",
+                    "string": "%[1]s",
+                    "type": "mellium.im/xmpp/jid.JID",
+                    "underlyingType": "struct{locallen int; domainlen int; data []byte}",
+                    "argNum": 1,
+                    "expr": "e.JID"
+                },
+                {
+                    "id": "Err",
+                    "string": "%[2]v",
+                    "type": "error",
+                    "underlyingType": "interface{Error() string}",
+                    "argNum": 2,
+                    "expr": "err"
+                }
+            ],
+            "fuzzy": true
+        },
+        {
+            "id": "error sending presence pre-approval to {JIDe}: {Err}",
+            "message": "error sending presence pre-approval to {JIDe}: {Err}",
+            "translation": "error sending presence pre-approval to {JIDe}: {Err}",
+            "translatorComment": "Copied from source.",
+            "placeholders": [
+                {
+                    "id": "JIDe",
+                    "string": "%[1]s",
+                    "type": "mellium.im/xmpp/jid.JID",
+                    "underlyingType": "struct{locallen int; domainlen int; data []byte}",
+                    "argNum": 1,
+                    "expr": "jid.JID(e)"
+                },
+                {
+                    "id": "Err",
+                    "string": "%[2]v",
+                    "type": "error",
+                    "underlyingType": "interface{Error() string}",
+                    "argNum": 2,
+                    "expr": "err"
+                }
+            ],
+            "fuzzy": true
+        },
+        {
+            "id": "error sending presence request to {JIDe}: {Err}",
+            "message": "error sending presence request to {JIDe}: {Err}",
+            "translation": "error sending presence request to {JIDe}: {Err}",
+            "translatorComment": "Copied from source.",
+            "placeholders": [
+                {
+                    "id": "JIDe",
+                    "string": "%[1]s",
+                    "type": "mellium.im/xmpp/jid.JID",
+                    "underlyingType": "struct{locallen int; domainlen int; data []byte}",
+                    "argNum": 1,
+                    "expr": "jid.JID(e)"
+                },
+                {
+                    "id": "Err",
+                    "string": "%[2]v",
+                    "type": "error",
+                    "underlyingType": "interface{Error() string}",
+                    "argNum": 2,
+                    "expr": "err"
+                }
+            ],
+            "fuzzy": true
+        },
+        {
+            "id": "unrecognized ui event: {E}({E_1})",
+            "message": "unrecognized ui event: {E}({E_1})",
+            "translation": "unrecognized ui event: {E}({E_1})",
+            "translatorComment": "Copied from source.",
+            "placeholders": [
+                {
+                    "id": "E",
+                    "string": "%[1]T",
+                    "type": "interface{}",
+                    "underlyingType": "interface{}",
+                    "argNum": 1,
+                    "expr": "e"
+                },
+                {
+                    "id": "E_1",
+                    "string": "%[1]q",
+                    "type": "interface{}",
+                    "underlyingType": "interface{}",
+                    "argNum": 1,
+                    "expr": "e"
+                }
+            ],
+            "fuzzy": true
+        },
+        {
+            "id": "error sending message: {Err}",
+            "message": "error sending message: {Err}",
+            "translation": "error sending message: {Err}",
+            "translatorComment": "Copied from source.",
+            "placeholders": [
+                {
+                    "id": "Err",
+                    "string": "%[1]v",
+                    "type": "error",
+                    "underlyingType": "interface{Error() string}",
+                    "argNum": 1,
+                    "expr": "err"
+                }
+            ],
+            "fuzzy": true
+        },
+        {
+            "id": "error saving sent message to history: {Err}",
+            "message": "error saving sent message to history: {Err}",
+            "translation": "error saving sent message to history: {Err}",
+            "translatorComment": "Copied from source.",
+            "placeholders": [
+                {
+                    "id": "Err",
+                    "string": "%[1]v",
+                    "type": "error",
+                    "underlyingType": "interface{Error() string}",
+                    "argNum": 1,
+                    "expr": "err"
+                }
+            ],
+            "fuzzy": true
+        },
+        {
+            "id": "could not get the upload services: {Err}",
+            "message": "could not get the upload services: {Err}",
+            "translation": "could not get the upload services: {Err}",
+            "translatorComment": "Copied from source.",
+            "placeholders": [
+                {
+                    "id": "Err",
+                    "string": "%[1]v",
+                    "type": "error",
+                    "underlyingType": "interface{Error() string}",
+                    "argNum": 1,
+                    "expr": "err"
+                }
+            ],
+            "fuzzy": true
+        },
+        {
+            "id": "could not upload {Path}: {Err}",
+            "message": "could not upload {Path}: {Err}",
+            "translation": "could not upload {Path}: {Err}",
+            "translatorComment": "Copied from source.",
+            "placeholders": [
+                {
+                    "id": "Path",
+                    "string": "%[1]q",
+                    "type": "string",
+                    "underlyingType": "string",
+                    "argNum": 1,
+                    "expr": "event.Path"
+                },
+                {
+                    "id": "Err",
+                    "string": "%[2]v",
+                    "type": "error",
+                    "underlyingType": "interface{Error() string}",
+                    "argNum": 2,
+                    "expr": "err"
+                }
+            ],
+            "fuzzy": true
+        },
+        {
+            "id": "error loading chat: {Err}",
+            "message": "error loading chat: {Err}",
+            "translation": "error loading chat: {Err}",
+            "translatorComment": "Copied from source.",
+            "placeholders": [
+                {
+                    "id": "Err",
+                    "string": "%[1]v",
+                    "type": "error",
+                    "underlyingType": "interface{Error() string}",
+                    "argNum": 1,
+                    "expr": "err"
+                }
+            ],
+            "fuzzy": true
+        },
+        {
+            "id": "invalid nick {Name} in config: {Err}",
+            "message": "invalid nick {Name} in config: {Err}",
+            "translation": "invalid nick {Name} in config: {Err}",
+            "translatorComment": "Copied from source.",
+            "placeholders": [
+                {
+                    "id": "Name",
+                    "string": "%[1]s",
+                    "type": "string",
+                    "underlyingType": "string",
+                    "argNum": 1,
+                    "expr": "acct.Name"
+                },
+                {
+                    "id": "Err",
+                    "string": "%[2]v",
+                    "type": "error",
+                    "underlyingType": "interface{Error() string}",
+                    "argNum": 2,
+                    "expr": "err"
+                }
+            ],
+            "fuzzy": true
+        },
+        {
+            "id": "joining room {JID}…",
+            "message": "joining room {JID}…",
+            "translation": "joining room {JID}…",
+            "translatorComment": "Copied from source.",
+            "placeholders": [
+                {
+                    "id": "JID",
+                    "string": "%[1]v",
+                    "type": "mellium.im/xmpp/jid.JID",
+                    "underlyingType": "struct{locallen int; domainlen int; data []byte}",
+                    "argNum": 1,
+                    "expr": "j"
+                }
+            ],
+            "fuzzy": true
+        },
+        {
+            "id": "error joining room {JID}: {Err}",
+            "message": "error joining room {JID}: {Err}",
+            "translation": "error joining room {JID}: {Err}",
+            "translatorComment": "Copied from source.",
+            "placeholders": [
+                {
+                    "id": "JID",
+                    "string": "%[1]s",
+                    "type": "mellium.im/xmpp/jid.JID",
+                    "underlyingType": "struct{locallen int; domainlen int; data []byte}",
+                    "argNum": 1,
+                    "expr": "e.JID"
+                },
+                {
+                    "id": "Err",
+                    "string": "%[2]v",
+                    "type": "error",
+                    "underlyingType": "interface{Error() string}",
+                    "argNum": 2,
+                    "expr": "err"
+                }
+            ],
+            "fuzzy": true
+        },
+        {
+            "id": "error fetching earliest message info for {PullToRefreshChat} from database: {Err}",
+            "message": "error fetching earliest message info for {PullToRefreshChat} from database: {Err}",
+            "translation": "error fetching earliest message info for {PullToRefreshChat} from database: {Err}",
+            "translatorComment": "Copied from source.",
+            "placeholders": [
+                {
+                    "id": "PullToRefreshChat",
+                    "string": "%[1]v",
+                    "type": "mellium.im/communique/internal/client/event.PullToRefreshChat",
+                    "underlyingType": "struct{JID mellium.im/xmpp/jid.JID \"xml:\\\"jid,attr,omitempty\\\"\"; Name string \"xml:\\\"name,attr,omitempty\\\"\"; Subscription string \"xml:\\\"subscription,attr,omitempty\\\"\"; Group []string \"xml:\\\"group,omitempty\\\"\"}",
+                    "argNum": 1,
+                    "expr": "e"
+                },
+                {
+                    "id": "Err",
+                    "string": "%[2]v",
+                    "type": "error",
+                    "underlyingType": "interface{Error() string}",
+                    "argNum": 2,
+                    "expr": "err"
+                }
+            ],
+            "fuzzy": true
+        },
+        {
+            "id": "no scrollback for {JID}",
+            "message": "no scrollback for {JID}",
+            "translation": "no scrollback for {JID}",
+            "translatorComment": "Copied from source.",
+            "placeholders": [
+                {
+                    "id": "JID",
+                    "string": "%[1]v",
+                    "type": "mellium.im/xmpp/jid.JID",
+                    "underlyingType": "struct{locallen int; domainlen int; data []byte}",
+                    "argNum": 1,
+                    "expr": "e.JID"
+                }
+            ],
+            "fuzzy": true
+        },
+        {
+            "id": "fetching scrollback before {Time} for {JID}…",
+            "message": "fetching scrollback before {Time} for {JID}…",
+            "translation": "fetching scrollback before {Time} for {JID}…",
+            "translatorComment": "Copied from source.",
+            "placeholders": [
+                {
+                    "id": "Time",
+                    "string": "%[1]v",
+                    "type": "time.Time",
+                    "underlyingType": "struct{wall uint64; ext int64; loc *time.Location}",
+                    "argNum": 1,
+                    "expr": "t"
+                },
+                {
+                    "id": "JID",
+                    "string": "%[2]v",
+                    "type": "mellium.im/xmpp/jid.JID",
+                    "underlyingType": "struct{locallen int; domainlen int; data []byte}",
+                    "argNum": 2,
+                    "expr": "e.JID"
+                }
+            ],
+            "fuzzy": true
+        },
+        {
+            "id": "error fetching scrollback for {JID}: {Err}",
+            "message": "error fetching scrollback for {JID}: {Err}",
+            "translation": "error fetching scrollback for {JID}: {Err}",
+            "translatorComment": "Copied from source.",
+            "placeholders": [
+                {
+                    "id": "JID",
+                    "string": "%[1]v",
+                    "type": "mellium.im/xmpp/jid.JID",
+                    "underlyingType": "struct{locallen int; domainlen int; data []byte}",
+                    "argNum": 1,
+                    "expr": "e.JID"
+                },
+                {
+                    "id": "Err",
+                    "string": "%[2]v",
+                    "type": "error",
+                    "underlyingType": "interface{Error() string}",
+                    "argNum": 2,
+                    "expr": "err"
+                }
+            ],
+            "fuzzy": true
+        },
+        {
+            "id": "error scrollback for {JID}: {Err}",
+            "message": "error scrollback for {JID}: {Err}",
+            "translation": "error scrollback for {JID}: {Err}",
+            "translatorComment": "Copied from source.",
+            "placeholders": [
+                {
+                    "id": "JID",
+                    "string": "%[1]v",
+                    "type": "mellium.im/xmpp/jid.JID",
+                    "underlyingType": "struct{locallen int; domainlen int; data []byte}",
+                    "argNum": 1,
+                    "expr": "e.JID"
+                },
+                {
+                    "id": "Err",
+                    "string": "%[2]v",
+                    "type": "error",
+                    "underlyingType": "interface{Error() string}",
+                    "argNum": 2,
+                    "expr": "err"
+                }
+            ],
+            "fuzzy": true
+        },
+        {
             "id": "Error while handling XMPP streams: {Err}",
             "message": "Error while handling XMPP streams: {Err}",
             "translation": "Error while handling XMPP streams: {Err}",
@@ -2015,6 +2015,65 @@
             "message": "Exec",
             "translation": "Exec",
             "translatorComment": "Copied from source.",
+            "fuzzy": true
+        },
+        {
+            "id": "failed to read stderr of the notification subprocess: {Err}",
+            "message": "failed to read stderr of the notification subprocess: {Err}",
+            "translation": "failed to read stderr of the notification subprocess: {Err}",
+            "translatorComment": "Copied from source.",
+            "placeholders": [
+                {
+                    "id": "Err",
+                    "string": "%[1]v",
+                    "type": "error",
+                    "underlyingType": "interface{Error() string}",
+                    "argNum": 1,
+                    "expr": "err"
+                }
+            ],
+            "fuzzy": true
+        },
+        {
+            "id": "failed to run notification command: {Err}",
+            "message": "failed to run notification command: {Err}",
+            "translation": "failed to run notification command: {Err}",
+            "translatorComment": "Copied from source.",
+            "placeholders": [
+                {
+                    "id": "Err",
+                    "string": "%[1]v",
+                    "type": "error",
+                    "underlyingType": "interface{Error() string}",
+                    "argNum": 1,
+                    "expr": "err"
+                }
+            ],
+            "fuzzy": true
+        },
+        {
+            "id": "notification subprocess failed: {Err}\n{StderrData}",
+            "message": "notification subprocess failed: {Err}\n{StderrData}",
+            "translation": "notification subprocess failed: {Err}\n{StderrData}",
+            "translatorComment": "Copied from source.",
+            "placeholders": [
+                {
+                    "id": "Err",
+                    "string": "%[1]v",
+                    "type": "error",
+                    "underlyingType": "interface{Error() string}",
+                    "argNum": 1,
+                    "expr": "err"
+                },
+                {
+                    "id": "StderrData",
+                    "string": "%[2]s",
+                    "type": "[]byte",
+                    "underlyingType": "[]byte",
+                    "argNum": 2,
+                    "expr": "stderrData"
+                }
+            ],
             "fuzzy": true
         }
     ]

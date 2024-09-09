@@ -203,6 +203,7 @@ Try running '%s -config' to generate a default config file.`, err, os.Args[0]))
 		ui.Addr(acct.Address),
 		ui.ShowStatus(!cfg.UI.HideStatus),
 		ui.FilePicker(cfg.UI.FilePicker),
+		ui.Notify(cfg.UI.Notify),
 		ui.RosterWidth(cfg.UI.Width))
 
 	if cfg.Log.XML {

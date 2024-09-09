@@ -88,6 +88,7 @@ type UI struct {
 	logger       *log.Logger
 	p            *message.Printer
 	filePicker   []string
+	notify       []string
 }
 
 // Printer returns the message printer that the UI is using for translations.
@@ -179,6 +180,13 @@ func Debug(l *log.Logger) Option {
 func FilePicker(cmd []string) Option {
 	return func(ui *UI) {
 		ui.filePicker = cmd
+	}
+}
+
+// Notify sets the notification command.
+func Notify(cmd []string) Option {
+	return func(ui *UI) {
+		ui.notify = cmd
 	}
 }
 
@@ -1146,4 +1154,31 @@ func (ui *UI) handleInput(event *tcell.EventKey) *tcell.EventKey {
 	}
 
 	return event
+}
+
+// Notify runs the notification command.
+func (ui *UI) Notify() {
+	if len(ui.notify) == 0 {
+		return
+	}
+	cmd := exec.Command(ui.notify[0], ui.notify[1:]...) // #nosec G204
+	// If stdout redirection is ever required, the terminal fd should be
+	// somehow passed to the subprocess to allow it to still be able to
+	// ring the terminal bell.
+	cmd.Stdout = os.Stdout
+	stderr, err := cmd.StderrPipe()
+	if err != nil {
+		ui.logger.Print(ui.p.Sprintf("failed to read stderr of the notification subprocess: %v", err))
+		return
+	}
+	var stderrData []byte
+	if err = cmd.Start(); err != nil {
+		ui.logger.Print(ui.p.Sprintf("failed to run notification command: %v", err))
+		return
+	}
+	stderrData, _ = io.ReadAll(stderr)
+	if err = cmd.Wait(); err != nil {
+		ui.logger.Print(ui.p.Sprintf("notification subprocess failed: %v\n%s", err, stderrData))
+		return
+	}
 }

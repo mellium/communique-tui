@@ -145,6 +145,9 @@ func newClientHandler(client *client.Client, pane *ui.UI, db *storage.DB, logger
 			if e.Sent && e.Body != "" {
 				pane.Roster().MarkRead(e.To.Bare().String())
 			}
+			if !e.Sent {
+				pane.Notify()
+			}
 		case event.HistoryMessage:
 			ctx, cancel := context.WithTimeout(context.Background(), time.Second)
 			defer cancel()

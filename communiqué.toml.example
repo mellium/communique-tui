@@ -86,6 +86,17 @@
 
 [ui]
 
+# Command to be executed to issue a notification (currently invoked on new
+# messages). Some examples:
+#
+#     # Ring the terminal bell.
+#     notify=["echo", "-e", "\\a"]
+#
+#     # Send a desktop notification
+#     notify=["notify-send", "New Jabber message received"]
+#
+# notify=[]
+
 # Don't show status line below contacts in the roster.
 # hide_status = false
 

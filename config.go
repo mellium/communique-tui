@@ -111,6 +111,7 @@ type config struct {
 		Theme      string   `toml:"theme"`
 		Width      int      `toml:"width"`
 		FilePicker []string `toml:"file_picker"`
+		Notify     []string `toml:"notify"`
 	} `toml:"ui"`
 
 	Theme []theme `toml:"theme"`
