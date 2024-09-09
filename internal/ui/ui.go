@@ -118,14 +118,6 @@ func ShowStatus(show bool) Option {
 	}
 }
 
-// InputCapture returns an option that overrides the default input handler for
-// the application.
-func InputCapture(capture func(event *tcell.EventKey) *tcell.EventKey) Option {
-	return func(ui *UI) {
-		ui.app.SetInputCapture(capture)
-	}
-}
-
 // Addr returns an option that sets the users address anywhere that it is
 // displayed in the UI.
 func Addr(addr string) Option {
@@ -245,54 +237,26 @@ func New(p *message.Printer, opts ...Option) *UI {
 		o(ui)
 	}
 
+	app.SetInputCapture(ui.handleInput)
+
 	chats := NewConversationView(ui)
 	ui.history = chats
 	buffers.AddPage(chatPageName, chats, true, false)
 
-	logs := newLogs(p, app, func(event *tcell.EventKey) *tcell.EventKey {
-		switch event.Key() {
-		case tcell.KeyTAB, tcell.KeyBacktab:
-			name, _ := ui.buffers.GetFrontPage()
-			if name == logsPageName {
-				ui.chatsOpen.Set(false)
-				ui.SelectRoster()
-				return nil
-			}
-			return event
-		case tcell.KeyESC:
-			ui.chatsOpen.Set(false)
-			ui.SelectRoster()
-			return nil
-		}
-		return event
-	})
+	logs := newLogs(p, app)
 	buffers.AddPage(logsPageName, logs, true, true)
 	ui.logWriter = logs
 
 	innerCapture := sidebarBox.GetInputCapture()
 	sidebarBox.SetInputCapture(func(event *tcell.EventKey) *tcell.EventKey {
-		key := event.Key()
 		eventRune := event.Rune()
 		switch {
-		case key == tcell.KeyTAB || key == tcell.KeyBacktab:
-			buffers.SwitchToPage(logsPageName)
-			app.SetFocus(buffers)
-			return nil
 		case eventRune == '!':
 			ui.PickResource(func(j jid.JID, ok bool) {
 				if ok {
 					ui.ShowLoadCmd(j)
 				}
 			})
-			return nil
-		case eventRune == 'q':
-			ui.ShowQuitPrompt()
-			return nil
-		case eventRune == 'K':
-			ui.ShowHelpPrompt()
-			return nil
-		case key == tcell.KeyF1 || key == tcell.KeyHelp:
-			ui.ShowManualPage()
 			return nil
 		case eventRune == 'I':
 			ui.ShowRosterInfo()
@@ -546,17 +510,21 @@ func (ui *UI) ShowPasswordPrompt() string {
 func (ui *UI) ShowQuitPrompt() {
 	p := ui.Printer()
 	const quitPageName = "quit"
+	done := func(buttonIndex int, _ string) {
+		if buttonIndex == 0 {
+			ui.Stop()
+		}
+		ui.pages.HidePage(quitPageName)
+		ui.pages.RemovePage(quitPageName)
+	}
 	quitModal := tview.NewModal().
 		SetText(p.Sprintf("Are you sure you want to quit?")).
 		AddButtons([]string{p.Sprintf("Quit"), p.Sprintf("Cancel")}).
-		SetDoneFunc(func(buttonIndex int, _ string) {
-			if buttonIndex == 0 {
-				ui.Stop()
-			}
-			ui.pages.HidePage(quitPageName)
-			ui.pages.RemovePage(quitPageName)
-		}).
+		SetDoneFunc(done).
 		SetBackgroundColor(tview.Styles.PrimitiveBackgroundColor)
+	quitModal.SetInputCapture(modalClose(func() {
+		done(-1, "")
+	}))
 	ui.pages.AddPage(quitPageName, quitModal, true, false)
 	ui.pages.ShowPage(quitPageName)
 	ui.pages.SendToFront(quitPageName)
@@ -1165,4 +1133,54 @@ func (ui *UI) GetRect() (x, y, width, height int) {
 // Redraw redraws the UI.
 func (ui *UI) Redraw() {
 	ui.redraw()
+}
+
+func (ui *UI) handleInput(event *tcell.EventKey) *tcell.EventKey {
+	switch event.Key() {
+	case tcell.KeyCtrlC:
+		// The application intercepts Ctrl-C by default and terminates itself. We
+		// don't want Ctrl-C to stop the application, so disable this behavior by
+		// default. Manually sending a SIGINT will still work (see the signal
+		// handling goroutine in main.go).
+		return nil
+	case tcell.KeyTAB, tcell.KeyBacktab:
+		switch {
+		case ui.buffers.HasFocus():
+			if !ui.chatsOpen.Get() {
+				ui.SelectRoster()
+				return nil
+			}
+		case ui.sidebar.HasFocus():
+			ui.buffers.SwitchToPage(logsPageName)
+			ui.app.SetFocus(ui.buffers)
+			return nil
+		}
+		return event
+	case tcell.KeyESC:
+		if ui.buffers.HasFocus() {
+			ui.chatsOpen.Set(false)
+			ui.SelectRoster()
+			return nil
+		}
+		return event
+	case tcell.KeyF1, tcell.KeyHelp:
+		if name, _ := ui.pages.GetFrontPage(); name == uiPageName {
+			ui.ShowManualPage()
+			return nil
+		}
+	}
+
+	switch event.Rune() {
+	case 'q':
+		if name, _ := ui.pages.GetFrontPage(); name == uiPageName {
+			ui.ShowQuitPrompt()
+			return nil
+		}
+	case 'K':
+		if name, _ := ui.pages.GetFrontPage(); name == uiPageName {
+			ui.ShowHelpPrompt()
+			return nil
+		}
+	}
+	return event
 }

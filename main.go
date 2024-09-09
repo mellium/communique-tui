@@ -33,7 +33,6 @@ import (
 	"golang.org/x/text/message"
 
 	"github.com/BurntSushi/toml"
-	"github.com/gdamore/tcell/v2"
 	"github.com/rivo/tview"
 
 	"mellium.im/communique/internal/client"
@@ -203,18 +202,7 @@ Try running '%s -config' to generate a default config file.`, err, os.Args[0]))
 		ui.Debug(debug),
 		ui.Addr(acct.Address),
 		ui.ShowStatus(!cfg.UI.HideStatus),
-		ui.RosterWidth(cfg.UI.Width),
-		ui.InputCapture(func(event *tcell.EventKey) *tcell.EventKey {
-			// The application intercepts Ctrl-C by default and terminates itself. We
-			// don't want Ctrl-C to stop the application, so disable this behavior by
-			// default. Manually sending a SIGINT will still work (see the signal
-			// handling goroutine in this file).
-
-			if event.Key() == tcell.KeyCtrlC {
-				return nil
-			}
-			return event
-		}))
+		ui.RosterWidth(cfg.UI.Width))
 
 	if cfg.Log.XML {
 		xmlInLog.SetOutput(pane)
