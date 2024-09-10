@@ -45,7 +45,7 @@ func writeMask(buf *strings.Builder, mask styling.Style) {
 	buf.WriteString("]")
 }
 
-func writeMessage(pane *ui.UI, configPath string, msg event.ChatMessage, notNew bool) error {
+func writeMessage(pane *ui.UI, msg event.ChatMessage, notNew bool) error {
 	if msg.Body == "" {
 		return nil
 	}
@@ -118,7 +118,7 @@ func writeMessage(pane *ui.UI, configPath string, msg event.ChatMessage, notNew 
 	return nil
 }
 
-func loadBuffer(ctx context.Context, pane *ui.UI, db *storage.DB, configPath string, ev roster.Item, msgID string, logger *log.Logger) error {
+func loadBuffer(ctx context.Context, pane *ui.UI, db *storage.DB, ev roster.Item, msgID string, logger *log.Logger) error {
 	history := pane.History()
 	history.SetText("")
 	p := pane.Printer()
@@ -132,7 +132,7 @@ func loadBuffer(ctx context.Context, pane *ui.UI, db *storage.DB, configPath str
 				return err
 			}
 		}
-		err := writeMessage(pane, configPath, cur, true)
+		err := writeMessage(pane, cur, true)
 		if err != nil {
 			msg := p.Sprintf("error writing history: %v", err)
 			history.SetText(msg)

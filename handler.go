@@ -30,7 +30,7 @@ import (
 
 // newUIHandler returns a handler for events that are emitted by the UI that
 // need to modify the client state.
-func newUIHandler(configPath string, acct account, pane *ui.UI, db *storage.DB, c *client.Client, logger, debug *log.Logger) func(interface{}) {
+func newUIHandler(acct account, pane *ui.UI, db *storage.DB, c *client.Client, logger, debug *log.Logger) func(interface{}) {
 	p := pane.Printer()
 	return func(ev interface{}) {
 		switch e := ev.(type) {
@@ -185,7 +185,7 @@ func newUIHandler(configPath string, acct account, pane *ui.UI, db *storage.DB, 
 				if err != nil {
 					logger.Print(p.Sprintf("error sending message: %v", err))
 				}
-				if err = writeMessage(pane, configPath, e, false); err != nil {
+				if err = writeMessage(pane, e, false); err != nil {
 					logger.Print(p.Sprintf("error saving sent message to history: %v", err))
 				}
 				if err = db.InsertMsg(ctx, e.Account, e, c.LocalAddr()); err != nil {
@@ -225,7 +225,7 @@ func newUIHandler(configPath string, acct account, pane *ui.UI, db *storage.DB, 
 				}
 				ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
 				defer cancel()
-				if err := loadBuffer(ctx, pane, db, configPath, roster.Item(e), firstUnread, logger); err != nil {
+				if err := loadBuffer(ctx, pane, db, roster.Item(e), firstUnread, logger); err != nil {
 					logger.Print(p.Sprintf("error loading chat: %v", err))
 					return
 				}
@@ -281,7 +281,7 @@ func newUIHandler(configPath string, acct account, pane *ui.UI, db *storage.DB, 
 				if err != nil {
 					debug.Print(p.Sprintf("error fetching scrollback for %v: %v", e.JID, err))
 				}
-				if err := loadBuffer(ctx, pane, db, configPath, roster.Item(e), "", logger); err != nil {
+				if err := loadBuffer(ctx, pane, db, roster.Item(e), "", logger); err != nil {
 					logger.Print(p.Sprintf("error scrollback for %v: %v", e.JID, err))
 					return
 				}
@@ -296,7 +296,7 @@ func newUIHandler(configPath string, acct account, pane *ui.UI, db *storage.DB, 
 
 // newClientHandler returns a handler for events that are emitted by the client
 // that need to modify the UI.
-func newClientHandler(configPath string, client *client.Client, pane *ui.UI, db *storage.DB, logger, debug *log.Logger) func(interface{}) {
+func newClientHandler(client *client.Client, pane *ui.UI, db *storage.DB, logger, debug *log.Logger) func(interface{}) {
 	p := client.Printer()
 	return func(ev interface{}) {
 		switch e := ev.(type) {
@@ -403,7 +403,7 @@ func newClientHandler(configPath string, client *client.Client, pane *ui.UI, db 
 		case event.ChatMessage:
 			ctx, cancel := context.WithTimeout(context.Background(), time.Second)
 			defer cancel()
-			if err := writeMessage(pane, configPath, e, false); err != nil {
+			if err := writeMessage(pane, e, false); err != nil {
 				logger.Print(p.Sprintf("error writing received message to chat: %v", err))
 			}
 			if err := db.InsertMsg(ctx, e.Account, e, client.LocalAddr()); err != nil {
@@ -417,7 +417,7 @@ func newClientHandler(configPath string, client *client.Client, pane *ui.UI, db 
 		case event.HistoryMessage:
 			ctx, cancel := context.WithTimeout(context.Background(), time.Second)
 			defer cancel()
-			if err := writeMessage(pane, configPath, e.Result.Forward.Msg, false); err != nil {
+			if err := writeMessage(pane, e.Result.Forward.Msg, false); err != nil {
 				logger.Print(p.Sprintf("error writing history message to chat: %v", err))
 			}
 			if err := db.InsertMsg(ctx, true, e.Result.Forward.Msg, client.LocalAddr()); err != nil {
