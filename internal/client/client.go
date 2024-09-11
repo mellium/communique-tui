@@ -26,6 +26,7 @@ import (
 	"mellium.im/xmpp/carbons"
 	"mellium.im/xmpp/dial"
 	"mellium.im/xmpp/disco"
+	"mellium.im/xmpp/disco/items"
 	"mellium.im/xmpp/jid"
 	"mellium.im/xmpp/muc"
 	"mellium.im/xmpp/receipts"
@@ -177,6 +178,28 @@ func (c *Client) reconnect(ctx context.Context) error {
 			From: c.Session.In().From,
 			Caps: caps,
 		})
+	}
+
+	// Discover advertised services and their features.
+	serviceCtx, serviceCancel := context.WithTimeout(context.Background(), c.timeout)
+	defer serviceCancel()
+	itms := disco.FetchItems(serviceCtx, items.Item{JID: c.LocalAddr().Domain()}, c.Session)
+	var services []jid.JID
+	for itms.Next() {
+		services = append(services, itms.Item().JID)
+	}
+	if err = itms.Err(); err != nil {
+		c.logger.Print(p.Sprintf("error occured during service discovery: %v", err))
+	}
+	if err = itms.Close(); err != nil {
+		c.logger.Print(p.Sprintf("error when closing the items iterator: %v", err))
+	}
+	for _, j := range services {
+		_, err := c.Disco(j)
+		if err != nil {
+			c.logger.Print(p.Sprintf("feature discovery failed for %q: %v", j, err))
+			continue
+		}
 	}
 
 	// Enable message carbons.
