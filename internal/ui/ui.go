@@ -517,11 +517,10 @@ func (ui *UI) ShowQuitPrompt() {
 		ui.pages.HidePage(quitPageName)
 		ui.pages.RemovePage(quitPageName)
 	}
-	quitModal := tview.NewModal().
+	quitModal := NewModal().
 		SetText(p.Sprintf("Are you sure you want to quit?")).
 		AddButtons([]string{p.Sprintf("Quit"), p.Sprintf("Cancel")}).
-		SetDoneFunc(done).
-		SetBackgroundColor(tview.Styles.PrimitiveBackgroundColor)
+		SetDoneFunc(done)
 	quitModal.SetInputCapture(modalClose(func() {
 		done(-1, "")
 	}))
@@ -811,7 +810,7 @@ func (ui *UI) ShowHelpPrompt() {
 		ui.pages.RemovePage(helpPageName)
 	}
 	// U+20E3 COMBINING ENCLOSING KEYCAP
-	mod := tview.NewModal().
+	mod := NewModal().
 		SetText(`Global :
 
 q: quit or close
@@ -851,8 +850,7 @@ dd: remove contact
 `).
 		SetDoneFunc(func(int, string) {
 			onEsc()
-		}).
-		SetBackgroundColor(tview.Styles.PrimitiveBackgroundColor)
+		})
 	mod.SetInputCapture(modalClose(onEsc))
 
 	ui.pages.AddPage(helpPageName, mod, true, false)
@@ -1013,12 +1011,11 @@ func (ui *UI) ShowRosterInfo() {
 		ui.pages.HidePage(infoPageName)
 		ui.pages.RemovePage(infoPageName)
 	}
-	mod := tview.NewModal().
+	mod := NewModal().
 		SetText(`Roster info:`).
 		SetDoneFunc(func(int, string) {
 			onEsc()
-		}).
-		SetBackgroundColor(tview.Styles.PrimitiveBackgroundColor)
+		})
 	mod.SetInputCapture(modalClose(onEsc))
 
 	v, ok := ui.sidebar.GetSelected()

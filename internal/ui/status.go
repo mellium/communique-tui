@@ -8,8 +8,8 @@ import (
 	"github.com/rivo/tview"
 )
 
-func statusModal(done func(buttonIndex int, buttonLabel string)) *tview.Modal {
-	mod := tview.NewModal().
+func statusModal(done func(buttonIndex int, buttonLabel string)) *Modal {
+	mod := NewModal().
 		SetText("Set Status").
 		AddButtons([]string{"Online [green]●", "Away [orange]◓", "Busy [red]◑", "Offline ○"}).
 		SetDoneFunc(done).

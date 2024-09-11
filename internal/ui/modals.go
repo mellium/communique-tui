@@ -23,14 +23,13 @@ func modalClose(onEsc func()) func(event *tcell.EventKey) *tcell.EventKey {
 	}
 }
 
-func delRosterModal(p *message.Printer, onEsc func(), onDel func()) *tview.Modal {
+func delRosterModal(p *message.Printer, onEsc func(), onDel func()) *Modal {
 	var (
 		removeButton = p.Sprintf("Remove")
 		cancelButton = p.Sprintf("Cancel")
 	)
-	mod := tview.NewModal().
+	mod := NewModal().
 		SetText(p.Sprintf("Remove this contact from your roster?")).
-		SetBackgroundColor(tview.Styles.PrimitiveBackgroundColor).
 		AddButtons([]string{cancelButton, removeButton}).
 		SetDoneFunc(func(_ int, buttonLabel string) {
 			if buttonLabel == removeButton {
@@ -42,14 +41,13 @@ func delRosterModal(p *message.Printer, onEsc func(), onDel func()) *tview.Modal
 	return mod
 }
 
-func delBookmarkModal(p *message.Printer, onEsc func(), onDel func()) *tview.Modal {
+func delBookmarkModal(p *message.Printer, onEsc func(), onDel func()) *Modal {
 	var (
 		removeButton = p.Sprintf("Remove")
 		cancelButton = p.Sprintf("Cancel")
 	)
-	mod := tview.NewModal().
+	mod := NewModal().
 		SetText(p.Sprintf("Remove this channel?")).
-		SetBackgroundColor(tview.Styles.PrimitiveBackgroundColor).
 		AddButtons([]string{cancelButton, removeButton}).
 		SetDoneFunc(func(_ int, buttonLabel string) {
 			if buttonLabel == removeButton {
