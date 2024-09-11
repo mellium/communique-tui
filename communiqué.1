@@ -12,7 +12,8 @@ is a TUI IM client for the XMPP protocol. It was originally intended as an alter
 .Xr mcabber 1 .
 Apart from the basic instant messaging functionality,
 .Nm
-currently also supports MUCs.
+currently also supports MUCs and HTTP uploads (note that since E2EE is not supported yet,
+.Sy the files are stored in plain text on the server! Ns ).
 .
 .Sh KEY BINDINGS
 .Ss Global
@@ -85,6 +86,12 @@ Execute command.
 Change status (online, away, busy, etc.)
 .El
 .
+.Ss Chat
+.Bl -tag -width Ds -compact
+.It Ic Ctrl+u
+.No Send files using HTTP upload ( Sy the files are not E2E encrypted! Ns ).
+.El
+.
 .Sh FILES
 .Bl -column
 .It Pa communiqué.toml
@@ -114,6 +121,10 @@ Change status (online, away, busy, etc.)
 .It
 .Rs
 .%T XEP-0175: Best Practices for Use of SASL ANONYMOUS
+.Re
+.It
+.Rs
+.%T XEP-0363: HTTP File Upload
 .Re
 .El
 .

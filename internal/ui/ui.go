@@ -819,7 +819,11 @@ I: more info
 o, O: open next/prev unread
 dd: remove contact
 !: execute command
-s: change status`).
+s: change status
+
+Chat:
+
+Ctrl+u: send files via HTTP upload (no E2E encryption!)`).
 		SetDoneFunc(func(int, string) {
 			onEsc()
 		})

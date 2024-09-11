@@ -134,4 +134,10 @@ type (
 			Err  error
 		}
 	}
+
+	// UploadFile is sent to instruct the client to perform HTTP upload.
+	UploadFile struct {
+		Path    string
+		Message ChatMessage
+	}
 )

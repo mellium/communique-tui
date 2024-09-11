@@ -22,10 +22,12 @@ import (
 	"mellium.im/xmpp/commands"
 	"mellium.im/xmpp/crypto"
 	"mellium.im/xmpp/disco"
+	"mellium.im/xmpp/disco/info"
 	"mellium.im/xmpp/history"
 	"mellium.im/xmpp/jid"
 	"mellium.im/xmpp/roster"
 	"mellium.im/xmpp/stanza"
+	"mellium.im/xmpp/upload"
 )
 
 // newUIHandler returns a handler for events that are emitted by the UI that
@@ -268,6 +270,8 @@ func newUIHandler(acct account, pane *ui.UI, db *storage.DB, c *client.Client, l
 				// TODO: scroll to an offset that keeps context so that we don't lose
 				// our position.
 			}()
+		case event.UploadFile:
+			go uploadFile(c, logger, debug, db, pane, e)
 		default:
 			debug.Print(p.Sprintf("unrecognized ui event: %T(%[1]q)", e))
 		}
@@ -492,4 +496,29 @@ func sendMessage(c *client.Client, logger *log.Logger, db *storage.DB, ui *ui.UI
 	if message.Sent && message.Body != "" {
 		ui.Roster().MarkRead(message.To.Bare().String())
 	}
+}
+
+// uploadFile HTTP-uploads a file and sends the GET URL to recipients.
+func uploadFile(c *client.Client, logger *log.Logger, debug *log.Logger, db *storage.DB, ui *ui.UI, event event.UploadFile) {
+	p := c.Printer()
+
+	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+	defer cancel()
+	services, err := db.GetServices(ctx, info.Feature{Var: upload.NS})
+	if err != nil {
+		logger.Print(p.Sprintf("could not get the upload services: %v", err))
+		return
+	}
+	if len(services) == 0 {
+		logger.Print(p.Sprint("no upload service available"))
+		return
+	}
+	url, err := c.Upload(ctx, event.Path, services[0])
+	if err != nil {
+		logger.Print(p.Sprintf("could not upload %q: %v", event.Path, err))
+		return
+	}
+	debug.Printf("uploaded %q as %s", event.Path, url)
+	event.Message.Body = url
+	sendMessage(c, logger, db, ui, event.Message)
 }

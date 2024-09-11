@@ -8,9 +8,13 @@ import (
 	"context"
 	"crypto/tls"
 	"encoding/xml"
+	"errors"
 	"fmt"
 	"io"
 	"log"
+	"net/http"
+	"os"
+	"path/filepath"
 	"strings"
 	"sync"
 	"time"
@@ -32,6 +36,7 @@ import (
 	"mellium.im/xmpp/receipts"
 	"mellium.im/xmpp/roster"
 	"mellium.im/xmpp/stanza"
+	"mellium.im/xmpp/upload"
 	"mellium.im/xmpp/version"
 )
 
@@ -250,6 +255,7 @@ type Client struct {
 	chanM           sync.Mutex
 	channels        map[string]*muc.Channel
 	p               *message.Printer
+	httpClient      *http.Client
 }
 
 // Printer returns the message printer that the client is using for
@@ -530,4 +536,63 @@ func (c *Client) LeaveMUC(ctx context.Context, room jid.JID, reason string) erro
 	}
 	delete(c.channels, s)
 	return nil
+}
+
+// Upload HTTP-uploads a file specified by path to the service specified by jid
+// and returns the GET URL.
+func (c *Client) Upload(ctx context.Context, path string, jid jid.JID) (string, error) {
+	path = filepath.Clean(path)
+	file, err := os.Open(path)
+	if err != nil {
+		return "", err
+	}
+	defer func() {
+		err := file.Close()
+		if err != nil && !errors.Is(err, os.ErrClosed) {
+			c.debug.Printf("error when closing file: %v", err)
+		}
+	}()
+
+	info, err := file.Stat()
+	if err != nil {
+		return "", err
+	}
+
+	if info.IsDir() {
+		return "", errors.New("cannot upload directory")
+	}
+
+	name := filepath.Base(path)
+
+	slot, err := upload.GetSlot(ctx, upload.File{
+		Name: name,
+		Size: int(info.Size()),
+	}, jid, c.Session)
+	if err != nil {
+		return "", err
+	}
+
+	req, err := slot.Put(ctx, file)
+	if err != nil {
+		return "", err
+	}
+	if c.httpClient == nil {
+		c.httpClient = &http.Client{Timeout: 120 * time.Second}
+	}
+	resp, err := c.httpClient.Do(req)
+	if err != nil {
+		return "", err
+	}
+	defer func() {
+		err := resp.Body.Close()
+		if err != nil {
+			c.debug.Printf("error when closing response body: %v", err)
+		}
+	}()
+
+	if resp.StatusCode != http.StatusCreated {
+		return "", fmt.Errorf("unexpected status code: %d (%s)", resp.StatusCode, http.StatusText(resp.StatusCode))
+	}
+
+	return slot.GetURL.String(), nil
 }
