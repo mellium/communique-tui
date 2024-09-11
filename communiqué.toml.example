@@ -95,6 +95,22 @@
 # The name of a theme to select.
 # theme = ""
 
+# The command line to execute for file selection. It needs to print a newline
+# separated list of file paths to stdout. It is not executed inside a shell.
+# Here are several examples:
+#
+#     # https://github.com/gokcehan/lf
+#     file_picker=["lf", "-print-selection"]
+#
+#     # https://github.com/junegunn/fzf
+#     file_picker=["fzf", "--multi"]
+#
+# If you need to use some shell features, you can do for instance:
+#
+#     file_picker=["sh", "-c", "fzf --multi --walker-root=$HOME"]
+#
+# file_picker=[]
+
 # Themes
 #
 # The colors are W3C color names including: black, maroon, green, olive, navy,

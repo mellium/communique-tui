@@ -107,9 +107,10 @@ type config struct {
 	} `toml:"log"`
 
 	UI struct {
-		HideStatus bool   `toml:"hide_status"`
-		Theme      string `toml:"theme"`
-		Width      int    `toml:"width"`
+		HideStatus bool     `toml:"hide_status"`
+		Theme      string   `toml:"theme"`
+		Width      int      `toml:"width"`
+		FilePicker []string `toml:"file_picker"`
 	} `toml:"ui"`
 
 	Theme []theme `toml:"theme"`

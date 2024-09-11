@@ -6,6 +6,9 @@
 package ui // import "mellium.im/communique/internal/ui"
 
 import (
+	"bufio"
+	"bytes"
+	"errors"
 	"fmt"
 	"io"
 	"log"
@@ -84,11 +87,52 @@ type UI struct {
 	debug        *log.Logger
 	logger       *log.Logger
 	p            *message.Printer
+	filePicker   []string
 }
 
 // Printer returns the message printer that the UI is using for translations.
 func (ui *UI) Printer() *message.Printer {
 	return ui.p
+}
+
+// FilePicker runs the file picker and returns the list of selected paths. The
+// picker is run inside a shell.
+func (ui *UI) FilePicker() ([]string, error) {
+	var results []string
+	if len(ui.filePicker) == 0 {
+		return results, errors.New("no file picker set, see the example configuration file for more information")
+	}
+	cmd := exec.Command(ui.filePicker[0], ui.filePicker[1:]...) // #nosec G204
+	cmd.Stdin = os.Stdin
+	stderr, err := cmd.StderrPipe()
+	if err != nil {
+		return results, fmt.Errorf("failed to read process' standard error: %w", err)
+	}
+	stdout, err := cmd.StdoutPipe()
+	if err != nil {
+		return results, fmt.Errorf("failed to read process' standard output: %w", err)
+	}
+	var stdoutData, stderrData []byte
+	ui.app.Suspend(func() {
+		if err = cmd.Start(); err != nil {
+			return
+		}
+		stdoutData, _ = io.ReadAll(stdout)
+		stderrData, _ = io.ReadAll(stderr)
+		if err = cmd.Wait(); err != nil {
+			ui.logger.Print(string(stderrData))
+			return
+		}
+	})
+	if err != nil {
+		return results, fmt.Errorf("error while picking files: %w", err)
+	}
+	scanner := bufio.NewScanner(bytes.NewReader(stdoutData))
+	for scanner.Scan() {
+		results = append(results, scanner.Text())
+	}
+	err = scanner.Err()
+	return results, err
 }
 
 // Run starts the application event loop.
@@ -128,6 +172,13 @@ func Addr(addr string) Option {
 func Debug(l *log.Logger) Option {
 	return func(ui *UI) {
 		ui.debug = l
+	}
+}
+
+// FilePicker sets the file picker command.
+func FilePicker(cmd []string) Option {
+	return func(ui *UI) {
+		ui.filePicker = cmd
 	}
 }
 
