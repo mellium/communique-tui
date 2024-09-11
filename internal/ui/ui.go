@@ -82,6 +82,7 @@ type UI struct {
 	chatsOpen    *syncBool
 	cmdPane      *commandsPane
 	debug        *log.Logger
+	logger       *log.Logger
 	p            *message.Printer
 }
 
@@ -167,7 +168,7 @@ func RosterWidth(width int) Option {
 }
 
 // New constructs a new UI.
-func New(p *message.Printer, opts ...Option) *UI {
+func New(p *message.Printer, logger *log.Logger, opts ...Option) *UI {
 	app := tview.NewApplication()
 	statusBar := tview.NewTextView()
 	statusBar.
@@ -189,6 +190,7 @@ func New(p *message.Printer, opts ...Option) *UI {
 		passPrompt:   make(chan string),
 		chatsOpen:    &syncBool{},
 		debug:        log.New(io.Discard, "", 0),
+		logger:       logger,
 		p:            p,
 	}
 	statusSelect := func() {

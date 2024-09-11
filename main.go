@@ -198,6 +198,7 @@ Try running '%s -config' to generate a default config file.`, err, os.Args[0]))
 
 	pane := ui.New(
 		p,
+		logger,
 		ui.Debug(debug),
 		ui.Addr(acct.Address),
 		ui.ShowStatus(!cfg.UI.HideStatus),
