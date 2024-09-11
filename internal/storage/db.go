@@ -50,6 +50,7 @@ type DB struct {
 	getIdent          *sql.Stmt
 	getFeature        *sql.Stmt
 	getForms          *sql.Stmt
+	getServices       *sql.Stmt
 	insertJIDCaps     *sql.Stmt
 	insertJIDCapsForm *sql.Stmt
 	insertIdent       *sql.Stmt
@@ -280,6 +281,14 @@ SELECT var
 SELECT forms FROM discoJID AS j
 	WHERE j.jid=$1
 `)
+	if err != nil {
+		return nil, err
+	}
+	wrapDB.getServices, err = db.PrepareContext(ctx, `
+SELECT j.jid FROM discoJID AS j
+	INNER JOIN discoFeatureJID as fj ON (fj.jid=j.id)
+	INNER JOIN discoFeatures AS f ON (fj.feat=f.id)
+	WHERE f.var=$1`)
 	if err != nil {
 		return nil, err
 	}
@@ -848,4 +857,33 @@ func (db *DB) UpsertDisco(ctx context.Context, j jid.JID, caps disco.Caps, info 
 
 		return nil
 	})
+}
+
+// GetServices returns the JIDs of the services which advertised the given
+// feature.
+func (db *DB) GetServices(ctx context.Context, feature info.Feature) ([]jid.JID, error) {
+	var results []jid.JID
+	err := execTx(ctx, db, func(ctx context.Context, tx *sql.Tx) error {
+		rows, err := tx.Stmt(db.getServices).QueryContext(ctx, feature.Var)
+		if err != nil {
+			return fmt.Errorf("error getting services: %w", err)
+		}
+		var jStr string
+		for rows.Next() {
+			err = rows.Scan(&jStr)
+			if err != nil {
+				return fmt.Errorf("error scanning services: %w", err)
+			}
+			j, err := jid.Parse(jStr)
+			if err != nil {
+				return fmt.Errorf("failed to parse service JID: %w", err)
+			}
+			results = append(results, j)
+		}
+		if err = rows.Err(); err != nil {
+			return fmt.Errorf("error iterating over services rows: %w", err)
+		}
+		return nil
+	})
+	return results, err
 }
