@@ -176,27 +176,7 @@ func newUIHandler(acct account, pane *ui.UI, db *storage.DB, c *client.Client, l
 				}
 			}()
 		case event.ChatMessage:
-			go func() {
-				ctx, cancel := context.WithTimeout(context.Background(), 60*time.Second)
-				defer cancel()
-
-				var err error
-				e, err = c.SendMessage(ctx, e)
-				if err != nil {
-					logger.Print(p.Sprintf("error sending message: %v", err))
-				}
-				if err = writeMessage(pane, e, false); err != nil {
-					logger.Print(p.Sprintf("error saving sent message to history: %v", err))
-				}
-				if err = db.InsertMsg(ctx, e.Account, e, c.LocalAddr()); err != nil {
-					logger.Print(p.Sprintf("error writing message to database: %v", err))
-				}
-				// If we sent the message that wasn't automated (it has a body), assume
-				// we've read everything before it.
-				if e.Sent && e.Body != "" {
-					pane.Roster().MarkRead(e.To.Bare().String())
-				}
-			}()
+			go sendMessage(c, logger, db, pane, e)
 		case event.OpenChannel:
 			go func() {
 				ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
@@ -486,5 +466,30 @@ func newClientHandler(client *client.Client, pane *ui.UI, db *storage.DB, logger
 		default:
 			debug.Print(p.Sprintf("unrecognized client event: %T(%[1]q)", e))
 		}
+	}
+}
+
+// sendMessage sends a message and writes it to the database and UI.
+func sendMessage(c *client.Client, logger *log.Logger, db *storage.DB, ui *ui.UI, message event.ChatMessage) {
+	ctx, cancel := context.WithTimeout(context.Background(), 60*time.Second)
+	defer cancel()
+
+	p := c.Printer()
+
+	var err error
+	message, err = c.SendMessage(ctx, message)
+	if err != nil {
+		logger.Print(p.Sprintf("error sending message: %v", err))
+	}
+	if err = writeMessage(ui, message, false); err != nil {
+		logger.Print(p.Sprintf("error saving sent message to history: %v", err))
+	}
+	if err = db.InsertMsg(ctx, message.Account, message, c.LocalAddr()); err != nil {
+		logger.Print(p.Sprintf("error writing message to database: %v", err))
+	}
+	// If we sent the message that wasn't automated (it has a body), assume
+	// we've read everything before it.
+	if message.Sent && message.Body != "" {
+		ui.Roster().MarkRead(message.To.Bare().String())
 	}
 }
