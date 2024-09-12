@@ -22,6 +22,13 @@ If an appropriate version of Go is already installed, try running `make`.
 If you'd like to contribute to the project, see [CONTRIBUTING.md].
 
 
+## Translations
+
+Translations can be found in the `locales/` tree and are licensed separately under
+a Creative Commons Attribution 4.0 International License ([CC BY 4.0]).
+To contribute to translations see the project on [Codeberg Translate].
+
+
 ## License
 
 The package may be used under the terms of the BSD 2-Clause License a copy of
@@ -35,4 +42,6 @@ conditions.
 [CONTRIBUTING.md]: https://mellium.im/docs/CONTRIBUTING
 [badge]: https://img.shields.io/badge/style-mellium%2fxmpp-green.svg?longCache=true&style=popout-square&label=issues
 [Go]: https://golang.org/
+[CC BY 4.0]: https://creativecommons.org/licenses/by/4.0/
+[Codeberg Translate]: https://translate.codeberg.org/projects/mellium/communique/
 [LICENSE]: https://codeberg.org/mellium/xmpp/src/branch/main/LICENSE
