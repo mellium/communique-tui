@@ -2,7 +2,7 @@
 // Use of this source code is governed by the BSD 2-clause
 // license that can be found in the LICENSE file.
 
-// Package event contains events that may be emited by the client.
+// Package event contains events that may be emitted by the client.
 package event // import "mellium.im/communique/internal/client/event"
 
 import (
