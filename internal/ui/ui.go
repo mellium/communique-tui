@@ -835,7 +835,7 @@ N: previous search result
 gt: next sidebar tab
 gT: previous sidebar tab
 
-[::b]Roster:[::-]
+[::b]Roster[::-]
 
 c: start chat
 i, Enter: open chat
