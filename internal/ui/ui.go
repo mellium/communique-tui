@@ -811,15 +811,12 @@ func (ui *UI) ShowHelpPrompt() {
 	}
 	// U+20E3 COMBINING ENCLOSING KEYCAP
 	mod := NewModal().
-		SetText(`Global :
+		SetText(`[::b]Global[::-]
 
-q: quit or close
-Escape: close
-F1: help
-K: key bindings quick help
+q, Esc: quit or close
+F1, K: help or quick help
 
-
-Navigation:
+[::b]Navigation[::-]
 
 Tab, Shift+Tab: focus to next/prev
 gg, Home: scroll to top
@@ -838,16 +835,14 @@ N: previous search result
 gt: next sidebar tab
 gT: previous sidebar tab
 
-
-Roster:
+[::b]Roster:[::-]
 
 c: start chat
 i, Enter: open chat
 I: more info
 o, O: open next/prev unread
 dd: remove contact
-!: execute command
-`).
+!: execute command`).
 		SetDoneFunc(func(int, string) {
 			onEsc()
 		})
