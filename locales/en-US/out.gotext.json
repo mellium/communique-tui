@@ -390,57 +390,6 @@
             "fuzzy": true
         },
         {
-            "id": "error sending message: {Err}",
-            "message": "error sending message: {Err}",
-            "translation": "error sending message: {Err}",
-            "translatorComment": "Copied from source.",
-            "placeholders": [
-                {
-                    "id": "Err",
-                    "string": "%[1]v",
-                    "type": "error",
-                    "underlyingType": "interface{Error() string}",
-                    "argNum": 1,
-                    "expr": "err"
-                }
-            ],
-            "fuzzy": true
-        },
-        {
-            "id": "error saving sent message to history: {Err}",
-            "message": "error saving sent message to history: {Err}",
-            "translation": "error saving sent message to history: {Err}",
-            "translatorComment": "Copied from source.",
-            "placeholders": [
-                {
-                    "id": "Err",
-                    "string": "%[1]v",
-                    "type": "error",
-                    "underlyingType": "interface{Error() string}",
-                    "argNum": 1,
-                    "expr": "err"
-                }
-            ],
-            "fuzzy": true
-        },
-        {
-            "id": "error writing message to database: {Err}",
-            "message": "error writing message to database: {Err}",
-            "translation": "error writing message to database: {Err}",
-            "translatorComment": "Copied from source.",
-            "placeholders": [
-                {
-                    "id": "Err",
-                    "string": "%[1]v",
-                    "type": "error",
-                    "underlyingType": "interface{Error() string}",
-                    "argNum": 1,
-                    "expr": "err"
-                }
-            ],
-            "fuzzy": true
-        },
-        {
             "id": "invalid nick {Name} in config: {Err}",
             "message": "invalid nick {Name} in config: {Err}",
             "translation": "invalid nick {Name} in config: {Err}",
@@ -893,6 +842,23 @@
             "fuzzy": true
         },
         {
+            "id": "error writing message to database: {Err}",
+            "message": "error writing message to database: {Err}",
+            "translation": "error writing message to database: {Err}",
+            "translatorComment": "Copied from source.",
+            "placeholders": [
+                {
+                    "id": "Err",
+                    "string": "%[1]v",
+                    "type": "error",
+                    "underlyingType": "interface{Error() string}",
+                    "argNum": 1,
+                    "expr": "err"
+                }
+            ],
+            "fuzzy": true
+        },
+        {
             "id": "error writing history message to chat: {Err}",
             "message": "error writing history message to chat: {Err}",
             "translation": "error writing history message to chat: {Err}",
@@ -1092,6 +1058,89 @@
             "fuzzy": true
         },
         {
+            "id": "error sending message: {Err}",
+            "message": "error sending message: {Err}",
+            "translation": "error sending message: {Err}",
+            "translatorComment": "Copied from source.",
+            "placeholders": [
+                {
+                    "id": "Err",
+                    "string": "%[1]v",
+                    "type": "error",
+                    "underlyingType": "interface{Error() string}",
+                    "argNum": 1,
+                    "expr": "err"
+                }
+            ],
+            "fuzzy": true
+        },
+        {
+            "id": "error saving sent message to history: {Err}",
+            "message": "error saving sent message to history: {Err}",
+            "translation": "error saving sent message to history: {Err}",
+            "translatorComment": "Copied from source.",
+            "placeholders": [
+                {
+                    "id": "Err",
+                    "string": "%[1]v",
+                    "type": "error",
+                    "underlyingType": "interface{Error() string}",
+                    "argNum": 1,
+                    "expr": "err"
+                }
+            ],
+            "fuzzy": true
+        },
+        {
+            "id": "could not get the upload services: {Err}",
+            "message": "could not get the upload services: {Err}",
+            "translation": "could not get the upload services: {Err}",
+            "translatorComment": "Copied from source.",
+            "placeholders": [
+                {
+                    "id": "Err",
+                    "string": "%[1]v",
+                    "type": "error",
+                    "underlyingType": "interface{Error() string}",
+                    "argNum": 1,
+                    "expr": "err"
+                }
+            ],
+            "fuzzy": true
+        },
+        {
+            "id": "no upload service available",
+            "message": "no upload service available",
+            "translation": "no upload service available",
+            "translatorComment": "Manually copied from source.",
+            "fuzzy": true
+        },
+        {
+            "id": "could not upload {Path}: {Err}",
+            "message": "could not upload {Path}: {Err}",
+            "translation": "could not upload {Path}: {Err}",
+            "translatorComment": "Copied from source.",
+            "placeholders": [
+                {
+                    "id": "Path",
+                    "string": "%[1]q",
+                    "type": "string",
+                    "underlyingType": "string",
+                    "argNum": 1,
+                    "expr": "event.Path"
+                },
+                {
+                    "id": "Err",
+                    "string": "%[2]v",
+                    "type": "error",
+                    "underlyingType": "interface{Error() string}",
+                    "argNum": 2,
+                    "expr": "err"
+                }
+            ],
+            "fuzzy": true
+        },
+        {
             "id": "error writing history: {Err}",
             "message": "error writing history: {Err}",
             "translation": "error writing history: {Err}",
@@ -1164,12 +1213,16 @@
         {
             "id": "the config file to load",
             "message": "the config file to load",
-            "translation": "the config file to load"
+            "translation": "the config file to load",
+            "translatorComment": "Copied from source.",
+            "fuzzy": true
         },
         {
             "id": "override the account set in the config file",
             "message": "override the account set in the config file",
-            "translation": "override the account set in the config file"
+            "translation": "override the account set in the config file",
+            "translatorComment": "Copied from source.",
+            "fuzzy": true
         },
         {
             "id": "print this help message",
@@ -1585,6 +1638,65 @@
             "fuzzy": true
         },
         {
+            "id": "error occured during service discovery: {Err}",
+            "message": "error occured during service discovery: {Err}",
+            "translation": "error occured during service discovery: {Err}",
+            "translatorComment": "Copied from source.",
+            "placeholders": [
+                {
+                    "id": "Err",
+                    "string": "%[1]v",
+                    "type": "error",
+                    "underlyingType": "interface{Error() string}",
+                    "argNum": 1,
+                    "expr": "err"
+                }
+            ],
+            "fuzzy": true
+        },
+        {
+            "id": "error when closing the items iterator: {Err}",
+            "message": "error when closing the items iterator: {Err}",
+            "translation": "error when closing the items iterator: {Err}",
+            "translatorComment": "Copied from source.",
+            "placeholders": [
+                {
+                    "id": "Err",
+                    "string": "%[1]v",
+                    "type": "error",
+                    "underlyingType": "interface{Error() string}",
+                    "argNum": 1,
+                    "expr": "err"
+                }
+            ],
+            "fuzzy": true
+        },
+        {
+            "id": "feature discovery failed for {JID}: {Err}",
+            "message": "feature discovery failed for {JID}: {Err}",
+            "translation": "feature discovery failed for {JID}: {Err}",
+            "translatorComment": "Copied from source.",
+            "placeholders": [
+                {
+                    "id": "JID",
+                    "string": "%[1]q",
+                    "type": "mellium.im/xmpp/jid.JID",
+                    "underlyingType": "struct{locallen int; domainlen int; data []byte}",
+                    "argNum": 1,
+                    "expr": "j"
+                },
+                {
+                    "id": "Err",
+                    "string": "%[2]v",
+                    "type": "error",
+                    "underlyingType": "interface{Error() string}",
+                    "argNum": 2,
+                    "expr": "err"
+                }
+            ],
+            "fuzzy": true
+        },
+        {
             "id": "error enabling carbons: {Err}",
             "message": "error enabling carbons: {Err}",
             "translation": "error enabling carbons: {Err}",
@@ -1763,37 +1875,33 @@
             "fuzzy": true
         },
         {
+            "id": "failed to get the recipient",
+            "message": "failed to get the recipient",
+            "translation": "failed to get the recipient",
+            "translatorComment": "Manually copied from source.",
+            "fuzzy": true
+        },
+        {
+            "id": "error while picking files: {Err}",
+            "message": "error while picking files: {Err}",
+            "translation": "error while picking files: {Err}",
+            "translatorComment": "Copied from source.",
+            "placeholders": [
+                {
+                    "id": "Err",
+                    "string": "%[1]v",
+                    "type": "error",
+                    "underlyingType": "interface{Error() string}",
+                    "argNum": 1,
+                    "expr": "err"
+                }
+            ],
+            "fuzzy": true
+        },
+        {
             "id": "Conversations",
             "message": "Conversations",
             "translation": "Conversations",
-            "translatorComment": "Copied from source.",
-            "fuzzy": true
-        },
-        {
-            "id": "Offline",
-            "message": "Offline",
-            "translation": "Offline",
-            "translatorComment": "Copied from source.",
-            "fuzzy": true
-        },
-        {
-            "id": "Online",
-            "message": "Online",
-            "translation": "Online",
-            "translatorComment": "Copied from source.",
-            "fuzzy": true
-        },
-        {
-            "id": "Away",
-            "message": "Away",
-            "translation": "Away",
-            "translatorComment": "Copied from source.",
-            "fuzzy": true
-        },
-        {
-            "id": "Busy",
-            "message": "Busy",
-            "translation": "Busy",
             "translatorComment": "Copied from source.",
             "fuzzy": true
         },
@@ -1822,6 +1930,34 @@
             "id": "Remove this channel?",
             "message": "Remove this channel?",
             "translation": "Remove this channel?",
+            "translatorComment": "Copied from source.",
+            "fuzzy": true
+        },
+        {
+            "id": "Offline",
+            "message": "Offline",
+            "translation": "Offline",
+            "translatorComment": "Copied from source.",
+            "fuzzy": true
+        },
+        {
+            "id": "Online",
+            "message": "Online",
+            "translation": "Online",
+            "translatorComment": "Copied from source.",
+            "fuzzy": true
+        },
+        {
+            "id": "Away",
+            "message": "Away",
+            "translation": "Away",
+            "translatorComment": "Copied from source.",
+            "fuzzy": true
+        },
+        {
+            "id": "Busy",
+            "message": "Busy",
+            "translation": "Busy",
             "translatorComment": "Copied from source.",
             "fuzzy": true
         },
