@@ -30,10 +30,13 @@ type Sidebar struct {
 	roster        *Roster
 	bookmarks     *Bookmarks
 	conversations *Conversations
+	ui            *UI
+	events        *bytes.Buffer
+	eventsM       *sync.Mutex
 }
 
 // newSidebar creates a new widget with the provided options.
-func newSidebar(roster *Roster, b *Bookmarks, c *Conversations) *Sidebar {
+func newSidebar(roster *Roster, b *Bookmarks, c *Conversations, ui *UI) *Sidebar {
 	r := &Sidebar{
 		pages:         tview.NewPages(),
 		dropDown:      tview.NewDropDown().SetFieldBackgroundColor(tview.Styles.PrimitiveBackgroundColor),
@@ -41,6 +44,9 @@ func newSidebar(roster *Roster, b *Bookmarks, c *Conversations) *Sidebar {
 		roster:        roster,
 		bookmarks:     b,
 		conversations: c,
+		ui:            ui,
+		events:        &bytes.Buffer{},
+		eventsM:       &sync.Mutex{},
 	}
 	r.pages.AddAndSwitchToPage(r.conversations.list.GetTitle(), r.conversations, true)
 	r.pages.AddPage(r.bookmarks.list.GetTitle(), r.bookmarks, true, false)
@@ -62,8 +68,6 @@ func newSidebar(roster *Roster, b *Bookmarks, c *Conversations) *Sidebar {
 		AddItem(r.dropDown, 1, 1, false).
 		AddItem(r.pages, 0, 1, true)
 
-	events := &bytes.Buffer{}
-	m := &sync.Mutex{}
 	r.search.SetPlaceholder("Search").
 		SetFieldBackgroundColor(tview.Styles.PrimitiveBackgroundColor).
 		SetDoneFunc(func(key tcell.Key) {
@@ -74,61 +78,86 @@ func newSidebar(roster *Roster, b *Bookmarks, c *Conversations) *Sidebar {
 			case tcell.KeyEnter:
 				r.Search(r.search.GetText(), r.searchDir)
 			}
-			m.Lock()
-			defer m.Unlock()
-			events.Reset()
+			r.eventsM.Lock()
+			defer r.eventsM.Unlock()
+			r.events.Reset()
 			r.searching = false
 			r.search.SetText("")
 			r.Flex.RemoveItem(r.search)
 		})
+	return r
+}
 
-	innerCapture := r.Flex.GetInputCapture()
-	r.Flex.SetInputCapture(func(event *tcell.EventKey) *tcell.EventKey {
+// InputHandler implements tview.Primitive for Roster.
+func (s *Sidebar) InputHandler() func(event *tcell.EventKey, setFocus func(p tview.Primitive)) {
+	if s.searching {
+		return s.search.InputHandler()
+	}
+	return s.WrapInputHandler(func(event *tcell.EventKey, setFocus func(p tview.Primitive)) {
 		if event == nil {
-			return event
+			return
 		}
 		switch event.Key() {
 		case tcell.KeyESC:
-			events.Reset()
-			return event
+			s.events.Reset()
+			return
 		case tcell.KeyRune:
 		default:
-			return event
+			return
 		}
 
-		m.Lock()
-		defer m.Unlock()
+		s.eventsM.Lock()
+		defer s.eventsM.Unlock()
 		/* #nosec */
-		events.WriteRune(event.Rune())
+		s.events.WriteRune(event.Rune())
 
-		// TODO: this is not going to be very maintainable. Figure out a better way
-		// to handle keyboard shortcuts.
 		switch event.Rune() {
+		case '!':
+			s.events.Reset()
+			s.ui.PickResource(func(j jid.JID, ok bool) {
+				if ok {
+					s.ui.ShowLoadCmd(j)
+				}
+			})
+			return
 		case 'i':
-			events.Reset()
-			return tcell.NewEventKey(tcell.KeyCR, 0, tcell.ModNone)
+			s.events.Reset()
+			_, item := s.pages.GetFrontPage()
+			if item != nil {
+				item.InputHandler()(tcell.NewEventKey(tcell.KeyCR, 0, tcell.ModNone), nil)
+			}
+			return
+		case 'I':
+			s.ui.ShowRosterInfo()
+			return
 		case 'o':
-			events.Reset()
-			roster := r.getFrontList()
+			s.events.Reset()
+			roster := s.getFrontList()
 			if roster == nil {
-				return event
+				return
 			}
 			for i := 0; i < roster.GetItemCount(); i++ {
 				idx := (i + roster.GetCurrentItem()) % roster.GetItemCount()
 				main, _ := roster.GetItemText(idx)
 				if strings.HasPrefix(main, highlightTag) {
 					roster.SetCurrentItem(idx)
-					return tcell.NewEventKey(tcell.KeyCR, 0, tcell.ModNone)
+					_, item := s.pages.GetFrontPage()
+					if item != nil {
+						item.InputHandler()(tcell.NewEventKey(tcell.KeyCR, 0, tcell.ModNone), nil)
+					}
 				}
 			}
 			idx := (roster.GetCurrentItem() + 1) % roster.GetItemCount()
 			roster.SetCurrentItem(idx)
-			return tcell.NewEventKey(tcell.KeyCR, 0, tcell.ModNone)
+			_, item := s.pages.GetFrontPage()
+			if item != nil {
+				item.InputHandler()(tcell.NewEventKey(tcell.KeyCR, 0, tcell.ModNone), nil)
+			}
 		case 'O':
-			events.Reset()
-			roster := r.getFrontList()
+			s.events.Reset()
+			roster := s.getFrontList()
 			if roster == nil {
-				return event
+				return
 			}
 			count := roster.GetItemCount()
 			currentItem := roster.GetCurrentItem()
@@ -138,19 +167,25 @@ func newSidebar(roster *Roster, b *Bookmarks, c *Conversations) *Sidebar {
 				main, _ := roster.GetItemText(idx)
 				if strings.HasPrefix(main, highlightTag) {
 					roster.SetCurrentItem(idx)
-					return tcell.NewEventKey(tcell.KeyCR, 0, tcell.ModNone)
+					_, item := s.pages.GetFrontPage()
+					if item != nil {
+						item.InputHandler()(tcell.NewEventKey(tcell.KeyCR, 0, tcell.ModNone), nil)
+					}
 				}
 			}
 			idx := ((currentItem-1)%count + count) % count
 			roster.SetCurrentItem(idx)
-			return tcell.NewEventKey(tcell.KeyCR, 0, tcell.ModNone)
-		case 'k':
-			roster := r.getFrontList()
-			if roster == nil {
-				return event
+			_, item := s.pages.GetFrontPage()
+			if item != nil {
+				item.InputHandler()(tcell.NewEventKey(tcell.KeyCR, 0, tcell.ModNone), nil)
 			}
-			if events.Len() > 1 {
-				n, err := strconv.Atoi(events.String()[0 : events.Len()-1])
+		case 'k':
+			roster := s.getFrontList()
+			if roster == nil {
+				return
+			}
+			if s.events.Len() > 1 {
+				n, err := strconv.Atoi(s.events.String()[0 : s.events.Len()-1])
 				if err == nil {
 					n = roster.GetCurrentItem() - n
 					if m := roster.GetItemCount() - 1; n > m {
@@ -161,25 +196,25 @@ func newSidebar(roster *Roster, b *Bookmarks, c *Conversations) *Sidebar {
 					}
 					roster.SetCurrentItem(n)
 
-					events.Reset()
-					return nil
+					s.events.Reset()
+					return
 				}
 			}
 
-			events.Reset()
+			s.events.Reset()
 			cur := roster.GetCurrentItem()
 			if cur <= 0 {
-				return event
+				return
 			}
 			roster.SetCurrentItem(cur - 1)
-			return nil
+			return
 		case 'j':
-			roster := r.getFrontList()
+			roster := s.getFrontList()
 			if roster == nil {
-				return event
+				return
 			}
-			if events.Len() > 1 {
-				n, err := strconv.Atoi(events.String()[0 : events.Len()-1])
+			if s.events.Len() > 1 {
+				n, err := strconv.Atoi(s.events.String()[0 : s.events.Len()-1])
 				if err == nil {
 					n = roster.GetCurrentItem() + n
 					if m := roster.GetItemCount() - 1; n > m {
@@ -190,58 +225,54 @@ func newSidebar(roster *Roster, b *Bookmarks, c *Conversations) *Sidebar {
 					}
 					roster.SetCurrentItem(n)
 
-					events.Reset()
-					return nil
+					s.events.Reset()
+					return
 				}
 			}
 
-			events.Reset()
+			s.events.Reset()
 			cur := roster.GetCurrentItem()
 			if cur >= roster.GetItemCount()-1 {
-				return event
+				return
 			}
 			roster.SetCurrentItem(cur + 1)
-			return nil
+			return
 		case 'G':
-			events.Reset()
-			roster := r.getFrontList()
+			roster := s.getFrontList()
 			if roster == nil {
-				return event
+				return
 			}
 			roster.SetCurrentItem(roster.GetItemCount() - 1)
-			return nil
 		case 'g':
-			roster := r.getFrontList()
+			roster := s.getFrontList()
 			if roster == nil {
-				return event
+				return
 			}
-			if events.String() == "gg" {
-				events.Reset()
-				roster.SetCurrentItem(0)
+			if s.events.String() != "gg" {
+				return
 			}
-			return nil
+			s.events.Reset()
+			roster.SetCurrentItem(0)
 		case 't':
-			if events.String() == "gt" {
-				events.Reset()
-				i, _ := r.dropDown.GetCurrentOption()
-				r.dropDown.SetCurrentOption((i + 1) % len(options))
+			if s.events.String() != "gt" {
+				return
 			}
-			return nil
+			i, _ := s.dropDown.GetCurrentOption()
+			s.dropDown.SetCurrentOption((i + 1) % s.dropDown.GetOptionCount())
 		case 'T':
-			if events.String() == "gT" {
-				events.Reset()
-				i, _ := r.dropDown.GetCurrentOption()
-				r.dropDown.SetCurrentOption(((i - 1) + len(options)) % len(options))
+			if s.events.String() != "gT" {
+				return
 			}
-			return nil
+			i, _ := s.dropDown.GetCurrentOption()
+			l := s.dropDown.GetOptionCount()
+			s.dropDown.SetCurrentOption(((i - 1) + l) % l)
 		case 'd':
-			if events.String() != "dd" {
-				return event
+			if s.events.String() != "dd" {
+				return
 			}
-			events.Reset()
-			_, item := r.pages.GetFrontPage()
+			_, item := s.pages.GetFrontPage()
 			if item == nil {
-				return event
+				return
 			}
 			switch i := item.(type) {
 			case *Roster:
@@ -255,53 +286,47 @@ func newSidebar(roster *Roster, b *Bookmarks, c *Conversations) *Sidebar {
 				}
 				i.Delete(c.JID.String())
 			}
-			return nil
 		case '1', '2', '3', '4', '5', '6', '7', '8', '9', '0':
-			return nil
+			// Don't reset events, after a number we may provide an action such as
+			// '10j'.
+			return
 		case '/':
-			if events.String() == "/" {
-				r.searching = true
-				r.searchDir = SearchDown
-				r.Flex.AddItem(r.search, 1, 0, true)
-			}
-			return event
+			s.searching = true
+			s.searchDir = SearchDown
+			s.Flex.AddItem(s.search, 1, 0, true)
 		case '?':
-			if events.String() == "?" {
-				r.searching = true
-				r.searchDir = SearchUp
-				r.Flex.AddItem(r.search, 1, 0, true)
-			}
-			return event
+			s.searching = true
+			s.searchDir = SearchUp
+			s.Flex.AddItem(s.search, 1, 0, true)
 		case 'n':
-			events.Reset()
-			if r.lastSearch != "" {
-				r.Search(r.lastSearch, r.searchDir)
+			if s.lastSearch != "" {
+				s.Search(s.lastSearch, s.searchDir)
 			}
-			return nil
 		case 'N':
-			events.Reset()
-			if r.lastSearch != "" {
-				r.Search(r.lastSearch, !r.searchDir)
+			if s.lastSearch != "" {
+				s.Search(s.lastSearch, !s.searchDir)
 			}
-			return nil
+		case 'q':
+			s.ui.ShowQuitPrompt()
+		case 'K':
+			s.ui.ShowHelpPrompt()
+		case 'c':
+			name, _ := s.pages.GetFrontPage()
+			switch name {
+			case s.roster.list.GetTitle():
+				s.ui.ShowAddRoster()
+			case s.bookmarks.list.GetTitle():
+				s.ui.ShowAddBookmark()
+			}
+		default:
+			_, item := s.pages.GetFrontPage()
+			if item != nil {
+				item.InputHandler()(event, setFocus)
+			}
 		}
 
-		events.Reset()
-		if innerCapture != nil {
-			return innerCapture(event)
-		}
-		return event
+		s.events.Reset()
 	})
-
-	return r
-}
-
-// InputHandler implements tview.Primitive for Roster.
-func (s *Sidebar) InputHandler() func(event *tcell.EventKey, setFocus func(p tview.Primitive)) {
-	if s.searching {
-		return s.search.InputHandler()
-	}
-	return s.Flex.InputHandler()
 }
 
 // Search looks forward in the roster trying to find items that match s.

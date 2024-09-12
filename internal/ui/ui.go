@@ -213,11 +213,8 @@ func New(p *message.Printer, opts ...Option) *UI {
 		statusBar.SetText(fmt.Sprintf("Chat: %q (%s)", main, secondary))
 	})
 
-	sidebarBox := newSidebar(rosterBox, bookmarksBox, conversationsBox)
-
 	ui := &UI{
 		app:              app,
-		sidebar:          sidebarBox,
 		rosterBox:        rosterBox,
 		bookmarksBox:     bookmarksBox,
 		conversationsBox: conversationsBox,
@@ -232,6 +229,8 @@ func New(p *message.Printer, opts ...Option) *UI {
 		debug:            log.New(io.Discard, "", 0),
 		p:                p,
 	}
+	sidebarBox := newSidebar(rosterBox, bookmarksBox, conversationsBox, ui)
+	ui.sidebar = sidebarBox
 	ui.cmdPane = cmdPane()
 	for _, o := range opts {
 		o(ui)
@@ -246,49 +245,6 @@ func New(p *message.Printer, opts ...Option) *UI {
 	logs := newLogs(p, app)
 	buffers.AddPage(logsPageName, logs, true, true)
 	ui.logWriter = logs
-
-	innerCapture := sidebarBox.GetInputCapture()
-	sidebarBox.SetInputCapture(func(event *tcell.EventKey) *tcell.EventKey {
-		eventRune := event.Rune()
-		switch {
-		case eventRune == '!':
-			ui.PickResource(func(j jid.JID, ok bool) {
-				if ok {
-					ui.ShowLoadCmd(j)
-				}
-			})
-			return nil
-		case eventRune == 'I':
-			ui.ShowRosterInfo()
-			return nil
-		}
-
-		if innerCapture != nil {
-			return innerCapture(event)
-		}
-
-		return event
-	})
-	rosterBox.SetInputCapture(func(event *tcell.EventKey) *tcell.EventKey {
-		eventRune := event.Rune()
-		switch eventRune {
-		case 'c':
-			ui.ShowAddRoster()
-			return nil
-		}
-
-		return event
-	})
-	bookmarksBox.SetInputCapture(func(event *tcell.EventKey) *tcell.EventKey {
-		eventRune := event.Rune()
-		switch eventRune {
-		case 'c':
-			ui.ShowAddBookmark()
-			return nil
-		}
-
-		return event
-	})
 
 	setStatusPage := statusModal(func(buttonIndex int, buttonLabel string) {
 		switch buttonIndex {
@@ -1164,17 +1120,5 @@ func (ui *UI) handleInput(event *tcell.EventKey) *tcell.EventKey {
 		}
 	}
 
-	switch event.Rune() {
-	case 'q':
-		if name, _ := ui.pages.GetFrontPage(); name == uiPageName {
-			ui.ShowQuitPrompt()
-			return nil
-		}
-	case 'K':
-		if name, _ := ui.pages.GetFrontPage(); name == uiPageName {
-			ui.ShowHelpPrompt()
-			return nil
-		}
-	}
 	return event
 }
