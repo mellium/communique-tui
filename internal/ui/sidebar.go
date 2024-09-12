@@ -6,6 +6,7 @@ package ui
 
 import (
 	"bytes"
+	"fmt"
 	"strconv"
 	"strings"
 	"sync"
@@ -36,18 +37,46 @@ type Sidebar struct {
 }
 
 // newSidebar creates a new widget with the provided options.
-func newSidebar(roster *Roster, b *Bookmarks, c *Conversations, ui *UI) *Sidebar {
+func newSidebar(ui *UI) *Sidebar {
 	r := &Sidebar{
-		pages:         tview.NewPages(),
-		dropDown:      tview.NewDropDown().SetFieldBackgroundColor(tview.Styles.PrimitiveBackgroundColor),
-		search:        tview.NewInputField(),
-		roster:        roster,
-		bookmarks:     b,
-		conversations: c,
-		ui:            ui,
-		events:        &bytes.Buffer{},
-		eventsM:       &sync.Mutex{},
+		pages:    tview.NewPages(),
+		dropDown: tview.NewDropDown().SetFieldBackgroundColor(tview.Styles.PrimitiveBackgroundColor),
+		search:   tview.NewInputField(),
+		ui:       ui,
+		events:   &bytes.Buffer{},
+		eventsM:  &sync.Mutex{},
 	}
+	r.roster = newRoster(func() {
+		ui.pages.ShowPage(delRosterPageName)
+		ui.pages.SendToFront(delRosterPageName)
+		ui.app.SetFocus(ui.pages)
+	})
+	r.roster.OnChanged(func(idx int, main string, secondary string, shortcut rune) {
+		main = strings.TrimPrefix(main, highlightTag)
+		ui.statusBar.SetText(fmt.Sprintf("Chat: %q (%s)", main, secondary))
+	})
+	r.bookmarks = newBookmarks(ui.p, func() {
+		ui.pages.ShowPage(delBookmarkPageName)
+		ui.pages.SendToFront(delBookmarkPageName)
+		ui.app.SetFocus(ui.pages)
+	})
+	r.bookmarks.OnChanged(func(idx int, main string, secondary string, shortcut rune) {
+		main = strings.TrimPrefix(main, highlightTag)
+		ui.statusBar.SetText(fmt.Sprintf("Chat: %q (%s)", main, secondary))
+	})
+	r.conversations = newConversations(ui.p, func() {
+		ui.pages.ShowPage(setStatusPageName)
+		ui.pages.SendToFront(setStatusPageName)
+		ui.app.SetFocus(ui.pages)
+	})
+	r.conversations.OnChanged(func(idx int, main string, secondary string, shortcut rune) {
+		if idx == 0 {
+			ui.statusBar.SetText("Status: " + main)
+			return
+		}
+		main = strings.TrimPrefix(main, highlightTag)
+		ui.statusBar.SetText(fmt.Sprintf("Chat: %q (%s)", main, secondary))
+	})
 	r.pages.AddAndSwitchToPage(r.conversations.list.GetTitle(), r.conversations, true)
 	r.pages.AddPage(r.bookmarks.list.GetTitle(), r.bookmarks, true, false)
 	r.pages.AddPage(r.roster.list.GetTitle(), r.roster, true, false)

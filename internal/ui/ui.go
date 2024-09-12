@@ -66,26 +66,23 @@ func (b *syncBool) Get() bool {
 
 // UI is a widget that combines other widgets to make the main UI.
 type UI struct {
-	app              *tview.Application
-	flex             *tview.Flex
-	pages            *tview.Pages
-	buffers          *tview.Pages
-	history          *ConversationView
-	statusBar        *tview.TextView
-	sidebar          *Sidebar
-	rosterBox        *Roster
-	bookmarksBox     *Bookmarks
-	conversationsBox *Conversations
-	sidebarWidth     int
-	logWriter        *tview.TextView
-	handler          func(interface{})
-	redraw           func() *tview.Application
-	addr             string
-	passPrompt       chan string
-	chatsOpen        *syncBool
-	cmdPane          *commandsPane
-	debug            *log.Logger
-	p                *message.Printer
+	app          *tview.Application
+	flex         *tview.Flex
+	pages        *tview.Pages
+	buffers      *tview.Pages
+	history      *ConversationView
+	statusBar    *tview.TextView
+	sidebar      *Sidebar
+	sidebarWidth int
+	logWriter    *tview.TextView
+	handler      func(interface{})
+	redraw       func() *tview.Application
+	addr         string
+	passPrompt   chan string
+	chatsOpen    *syncBool
+	cmdPane      *commandsPane
+	debug        *log.Logger
+	p            *message.Printer
 }
 
 // Printer returns the message printer that the UI is using for translations.
@@ -181,55 +178,20 @@ func New(p *message.Printer, opts ...Option) *UI {
 	buffers := tview.NewPages()
 	pages := tview.NewPages()
 
-	rosterBox := newRoster(func() {
-		pages.ShowPage(delRosterPageName)
-		pages.SendToFront(delRosterPageName)
-		app.SetFocus(pages)
-	})
-	rosterBox.OnChanged(func(idx int, main string, secondary string, shortcut rune) {
-		main = strings.TrimPrefix(main, highlightTag)
-		statusBar.SetText(fmt.Sprintf("Chat: %q (%s)", main, secondary))
-	})
-	bookmarksBox := newBookmarks(p, func() {
-		pages.ShowPage(delBookmarkPageName)
-		pages.SendToFront(delBookmarkPageName)
-		app.SetFocus(pages)
-	})
-	bookmarksBox.OnChanged(func(idx int, main string, secondary string, shortcut rune) {
-		main = strings.TrimPrefix(main, highlightTag)
-		statusBar.SetText(fmt.Sprintf("Chat: %q (%s)", main, secondary))
-	})
-	conversationsBox := newConversations(p, func() {
-		pages.ShowPage(setStatusPageName)
-		pages.SendToFront(setStatusPageName)
-		app.SetFocus(pages)
-	})
-	conversationsBox.OnChanged(func(idx int, main string, secondary string, shortcut rune) {
-		if idx == 0 {
-			statusBar.SetText("Status: " + main)
-			return
-		}
-		main = strings.TrimPrefix(main, highlightTag)
-		statusBar.SetText(fmt.Sprintf("Chat: %q (%s)", main, secondary))
-	})
-
 	ui := &UI{
-		app:              app,
-		rosterBox:        rosterBox,
-		bookmarksBox:     bookmarksBox,
-		conversationsBox: conversationsBox,
-		sidebarWidth:     25,
-		statusBar:        statusBar,
-		handler:          func(interface{}) {},
-		redraw:           app.Draw,
-		buffers:          buffers,
-		pages:            pages,
-		passPrompt:       make(chan string),
-		chatsOpen:        &syncBool{},
-		debug:            log.New(io.Discard, "", 0),
-		p:                p,
+		app:          app,
+		sidebarWidth: 25,
+		statusBar:    statusBar,
+		handler:      func(interface{}) {},
+		redraw:       app.Draw,
+		buffers:      buffers,
+		pages:        pages,
+		passPrompt:   make(chan string),
+		chatsOpen:    &syncBool{},
+		debug:        log.New(io.Discard, "", 0),
+		p:            p,
 	}
-	sidebarBox := newSidebar(rosterBox, bookmarksBox, conversationsBox, ui)
+	sidebarBox := newSidebar(ui)
 	ui.sidebar = sidebarBox
 	ui.cmdPane = cmdPane()
 	for _, o := range opts {
@@ -315,7 +277,7 @@ func (ui *UI) RosterLen() int {
 
 // UpdateRoster adds an item to the roster.
 func (ui *UI) UpdateRoster(item RosterItem) {
-	ui.rosterBox.Upsert(item, func() {
+	ui.sidebar.roster.Upsert(item, func() {
 		selected := func(c Conversation) {
 			ui.buffers.SwitchToPage(chatPageName)
 			ui.chatsOpen.Set(true)
@@ -328,8 +290,8 @@ func (ui *UI) UpdateRoster(item RosterItem) {
 			firstUnread: item.firstUnread,
 			presences:   item.presences,
 		}
-		idx := ui.conversationsBox.Upsert(c, selected)
-		ui.conversationsBox.list.SetCurrentItem(idx)
+		idx := ui.sidebar.conversations.Upsert(c, selected)
+		ui.sidebar.conversations.list.SetCurrentItem(idx)
 		ui.sidebar.dropDown.SetCurrentOption(0)
 		selected(c)
 	})
@@ -338,7 +300,7 @@ func (ui *UI) UpdateRoster(item RosterItem) {
 
 // UpdateConversations adds a roster item to the recent conversations list.
 func (ui *UI) UpdateConversations(c Conversation) {
-	ui.conversationsBox.Upsert(c, func(c Conversation) {
+	ui.sidebar.conversations.Upsert(c, func(c Conversation) {
 		ui.buffers.SwitchToPage(chatPageName)
 		ui.chatsOpen.Set(true)
 		ui.handler(event.OpenChat(roster.Item{
@@ -353,7 +315,7 @@ func (ui *UI) UpdateConversations(c Conversation) {
 // UpdateBookmarks adds an item to the bookmarks sidebar.
 func (ui *UI) UpdateBookmarks(item bookmarks.Channel) {
 	ui.handler(event.UpdateBookmark(item))
-	ui.bookmarksBox.Upsert(item, func() {
+	ui.sidebar.bookmarks.Upsert(item, func() {
 		selected := func(c Conversation) {
 			ui.buffers.SwitchToPage(chatPageName)
 			ui.chatsOpen.Set(true)
@@ -368,8 +330,8 @@ func (ui *UI) UpdateBookmarks(item bookmarks.Channel) {
 			Name: item.Name,
 			Room: true,
 		}
-		idx := ui.conversationsBox.Upsert(c, selected)
-		ui.conversationsBox.list.SetCurrentItem(idx)
+		idx := ui.sidebar.conversations.Upsert(c, selected)
+		ui.sidebar.conversations.list.SetCurrentItem(idx)
 		ui.sidebar.dropDown.SetCurrentOption(0)
 		selected(c)
 		ui.app.SetFocus(ui.buffers)
