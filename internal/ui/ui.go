@@ -1138,10 +1138,12 @@ func (ui *UI) handleInput(event *tcell.EventKey) *tcell.EventKey {
 	case tcell.KeyTAB, tcell.KeyBacktab:
 		switch {
 		case ui.buffers.HasFocus():
-			if !ui.chatsOpen.Get() {
+			name, _ := ui.buffers.GetFrontPage()
+			if !ui.chatsOpen.Get() && name == logsPageName {
 				ui.SelectRoster()
 				return nil
 			}
+			return event
 		case ui.sidebar.HasFocus():
 			ui.buffers.SwitchToPage(logsPageName)
 			ui.app.SetFocus(ui.buffers)
