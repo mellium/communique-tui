@@ -1061,13 +1061,6 @@
             "fuzzy": true
         },
         {
-            "id": "no upload service available",
-            "message": "no upload service available",
-            "translation": "no upload service available",
-            "translatorComment": "Manually copied from source.",
-            "fuzzy": true
-        },
-        {
             "id": "error adding roster item {JID}: {Err}",
             "message": "error adding roster item {JID}: {Err}",
             "translation": "error adding roster item {JID}: {Err}",
@@ -1358,6 +1351,13 @@
                     "expr": "err"
                 }
             ],
+            "fuzzy": true
+        },
+        {
+            "id": "no upload service available",
+            "message": "no upload service available",
+            "translation": "no upload service available",
+            "translatorComment": "Copied from source.",
             "fuzzy": true
         },
         {
@@ -1878,7 +1878,7 @@
             "id": "failed to get the recipient",
             "message": "failed to get the recipient",
             "translation": "failed to get the recipient",
-            "translatorComment": "Manually copied from source.",
+            "translatorComment": "Copied from source.",
             "fuzzy": true
         },
         {

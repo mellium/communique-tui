@@ -248,7 +248,7 @@ func uploadFile(c *client.Client, logger *log.Logger, debug *log.Logger, db *sto
 		return
 	}
 	if len(services) == 0 {
-		logger.Print(p.Sprint("no upload service available"))
+		logger.Print(p.Sprintf("no upload service available"))
 		return
 	}
 	url, err := c.Upload(ctx, event.Path, services[0])

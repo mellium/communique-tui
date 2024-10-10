@@ -148,7 +148,7 @@ func (cv *ConversationView) InputHandler() func(event *tcell.EventKey, setFocus 
 
 			rcpt, ok := cv.ui.sidebar.conversations.GetSelected()
 			if !ok {
-				cv.ui.logger.Print(p.Sprint("failed to get the recipient"))
+				cv.ui.logger.Print(p.Sprintf("failed to get the recipient"))
 				return
 			}
 			typ := stanza.ChatMessage
