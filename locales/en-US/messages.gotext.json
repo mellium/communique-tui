@@ -1,5 +1,1953 @@
 {
     "language": "en-US",
     "messages": [
+        {
+            "id": "error updating to roster ver {Ver}: {Err}",
+            "message": "error updating to roster ver {Ver}: {Err}",
+            "fuzzy": true,
+            "translation": "error updating to roster ver {Ver}: {Err}",
+            "placeholders": [
+                {
+                    "id": "Ver",
+                    "string": "%[1]q",
+                    "type": "string",
+                    "underlyingType": "string",
+                    "argNum": 1,
+                    "expr": "e.Ver"
+                },
+                {
+                    "id": "Err",
+                    "string": "%[2]v",
+                    "type": "error",
+                    "underlyingType": "interface{Error() string}",
+                    "argNum": 2,
+                    "expr": "err"
+                }
+            ]
+        },
+        {
+            "id": "error querying database for last seen messages: {Err}",
+            "message": "error querying database for last seen messages: {Err}",
+            "fuzzy": true,
+            "translation": "error querying database for last seen messages: {Err}",
+            "placeholders": [
+                {
+                    "id": "Err",
+                    "string": "%[1]v",
+                    "type": "error",
+                    "underlyingType": "interface{Error() string}",
+                    "argNum": 1,
+                    "expr": "err"
+                }
+            ]
+        },
+        {
+            "id": "error fetching history after {ID} for {JID}: {Err}",
+            "message": "error fetching history after {ID} for {JID}: {Err}",
+            "fuzzy": true,
+            "translation": "error fetching history after {ID} for {JID}: {Err}",
+            "placeholders": [
+                {
+                    "id": "ID",
+                    "string": "%[1]s",
+                    "type": "string",
+                    "underlyingType": "string",
+                    "argNum": 1,
+                    "expr": "id.ID"
+                },
+                {
+                    "id": "JID",
+                    "string": "%[2]s",
+                    "type": "mellium.im/xmpp/jid.JID",
+                    "underlyingType": "struct{locallen int; domainlen int; data []byte}",
+                    "argNum": 2,
+                    "expr": "item.JID"
+                },
+                {
+                    "id": "Err",
+                    "string": "%[3]v",
+                    "type": "error",
+                    "underlyingType": "interface{Error() string}",
+                    "argNum": 3,
+                    "expr": "err"
+                }
+            ]
+        },
+        {
+            "id": "error bootstraping history for {JID}: {Err}",
+            "message": "error bootstraping history for {JID}: {Err}",
+            "fuzzy": true,
+            "translation": "error bootstraping history for {JID}: {Err}",
+            "placeholders": [
+                {
+                    "id": "JID",
+                    "string": "%[1]s",
+                    "type": "mellium.im/xmpp/jid.JID",
+                    "underlyingType": "struct{locallen int; domainlen int; data []byte}",
+                    "argNum": 1,
+                    "expr": "item.JID"
+                },
+                {
+                    "id": "Err",
+                    "string": "%[2]v",
+                    "type": "error",
+                    "underlyingType": "interface{Error() string}",
+                    "argNum": 2,
+                    "expr": "err"
+                }
+            ]
+        },
+        {
+            "id": "Prev",
+            "message": "Prev",
+            "fuzzy": true,
+            "translation": "Prev"
+        },
+        {
+            "id": "Next",
+            "message": "Next",
+            "fuzzy": true,
+            "translation": "Next"
+        },
+        {
+            "id": "Complete",
+            "message": "Complete",
+            "fuzzy": true,
+            "translation": "Complete"
+        },
+        {
+            "id": "Cancel",
+            "message": "Cancel",
+            "fuzzy": true,
+            "translation": "Cancel"
+        },
+        {
+            "id": "executing command: {ExecCommand}",
+            "message": "executing command: {ExecCommand}",
+            "fuzzy": true,
+            "translation": "executing command: {ExecCommand}",
+            "placeholders": [
+                {
+                    "id": "ExecCommand",
+                    "string": "%+[1]v",
+                    "type": "mellium.im/communique/internal/client/event.ExecCommand",
+                    "underlyingType": "struct{JID mellium.im/xmpp/jid.JID \"xml:\\\"jid,attr\\\"\"; Action string \"xml:\\\"action,attr\\\"\"; Name string \"xml:\\\"name,attr\\\"\"; Node string \"xml:\\\"node,attr\\\"\"; SID string \"xml:\\\"sessionid,attr\\\"\"}",
+                    "argNum": 1,
+                    "expr": "e"
+                }
+            ]
+        },
+        {
+            "id": "error going offline: {Err}",
+            "message": "error going offline: {Err}",
+            "fuzzy": true,
+            "translation": "error going offline: {Err}",
+            "placeholders": [
+                {
+                    "id": "Err",
+                    "string": "%[1]v",
+                    "type": "error",
+                    "underlyingType": "interface{Error() string}",
+                    "argNum": 1,
+                    "expr": "err"
+                }
+            ]
+        },
+        {
+            "id": "error writing message to database: {Err}",
+            "message": "error writing message to database: {Err}",
+            "fuzzy": true,
+            "translation": "error writing message to database: {Err}",
+            "placeholders": [
+                {
+                    "id": "Err",
+                    "string": "%[1]v",
+                    "type": "error",
+                    "underlyingType": "interface{Error() string}",
+                    "argNum": 1,
+                    "expr": "err"
+                }
+            ]
+        },
+        {
+            "id": "error sending presence pre-approval to {JIDe}: {Err}",
+            "message": "error sending presence pre-approval to {JIDe}: {Err}",
+            "fuzzy": true,
+            "translation": "error sending presence pre-approval to {JIDe}: {Err}",
+            "placeholders": [
+                {
+                    "id": "JIDe",
+                    "string": "%[1]s",
+                    "type": "mellium.im/xmpp/jid.JID",
+                    "underlyingType": "struct{locallen int; domainlen int; data []byte}",
+                    "argNum": 1,
+                    "expr": "jid.JID(e)"
+                },
+                {
+                    "id": "Err",
+                    "string": "%[2]v",
+                    "type": "error",
+                    "underlyingType": "interface{Error() string}",
+                    "argNum": 2,
+                    "expr": "err"
+                }
+            ]
+        },
+        {
+            "id": "error sending presence request to {JIDe}: {Err}",
+            "message": "error sending presence request to {JIDe}: {Err}",
+            "fuzzy": true,
+            "translation": "error sending presence request to {JIDe}: {Err}",
+            "placeholders": [
+                {
+                    "id": "JIDe",
+                    "string": "%[1]s",
+                    "type": "mellium.im/xmpp/jid.JID",
+                    "underlyingType": "struct{locallen int; domainlen int; data []byte}",
+                    "argNum": 1,
+                    "expr": "jid.JID(e)"
+                },
+                {
+                    "id": "Err",
+                    "string": "%[2]v",
+                    "type": "error",
+                    "underlyingType": "interface{Error() string}",
+                    "argNum": 2,
+                    "expr": "err"
+                }
+            ]
+        },
+        {
+            "id": "the config file to load",
+            "message": "the config file to load",
+            "fuzzy": true,
+            "translation": "the config file to load"
+        },
+        {
+            "id": "override the account set in the config file",
+            "message": "override the account set in the config file",
+            "fuzzy": true,
+            "translation": "override the account set in the config file"
+        },
+        {
+            "id": "print this help message",
+            "message": "print this help message",
+            "fuzzy": true,
+            "translation": "print this help message"
+        },
+        {
+            "id": "print a default config file to stdout",
+            "message": "print a default config file to stdout",
+            "fuzzy": true,
+            "translation": "print a default config file to stdout"
+        },
+        {
+            "id": "Error encoding default config as TOML: {Err}",
+            "message": "Error encoding default config as TOML: {Err}",
+            "fuzzy": true,
+            "translation": "Error encoding default config as TOML: {Err}",
+            "placeholders": [
+                {
+                    "id": "Err",
+                    "string": "%[1]v",
+                    "type": "error",
+                    "underlyingType": "interface{Error() string}",
+                    "argNum": 1,
+                    "expr": "err"
+                }
+            ]
+        },
+        {
+            "id": "{Err}\n\nTry running '{Args0} -config' to generate a default config file.",
+            "message": "{Err}\n\nTry running '{Args0} -config' to generate a default config file.",
+            "fuzzy": true,
+            "translation": "{Err}\n\nTry running '{Args0} -config' to generate a default config file.",
+            "placeholders": [
+                {
+                    "id": "Err",
+                    "string": "%[1]v",
+                    "type": "error",
+                    "underlyingType": "interface{Error() string}",
+                    "argNum": 1,
+                    "expr": "err"
+                },
+                {
+                    "id": "Args0",
+                    "string": "%[2]s",
+                    "type": "string",
+                    "underlyingType": "string",
+                    "argNum": 2,
+                    "expr": "os.Args[0]"
+                }
+            ]
+        },
+        {
+            "id": "error parsing config file: {Err}",
+            "message": "error parsing config file: {Err}",
+            "fuzzy": true,
+            "translation": "error parsing config file: {Err}",
+            "placeholders": [
+                {
+                    "id": "Err",
+                    "string": "%[1]v",
+                    "type": "error",
+                    "underlyingType": "interface{Error() string}",
+                    "argNum": 1,
+                    "expr": "err"
+                }
+            ]
+        },
+        {
+            "id": "error closing config file: {Err}",
+            "message": "error closing config file: {Err}",
+            "fuzzy": true,
+            "translation": "error closing config file: {Err}",
+            "placeholders": [
+                {
+                    "id": "Err",
+                    "string": "%[1]v",
+                    "type": "error",
+                    "underlyingType": "interface{Error() string}",
+                    "argNum": 1,
+                    "expr": "err"
+                }
+            ]
+        },
+        {
+            "id": "account {DefaultAcct} not found in config file",
+            "message": "account {DefaultAcct} not found in config file",
+            "fuzzy": true,
+            "translation": "account {DefaultAcct} not found in config file",
+            "placeholders": [
+                {
+                    "id": "DefaultAcct",
+                    "string": "%[1]q",
+                    "type": "string",
+                    "underlyingType": "string",
+                    "argNum": 1,
+                    "expr": "cfg.DefaultAcct"
+                }
+            ]
+        },
+        {
+            "id": "error opening database: {Err}",
+            "message": "error opening database: {Err}",
+            "fuzzy": true,
+            "translation": "error opening database: {Err}",
+            "placeholders": [
+                {
+                    "id": "Err",
+                    "string": "%[1]v",
+                    "type": "error",
+                    "underlyingType": "interface{Error() string}",
+                    "argNum": 1,
+                    "expr": "err"
+                }
+            ]
+        },
+        {
+            "id": "error logging to pane: {Err}",
+            "message": "error logging to pane: {Err}",
+            "fuzzy": true,
+            "translation": "error logging to pane: {Err}",
+            "placeholders": [
+                {
+                    "id": "Err",
+                    "string": "%[1]v",
+                    "type": "error",
+                    "underlyingType": "interface{Error() string}",
+                    "argNum": 1,
+                    "expr": "err"
+                }
+            ]
+        },
+        {
+            "id": "Your server does not support bookmark unification, an important feature that stops newer clients from seeing a different list of chat rooms than older clients that do not yet support the latest features.",
+            "message": "Your server does not support bookmark unification, an important feature that stops newer clients from seeing a different list of chat rooms than older clients that do not yet support the latest features.",
+            "fuzzy": true,
+            "translation": "Your server does not support bookmark unification, an important feature that stops newer clients from seeing a different list of chat rooms than older clients that do not yet support the latest features."
+        },
+        {
+            "id": "error closing bookmarks stream: {Error}",
+            "message": "error closing bookmarks stream: {Error}",
+            "fuzzy": true,
+            "translation": "error closing bookmarks stream: {Error}",
+            "placeholders": [
+                {
+                    "id": "Error",
+                    "string": "%[1]v",
+                    "type": "error",
+                    "underlyingType": "interface{Error() string}",
+                    "argNum": 1,
+                    "expr": "e"
+                }
+            ]
+        },
+        {
+            "id": "Error closing roster stream: {Error}",
+            "message": "Error closing roster stream: {Error}",
+            "fuzzy": true,
+            "translation": "Error closing roster stream: {Error}",
+            "placeholders": [
+                {
+                    "id": "Error",
+                    "string": "%[1]q",
+                    "type": "error",
+                    "underlyingType": "interface{Error() string}",
+                    "argNum": 1,
+                    "expr": "e"
+                }
+            ]
+        },
+        {
+            "id": "possibly spoofed history message from {From}",
+            "message": "possibly spoofed history message from {From}",
+            "fuzzy": true,
+            "translation": "possibly spoofed history message from {From}",
+            "placeholders": [
+                {
+                    "id": "From",
+                    "string": "%[1]s",
+                    "type": "mellium.im/xmpp/jid.JID",
+                    "underlyingType": "struct{locallen int; domainlen int; data []byte}",
+                    "argNum": 1,
+                    "expr": "msg.From"
+                }
+            ]
+        },
+        {
+            "id": "Add Contact",
+            "message": "Add Contact",
+            "fuzzy": true,
+            "translation": "Add Contact"
+        },
+        {
+            "id": "Address",
+            "message": "Address",
+            "fuzzy": true,
+            "translation": "Address"
+        },
+        {
+            "id": "Name",
+            "message": "Name",
+            "fuzzy": true,
+            "translation": "Name"
+        },
+        {
+            "id": "Channels",
+            "message": "Channels",
+            "fuzzy": true,
+            "translation": "Channels"
+        },
+        {
+            "id": "Conversation",
+            "message": "Conversation",
+            "fuzzy": true,
+            "translation": "Conversation"
+        },
+        {
+            "id": "Online",
+            "message": "Online",
+            "fuzzy": true,
+            "translation": "Online"
+        },
+        {
+            "id": "Conversations",
+            "message": "Conversations",
+            "fuzzy": true,
+            "translation": "Conversations"
+        },
+        {
+            "id": "Logs",
+            "message": "Logs",
+            "fuzzy": true,
+            "translation": "Logs"
+        },
+        {
+            "id": "Remove",
+            "message": "Remove",
+            "fuzzy": true,
+            "translation": "Remove"
+        },
+        {
+            "id": "Remove this contact from your roster?",
+            "message": "Remove this contact from your roster?",
+            "fuzzy": true,
+            "translation": "Remove this contact from your roster?"
+        },
+        {
+            "id": "Remove this channel?",
+            "message": "Remove this channel?",
+            "fuzzy": true,
+            "translation": "Remove this channel?"
+        },
+        {
+            "id": "Offline",
+            "message": "Offline",
+            "fuzzy": true,
+            "translation": "Offline"
+        },
+        {
+            "id": "Add",
+            "message": "Add",
+            "fuzzy": true,
+            "translation": "Add"
+        },
+        {
+            "id": "Commands",
+            "message": "Commands",
+            "fuzzy": true,
+            "translation": "Commands"
+        },
+        {
+            "id": "Exec",
+            "message": "Exec",
+            "fuzzy": true,
+            "translation": "Exec"
+        },
+        {
+            "id": "Quit",
+            "message": "Quit",
+            "fuzzy": true,
+            "translation": "Quit"
+        },
+        {
+            "id": "Join",
+            "message": "Join",
+            "fuzzy": true,
+            "translation": "Join"
+        },
+        {
+            "id": "Join Channel",
+            "message": "Join Channel",
+            "fuzzy": true,
+            "translation": "Join Channel"
+        },
+        {
+            "id": "error fetching bookmarks: {Err}",
+            "message": "error fetching bookmarks: {Err}",
+            "fuzzy": true,
+            "translation": "error fetching bookmarks: {Err}",
+            "placeholders": [
+                {
+                    "id": "Err",
+                    "string": "%[1]q",
+                    "type": "error",
+                    "underlyingType": "interface{Error() string}",
+                    "argNum": 1,
+                    "expr": "err"
+                }
+            ]
+        },
+        {
+            "id": "error fetching version information: {Err}",
+            "message": "error fetching version information: {Err}",
+            "fuzzy": true,
+            "translation": "error fetching version information: {Err}",
+            "placeholders": [
+                {
+                    "id": "Err",
+                    "string": "%[1]v",
+                    "type": "error",
+                    "underlyingType": "interface{Error() string}",
+                    "argNum": 1,
+                    "expr": "err"
+                }
+            ]
+        },
+        {
+            "id": "error iterating over roster items: {Err}",
+            "message": "error iterating over roster items: {Err}",
+            "fuzzy": true,
+            "translation": "error iterating over roster items: {Err}",
+            "placeholders": [
+                {
+                    "id": "Err",
+                    "string": "%[1]v",
+                    "type": "error",
+                    "underlyingType": "interface{Error() string}",
+                    "argNum": 1,
+                    "expr": "err"
+                }
+            ]
+        },
+        {
+            "id": "error updating roster version: {Err}",
+            "message": "error updating roster version: {Err}",
+            "fuzzy": true,
+            "translation": "error updating roster version: {Err}",
+            "placeholders": [
+                {
+                    "id": "Err",
+                    "string": "%[1]v",
+                    "type": "error",
+                    "underlyingType": "interface{Error() string}",
+                    "argNum": 1,
+                    "expr": "err"
+                }
+            ]
+        },
+        {
+            "id": "error marking message {Receipt} as received: {Err}",
+            "message": "error marking message {Receipt} as received: {Err}",
+            "fuzzy": true,
+            "translation": "error marking message {Receipt} as received: {Err}",
+            "placeholders": [
+                {
+                    "id": "Receipt",
+                    "string": "%[1]q",
+                    "type": "mellium.im/communique/internal/client/event.Receipt",
+                    "underlyingType": "string",
+                    "argNum": 1,
+                    "expr": "e"
+                },
+                {
+                    "id": "Err",
+                    "string": "%[2]v",
+                    "type": "error",
+                    "underlyingType": "interface{Error() string}",
+                    "argNum": 2,
+                    "expr": "err"
+                }
+            ]
+        },
+        {
+            "id": "error writing received message to chat: {Err}",
+            "message": "error writing received message to chat: {Err}",
+            "fuzzy": true,
+            "translation": "error writing received message to chat: {Err}",
+            "placeholders": [
+                {
+                    "id": "Err",
+                    "string": "%[1]v",
+                    "type": "error",
+                    "underlyingType": "interface{Error() string}",
+                    "argNum": 1,
+                    "expr": "err"
+                }
+            ]
+        },
+        {
+            "id": "error writing history message to chat: {Err}",
+            "message": "error writing history message to chat: {Err}",
+            "fuzzy": true,
+            "translation": "error writing history message to chat: {Err}",
+            "placeholders": [
+                {
+                    "id": "Err",
+                    "string": "%[1]v",
+                    "type": "error",
+                    "underlyingType": "interface{Error() string}",
+                    "argNum": 1,
+                    "expr": "err"
+                }
+            ]
+        },
+        {
+            "id": "error writing history to database: {Err}",
+            "message": "error writing history to database: {Err}",
+            "fuzzy": true,
+            "translation": "error writing history to database: {Err}",
+            "placeholders": [
+                {
+                    "id": "Err",
+                    "string": "%[1]v",
+                    "type": "error",
+                    "underlyingType": "interface{Error() string}",
+                    "argNum": 1,
+                    "expr": "err"
+                }
+            ]
+        },
+        {
+            "id": "error inserting entity capbailities hash: {Err}",
+            "message": "error inserting entity capbailities hash: {Err}",
+            "fuzzy": true,
+            "translation": "error inserting entity capbailities hash: {Err}",
+            "placeholders": [
+                {
+                    "id": "Err",
+                    "string": "%[1]v",
+                    "type": "error",
+                    "underlyingType": "interface{Error() string}",
+                    "argNum": 1,
+                    "expr": "err"
+                }
+            ]
+        },
+        {
+            "id": "unrecognized client event: {E}({E_1})",
+            "message": "unrecognized client event: {E}({E_1})",
+            "fuzzy": true,
+            "translation": "unrecognized client event: {E}({E_1})",
+            "placeholders": [
+                {
+                    "id": "E",
+                    "string": "%[1]T",
+                    "type": "interface{}",
+                    "underlyingType": "interface{}",
+                    "argNum": 1,
+                    "expr": "e"
+                },
+                {
+                    "id": "E_1",
+                    "string": "%[1]q",
+                    "type": "interface{}",
+                    "underlyingType": "interface{}",
+                    "argNum": 1,
+                    "expr": "e"
+                }
+            ]
+        },
+        {
+            "id": "error fetching info from cache: {Err}",
+            "message": "error fetching info from cache: {Err}",
+            "fuzzy": true,
+            "translation": "error fetching info from cache: {Err}",
+            "placeholders": [
+                {
+                    "id": "Err",
+                    "string": "%[1]v",
+                    "type": "error",
+                    "underlyingType": "interface{Error() string}",
+                    "argNum": 1,
+                    "expr": "err"
+                }
+            ]
+        },
+        {
+            "id": "falling back to network query…",
+            "message": "falling back to network query…",
+            "fuzzy": true,
+            "translation": "falling back to network query…"
+        },
+        {
+            "id": "caps cache hit for {JID}: {Hash}:{DbHash}",
+            "message": "caps cache hit for {JID}: {Hash}:{DbHash}",
+            "fuzzy": true,
+            "translation": "caps cache hit for {JID}: {Hash}:{DbHash}",
+            "placeholders": [
+                {
+                    "id": "JID",
+                    "string": "%[1]s",
+                    "type": "mellium.im/xmpp/jid.JID",
+                    "underlyingType": "struct{locallen int; domainlen int; data []byte}",
+                    "argNum": 1,
+                    "expr": "e.To"
+                },
+                {
+                    "id": "Hash",
+                    "string": "%[2]s",
+                    "type": "mellium.im/xmpp/crypto.Hash",
+                    "underlyingType": "uint",
+                    "argNum": 2,
+                    "expr": "caps.Hash"
+                },
+                {
+                    "id": "DbHash",
+                    "string": "%[3]s",
+                    "type": "string",
+                    "underlyingType": "string",
+                    "argNum": 3,
+                    "expr": "dbHash"
+                }
+            ]
+        },
+        {
+            "id": "caps cache miss for {JID}: {Hash}:{DbHash}, {Hash}:{Ver}",
+            "message": "caps cache miss for {JID}: {Hash}:{DbHash}, {Hash}:{Ver}",
+            "fuzzy": true,
+            "translation": "caps cache miss for {JID}: {Hash}:{DbHash}, {Hash}:{Ver}",
+            "placeholders": [
+                {
+                    "id": "JID",
+                    "string": "%[1]s",
+                    "type": "mellium.im/xmpp/jid.JID",
+                    "underlyingType": "struct{locallen int; domainlen int; data []byte}",
+                    "argNum": 1,
+                    "expr": "e.To"
+                },
+                {
+                    "id": "Hash",
+                    "string": "%[2]s",
+                    "type": "mellium.im/xmpp/crypto.Hash",
+                    "underlyingType": "uint",
+                    "argNum": 2,
+                    "expr": "caps.Hash"
+                },
+                {
+                    "id": "DbHash",
+                    "string": "%[3]s",
+                    "type": "string",
+                    "underlyingType": "string",
+                    "argNum": 3,
+                    "expr": "dbHash"
+                },
+                {
+                    "id": "Hash",
+                    "string": "%[2]s",
+                    "type": "mellium.im/xmpp/crypto.Hash",
+                    "underlyingType": "uint",
+                    "argNum": 2,
+                    "expr": "caps.Hash"
+                },
+                {
+                    "id": "Ver",
+                    "string": "%[4]s",
+                    "type": "string",
+                    "underlyingType": "string",
+                    "argNum": 4,
+                    "expr": "caps.Ver"
+                }
+            ]
+        },
+        {
+            "id": "error saving entity caps to the database: {Err}",
+            "message": "error saving entity caps to the database: {Err}",
+            "fuzzy": true,
+            "translation": "error saving entity caps to the database: {Err}",
+            "placeholders": [
+                {
+                    "id": "Err",
+                    "string": "%[1]v",
+                    "type": "error",
+                    "underlyingType": "interface{Error() string}",
+                    "argNum": 1,
+                    "expr": "err"
+                }
+            ]
+        },
+        {
+            "id": "error writing history: {Err}",
+            "message": "error writing history: {Err}",
+            "fuzzy": true,
+            "translation": "error writing history: {Err}",
+            "placeholders": [
+                {
+                    "id": "Err",
+                    "string": "%[1]v",
+                    "type": "error",
+                    "underlyingType": "interface{Error() string}",
+                    "argNum": 1,
+                    "expr": "err"
+                }
+            ]
+        },
+        {
+            "id": "error querying history for {JID}: {Err}",
+            "message": "error querying history for {JID}: {Err}",
+            "fuzzy": true,
+            "translation": "error querying history for {JID}: {Err}",
+            "placeholders": [
+                {
+                    "id": "JID",
+                    "string": "%[1]s",
+                    "type": "mellium.im/xmpp/jid.JID",
+                    "underlyingType": "struct{locallen int; domainlen int; data []byte}",
+                    "argNum": 1,
+                    "expr": "ev.JID"
+                },
+                {
+                    "id": "Err",
+                    "string": "%[2]v",
+                    "type": "error",
+                    "underlyingType": "interface{Error() string}",
+                    "argNum": 2,
+                    "expr": "err"
+                }
+            ]
+        },
+        {
+            "id": "Usage of communiqué:",
+            "message": "Usage of communiqué:",
+            "fuzzy": true,
+            "translation": "Usage of communiqué:"
+        },
+        {
+            "id": "DEBUG",
+            "message": "DEBUG",
+            "fuzzy": true,
+            "translation": "DEBUG"
+        },
+        {
+            "id": "RECV",
+            "message": "RECV",
+            "fuzzy": true,
+            "translation": "RECV"
+        },
+        {
+            "id": "SENT",
+            "message": "SENT",
+            "fuzzy": true,
+            "translation": "SENT"
+        },
+        {
+            "id": "error parsing main account as XMPP address: {Err}",
+            "message": "error parsing main account as XMPP address: {Err}",
+            "fuzzy": true,
+            "translation": "error parsing main account as XMPP address: {Err}",
+            "placeholders": [
+                {
+                    "id": "Err",
+                    "string": "%[1]v",
+                    "type": "error",
+                    "underlyingType": "interface{Error() string}",
+                    "argNum": 1,
+                    "expr": "err"
+                }
+            ]
+        },
+        {
+            "id": "running command: {PassCmd}",
+            "message": "running command: {PassCmd}",
+            "fuzzy": true,
+            "translation": "running command: {PassCmd}",
+            "placeholders": [
+                {
+                    "id": "PassCmd",
+                    "string": "%[1]q",
+                    "type": "string",
+                    "underlyingType": "string",
+                    "argNum": 1,
+                    "expr": "acct.PassCmd"
+                }
+            ]
+        },
+        {
+            "id": "error running password command, falling back to prompt: {Err}",
+            "message": "error running password command, falling back to prompt: {Err}",
+            "fuzzy": true,
+            "translation": "error running password command, falling back to prompt: {Err}",
+            "placeholders": [
+                {
+                    "id": "Err",
+                    "string": "%[1]v",
+                    "type": "error",
+                    "underlyingType": "interface{Error() string}",
+                    "argNum": 1,
+                    "expr": "err"
+                }
+            ]
+        },
+        {
+            "id": "no user address specified, edit {Fpath} and add:\n\n\tjid=\"me@example.com\"",
+            "message": "no user address specified, edit {Fpath} and add:\n\n\tjid=\"me@example.com\"",
+            "fuzzy": true,
+            "translation": "no user address specified, edit {Fpath} and add:\n\n\tjid=\"me@example.com\"",
+            "placeholders": [
+                {
+                    "id": "Fpath",
+                    "string": "%[1]q",
+                    "type": "string",
+                    "underlyingType": "string",
+                    "argNum": 1,
+                    "expr": "fpath"
+                }
+            ]
+        },
+        {
+            "id": "user address: {DefaultAcct}",
+            "message": "user address: {DefaultAcct}",
+            "fuzzy": true,
+            "translation": "user address: {DefaultAcct}",
+            "placeholders": [
+                {
+                    "id": "DefaultAcct",
+                    "string": "%[1]q",
+                    "type": "string",
+                    "underlyingType": "string",
+                    "argNum": 1,
+                    "expr": "cfg.DefaultAcct"
+                }
+            ]
+        },
+        {
+            "id": "error parsing user address: {Err}",
+            "message": "error parsing user address: {Err}",
+            "fuzzy": true,
+            "translation": "error parsing user address: {Err}",
+            "placeholders": [
+                {
+                    "id": "Err",
+                    "string": "%[1]q",
+                    "type": "error",
+                    "underlyingType": "interface{Error() string}",
+                    "argNum": 1,
+                    "expr": "err"
+                }
+            ]
+        },
+        {
+            "id": "error parsing timeout, defaulting to 30s: {Err}",
+            "message": "error parsing timeout, defaulting to 30s: {Err}",
+            "fuzzy": true,
+            "translation": "error parsing timeout, defaulting to 30s: {Err}",
+            "placeholders": [
+                {
+                    "id": "Err",
+                    "string": "%[1]q",
+                    "type": "error",
+                    "underlyingType": "interface{Error() string}",
+                    "argNum": 1,
+                    "expr": "err"
+                }
+            ]
+        },
+        {
+            "id": "error creating keylog file: {Err}",
+            "message": "error creating keylog file: {Err}",
+            "fuzzy": true,
+            "translation": "error creating keylog file: {Err}",
+            "placeholders": [
+                {
+                    "id": "Err",
+                    "string": "%[1]q",
+                    "type": "error",
+                    "underlyingType": "interface{Error() string}",
+                    "argNum": 1,
+                    "expr": "err"
+                }
+            ]
+        },
+        {
+            "id": "error retrieving roster version, falling back to full roster fetch: {Err}",
+            "message": "error retrieving roster version, falling back to full roster fetch: {Err}",
+            "fuzzy": true,
+            "translation": "error retrieving roster version, falling back to full roster fetch: {Err}",
+            "placeholders": [
+                {
+                    "id": "Err",
+                    "string": "%[1]v",
+                    "type": "error",
+                    "underlyingType": "interface{Error() string}",
+                    "argNum": 1,
+                    "expr": "err"
+                }
+            ]
+        },
+        {
+            "id": "initial login failed: {Err}",
+            "message": "initial login failed: {Err}",
+            "fuzzy": true,
+            "translation": "initial login failed: {Err}",
+            "placeholders": [
+                {
+                    "id": "Err",
+                    "string": "%[1]v",
+                    "type": "error",
+                    "underlyingType": "interface{Error() string}",
+                    "argNum": 1,
+                    "expr": "err"
+                }
+            ]
+        },
+        {
+            "id": "logged in as: {LocalAddr}",
+            "message": "logged in as: {LocalAddr}",
+            "fuzzy": true,
+            "translation": "logged in as: {LocalAddr}",
+            "placeholders": [
+                {
+                    "id": "LocalAddr",
+                    "string": "%[1]q",
+                    "type": "mellium.im/xmpp/jid.JID",
+                    "underlyingType": "struct{locallen int; domainlen int; data []byte}",
+                    "argNum": 1,
+                    "expr": "c.LocalAddr()"
+                }
+            ]
+        },
+        {
+            "id": "got signal: {Signal}",
+            "message": "got signal: {Signal}",
+            "fuzzy": true,
+            "translation": "got signal: {Signal}",
+            "placeholders": [
+                {
+                    "id": "Signal",
+                    "string": "%[1]v",
+                    "type": "os.Signal",
+                    "underlyingType": "interface{Signal(); String() string}",
+                    "argNum": 1,
+                    "expr": "s"
+                }
+            ]
+        },
+        {
+            "id": "error executing command {Node} on {JID}: {Err}",
+            "message": "error executing command {Node} on {JID}: {Err}",
+            "fuzzy": true,
+            "translation": "error executing command {Node} on {JID}: {Err}",
+            "placeholders": [
+                {
+                    "id": "Node",
+                    "string": "%[1]q",
+                    "type": "string",
+                    "underlyingType": "string",
+                    "argNum": 1,
+                    "expr": "e.Node"
+                },
+                {
+                    "id": "JID",
+                    "string": "%[2]q",
+                    "type": "mellium.im/xmpp/jid.JID",
+                    "underlyingType": "struct{locallen int; domainlen int; data []byte}",
+                    "argNum": 2,
+                    "expr": "e.JID"
+                },
+                {
+                    "id": "Err",
+                    "string": "%[3]v",
+                    "type": "error",
+                    "underlyingType": "interface{Error() string}",
+                    "argNum": 3,
+                    "expr": "err"
+                }
+            ]
+        },
+        {
+            "id": "error showing next command for {JID}: {Err}",
+            "message": "error showing next command for {JID}: {Err}",
+            "fuzzy": true,
+            "translation": "error showing next command for {JID}: {Err}",
+            "placeholders": [
+                {
+                    "id": "JID",
+                    "string": "%[1]q",
+                    "type": "mellium.im/xmpp/jid.JID",
+                    "underlyingType": "struct{locallen int; domainlen int; data []byte}",
+                    "argNum": 1,
+                    "expr": "e.JID"
+                },
+                {
+                    "id": "Err",
+                    "string": "%[2]v",
+                    "type": "error",
+                    "underlyingType": "interface{Error() string}",
+                    "argNum": 2,
+                    "expr": "err"
+                }
+            ]
+        },
+        {
+            "id": "error fetching commands for {JID}: {Err}",
+            "message": "error fetching commands for {JID}: {Err}",
+            "fuzzy": true,
+            "translation": "error fetching commands for {JID}: {Err}",
+            "placeholders": [
+                {
+                    "id": "JID",
+                    "string": "%[1]q",
+                    "type": "mellium.im/xmpp/jid.JID",
+                    "underlyingType": "struct{locallen int; domainlen int; data []byte}",
+                    "argNum": 1,
+                    "expr": "j"
+                },
+                {
+                    "id": "Err",
+                    "string": "%[2]v",
+                    "type": "error",
+                    "underlyingType": "interface{Error() string}",
+                    "argNum": 2,
+                    "expr": "err"
+                }
+            ]
+        },
+        {
+            "id": "error closing commands iter for {JID}: {Err}",
+            "message": "error closing commands iter for {JID}: {Err}",
+            "fuzzy": true,
+            "translation": "error closing commands iter for {JID}: {Err}",
+            "placeholders": [
+                {
+                    "id": "JID",
+                    "string": "%[1]q",
+                    "type": "mellium.im/xmpp/jid.JID",
+                    "underlyingType": "struct{locallen int; domainlen int; data []byte}",
+                    "argNum": 1,
+                    "expr": "j"
+                },
+                {
+                    "id": "Err",
+                    "string": "%[2]v",
+                    "type": "error",
+                    "underlyingType": "interface{Error() string}",
+                    "argNum": 2,
+                    "expr": "err"
+                }
+            ]
+        },
+        {
+            "id": "error setting away status: {Err}",
+            "message": "error setting away status: {Err}",
+            "fuzzy": true,
+            "translation": "error setting away status: {Err}",
+            "placeholders": [
+                {
+                    "id": "Err",
+                    "string": "%[1]v",
+                    "type": "error",
+                    "underlyingType": "interface{Error() string}",
+                    "argNum": 1,
+                    "expr": "err"
+                }
+            ]
+        },
+        {
+            "id": "error setting online status: {Err}",
+            "message": "error setting online status: {Err}",
+            "fuzzy": true,
+            "translation": "error setting online status: {Err}",
+            "placeholders": [
+                {
+                    "id": "Err",
+                    "string": "%[1]v",
+                    "type": "error",
+                    "underlyingType": "interface{Error() string}",
+                    "argNum": 1,
+                    "expr": "err"
+                }
+            ]
+        },
+        {
+            "id": "error setting busy status: {Err}",
+            "message": "error setting busy status: {Err}",
+            "fuzzy": true,
+            "translation": "error setting busy status: {Err}",
+            "placeholders": [
+                {
+                    "id": "Err",
+                    "string": "%[1]v",
+                    "type": "error",
+                    "underlyingType": "interface{Error() string}",
+                    "argNum": 1,
+                    "expr": "err"
+                }
+            ]
+        },
+        {
+            "id": "error adding roster item {JID}: {Err}",
+            "message": "error adding roster item {JID}: {Err}",
+            "fuzzy": true,
+            "translation": "error adding roster item {JID}: {Err}",
+            "placeholders": [
+                {
+                    "id": "JID",
+                    "string": "%[1]s",
+                    "type": "mellium.im/xmpp/jid.JID",
+                    "underlyingType": "struct{locallen int; domainlen int; data []byte}",
+                    "argNum": 1,
+                    "expr": "e.JID"
+                },
+                {
+                    "id": "Err",
+                    "string": "%[2]v",
+                    "type": "error",
+                    "underlyingType": "interface{Error() string}",
+                    "argNum": 2,
+                    "expr": "err"
+                }
+            ]
+        },
+        {
+            "id": "error removing roster item {JID}: {Err}",
+            "message": "error removing roster item {JID}: {Err}",
+            "fuzzy": true,
+            "translation": "error removing roster item {JID}: {Err}",
+            "placeholders": [
+                {
+                    "id": "JID",
+                    "string": "%[1]s",
+                    "type": "mellium.im/xmpp/jid.JID",
+                    "underlyingType": "struct{locallen int; domainlen int; data []byte}",
+                    "argNum": 1,
+                    "expr": "e.JID"
+                },
+                {
+                    "id": "Err",
+                    "string": "%[2]v",
+                    "type": "error",
+                    "underlyingType": "interface{Error() string}",
+                    "argNum": 2,
+                    "expr": "err"
+                }
+            ]
+        },
+        {
+            "id": "error discovering bookmarks support: {Err}",
+            "message": "error discovering bookmarks support: {Err}",
+            "fuzzy": true,
+            "translation": "error discovering bookmarks support: {Err}",
+            "placeholders": [
+                {
+                    "id": "Err",
+                    "string": "%[1]v",
+                    "type": "error",
+                    "underlyingType": "interface{Error() string}",
+                    "argNum": 1,
+                    "expr": "err"
+                }
+            ]
+        },
+        {
+            "id": "error publishing legacy bookmark {JID}: {Err}",
+            "message": "error publishing legacy bookmark {JID}: {Err}",
+            "fuzzy": true,
+            "translation": "error publishing legacy bookmark {JID}: {Err}",
+            "placeholders": [
+                {
+                    "id": "JID",
+                    "string": "%[1]s",
+                    "type": "mellium.im/xmpp/jid.JID",
+                    "underlyingType": "struct{locallen int; domainlen int; data []byte}",
+                    "argNum": 1,
+                    "expr": "e.JID"
+                },
+                {
+                    "id": "Err",
+                    "string": "%[2]v",
+                    "type": "error",
+                    "underlyingType": "interface{Error() string}",
+                    "argNum": 2,
+                    "expr": "err"
+                }
+            ]
+        },
+        {
+            "id": "error publishing bookmark {JID}: {Err}",
+            "message": "error publishing bookmark {JID}: {Err}",
+            "fuzzy": true,
+            "translation": "error publishing bookmark {JID}: {Err}",
+            "placeholders": [
+                {
+                    "id": "JID",
+                    "string": "%[1]s",
+                    "type": "mellium.im/xmpp/jid.JID",
+                    "underlyingType": "struct{locallen int; domainlen int; data []byte}",
+                    "argNum": 1,
+                    "expr": "e.JID"
+                },
+                {
+                    "id": "Err",
+                    "string": "%[2]v",
+                    "type": "error",
+                    "underlyingType": "interface{Error() string}",
+                    "argNum": 2,
+                    "expr": "err"
+                }
+            ]
+        },
+        {
+            "id": "error removing legacy bookmark {JID}: {Err}",
+            "message": "error removing legacy bookmark {JID}: {Err}",
+            "fuzzy": true,
+            "translation": "error removing legacy bookmark {JID}: {Err}",
+            "placeholders": [
+                {
+                    "id": "JID",
+                    "string": "%[1]s",
+                    "type": "mellium.im/xmpp/jid.JID",
+                    "underlyingType": "struct{locallen int; domainlen int; data []byte}",
+                    "argNum": 1,
+                    "expr": "e.JID"
+                },
+                {
+                    "id": "Err",
+                    "string": "%[2]v",
+                    "type": "error",
+                    "underlyingType": "interface{Error() string}",
+                    "argNum": 2,
+                    "expr": "err"
+                }
+            ]
+        },
+        {
+            "id": "error removing bookmark {JID}: {Err}",
+            "message": "error removing bookmark {JID}: {Err}",
+            "fuzzy": true,
+            "translation": "error removing bookmark {JID}: {Err}",
+            "placeholders": [
+                {
+                    "id": "JID",
+                    "string": "%[1]s",
+                    "type": "mellium.im/xmpp/jid.JID",
+                    "underlyingType": "struct{locallen int; domainlen int; data []byte}",
+                    "argNum": 1,
+                    "expr": "e.JID"
+                },
+                {
+                    "id": "Err",
+                    "string": "%[2]v",
+                    "type": "error",
+                    "underlyingType": "interface{Error() string}",
+                    "argNum": 2,
+                    "expr": "err"
+                }
+            ]
+        },
+        {
+            "id": "unrecognized ui event: {E}({E_1})",
+            "message": "unrecognized ui event: {E}({E_1})",
+            "fuzzy": true,
+            "translation": "unrecognized ui event: {E}({E_1})",
+            "placeholders": [
+                {
+                    "id": "E",
+                    "string": "%[1]T",
+                    "type": "interface{}",
+                    "underlyingType": "interface{}",
+                    "argNum": 1,
+                    "expr": "e"
+                },
+                {
+                    "id": "E_1",
+                    "string": "%[1]q",
+                    "type": "interface{}",
+                    "underlyingType": "interface{}",
+                    "argNum": 1,
+                    "expr": "e"
+                }
+            ]
+        },
+        {
+            "id": "error sending message: {Err}",
+            "message": "error sending message: {Err}",
+            "fuzzy": true,
+            "translation": "error sending message: {Err}",
+            "placeholders": [
+                {
+                    "id": "Err",
+                    "string": "%[1]v",
+                    "type": "error",
+                    "underlyingType": "interface{Error() string}",
+                    "argNum": 1,
+                    "expr": "err"
+                }
+            ]
+        },
+        {
+            "id": "error saving sent message to history: {Err}",
+            "message": "error saving sent message to history: {Err}",
+            "fuzzy": true,
+            "translation": "error saving sent message to history: {Err}",
+            "placeholders": [
+                {
+                    "id": "Err",
+                    "string": "%[1]v",
+                    "type": "error",
+                    "underlyingType": "interface{Error() string}",
+                    "argNum": 1,
+                    "expr": "err"
+                }
+            ]
+        },
+        {
+            "id": "could not get the upload services: {Err}",
+            "message": "could not get the upload services: {Err}",
+            "fuzzy": true,
+            "translation": "could not get the upload services: {Err}",
+            "placeholders": [
+                {
+                    "id": "Err",
+                    "string": "%[1]v",
+                    "type": "error",
+                    "underlyingType": "interface{Error() string}",
+                    "argNum": 1,
+                    "expr": "err"
+                }
+            ]
+        },
+        {
+            "id": "no upload service available",
+            "message": "no upload service available",
+            "fuzzy": true,
+            "translation": "no upload service available"
+        },
+        {
+            "id": "could not upload {Path}: {Err}",
+            "message": "could not upload {Path}: {Err}",
+            "fuzzy": true,
+            "translation": "could not upload {Path}: {Err}",
+            "placeholders": [
+                {
+                    "id": "Path",
+                    "string": "%[1]q",
+                    "type": "string",
+                    "underlyingType": "string",
+                    "argNum": 1,
+                    "expr": "event.Path"
+                },
+                {
+                    "id": "Err",
+                    "string": "%[2]v",
+                    "type": "error",
+                    "underlyingType": "interface{Error() string}",
+                    "argNum": 2,
+                    "expr": "err"
+                }
+            ]
+        },
+        {
+            "id": "error loading chat: {Err}",
+            "message": "error loading chat: {Err}",
+            "fuzzy": true,
+            "translation": "error loading chat: {Err}",
+            "placeholders": [
+                {
+                    "id": "Err",
+                    "string": "%[1]v",
+                    "type": "error",
+                    "underlyingType": "interface{Error() string}",
+                    "argNum": 1,
+                    "expr": "err"
+                }
+            ]
+        },
+        {
+            "id": "invalid nick {Name} in config: {Err}",
+            "message": "invalid nick {Name} in config: {Err}",
+            "fuzzy": true,
+            "translation": "invalid nick {Name} in config: {Err}",
+            "placeholders": [
+                {
+                    "id": "Name",
+                    "string": "%[1]s",
+                    "type": "string",
+                    "underlyingType": "string",
+                    "argNum": 1,
+                    "expr": "acct.Name"
+                },
+                {
+                    "id": "Err",
+                    "string": "%[2]v",
+                    "type": "error",
+                    "underlyingType": "interface{Error() string}",
+                    "argNum": 2,
+                    "expr": "err"
+                }
+            ]
+        },
+        {
+            "id": "joining room {JID}…",
+            "message": "joining room {JID}…",
+            "fuzzy": true,
+            "translation": "joining room {JID}…",
+            "placeholders": [
+                {
+                    "id": "JID",
+                    "string": "%[1]v",
+                    "type": "mellium.im/xmpp/jid.JID",
+                    "underlyingType": "struct{locallen int; domainlen int; data []byte}",
+                    "argNum": 1,
+                    "expr": "j"
+                }
+            ]
+        },
+        {
+            "id": "error joining room {JID}: {Err}",
+            "message": "error joining room {JID}: {Err}",
+            "fuzzy": true,
+            "translation": "error joining room {JID}: {Err}",
+            "placeholders": [
+                {
+                    "id": "JID",
+                    "string": "%[1]s",
+                    "type": "mellium.im/xmpp/jid.JID",
+                    "underlyingType": "struct{locallen int; domainlen int; data []byte}",
+                    "argNum": 1,
+                    "expr": "e.JID"
+                },
+                {
+                    "id": "Err",
+                    "string": "%[2]v",
+                    "type": "error",
+                    "underlyingType": "interface{Error() string}",
+                    "argNum": 2,
+                    "expr": "err"
+                }
+            ]
+        },
+        {
+            "id": "error fetching earliest message info for {PullToRefreshChat} from database: {Err}",
+            "message": "error fetching earliest message info for {PullToRefreshChat} from database: {Err}",
+            "fuzzy": true,
+            "translation": "error fetching earliest message info for {PullToRefreshChat} from database: {Err}",
+            "placeholders": [
+                {
+                    "id": "PullToRefreshChat",
+                    "string": "%[1]v",
+                    "type": "mellium.im/communique/internal/client/event.PullToRefreshChat",
+                    "underlyingType": "struct{JID mellium.im/xmpp/jid.JID \"xml:\\\"jid,attr,omitempty\\\"\"; Name string \"xml:\\\"name,attr,omitempty\\\"\"; Subscription string \"xml:\\\"subscription,attr,omitempty\\\"\"; Group []string \"xml:\\\"group,omitempty\\\"\"}",
+                    "argNum": 1,
+                    "expr": "e"
+                },
+                {
+                    "id": "Err",
+                    "string": "%[2]v",
+                    "type": "error",
+                    "underlyingType": "interface{Error() string}",
+                    "argNum": 2,
+                    "expr": "err"
+                }
+            ]
+        },
+        {
+            "id": "no scrollback for {JID}",
+            "message": "no scrollback for {JID}",
+            "fuzzy": true,
+            "translation": "no scrollback for {JID}",
+            "placeholders": [
+                {
+                    "id": "JID",
+                    "string": "%[1]v",
+                    "type": "mellium.im/xmpp/jid.JID",
+                    "underlyingType": "struct{locallen int; domainlen int; data []byte}",
+                    "argNum": 1,
+                    "expr": "e.JID"
+                }
+            ]
+        },
+        {
+            "id": "fetching scrollback before {Time} for {JID}…",
+            "message": "fetching scrollback before {Time} for {JID}…",
+            "fuzzy": true,
+            "translation": "fetching scrollback before {Time} for {JID}…",
+            "placeholders": [
+                {
+                    "id": "Time",
+                    "string": "%[1]v",
+                    "type": "time.Time",
+                    "underlyingType": "struct{wall uint64; ext int64; loc *time.Location}",
+                    "argNum": 1,
+                    "expr": "t"
+                },
+                {
+                    "id": "JID",
+                    "string": "%[2]v",
+                    "type": "mellium.im/xmpp/jid.JID",
+                    "underlyingType": "struct{locallen int; domainlen int; data []byte}",
+                    "argNum": 2,
+                    "expr": "e.JID"
+                }
+            ]
+        },
+        {
+            "id": "error fetching scrollback for {JID}: {Err}",
+            "message": "error fetching scrollback for {JID}: {Err}",
+            "fuzzy": true,
+            "translation": "error fetching scrollback for {JID}: {Err}",
+            "placeholders": [
+                {
+                    "id": "JID",
+                    "string": "%[1]v",
+                    "type": "mellium.im/xmpp/jid.JID",
+                    "underlyingType": "struct{locallen int; domainlen int; data []byte}",
+                    "argNum": 1,
+                    "expr": "e.JID"
+                },
+                {
+                    "id": "Err",
+                    "string": "%[2]v",
+                    "type": "error",
+                    "underlyingType": "interface{Error() string}",
+                    "argNum": 2,
+                    "expr": "err"
+                }
+            ]
+        },
+        {
+            "id": "error scrollback for {JID}: {Err}",
+            "message": "error scrollback for {JID}: {Err}",
+            "fuzzy": true,
+            "translation": "error scrollback for {JID}: {Err}",
+            "placeholders": [
+                {
+                    "id": "JID",
+                    "string": "%[1]v",
+                    "type": "mellium.im/xmpp/jid.JID",
+                    "underlyingType": "struct{locallen int; domainlen int; data []byte}",
+                    "argNum": 1,
+                    "expr": "e.JID"
+                },
+                {
+                    "id": "Err",
+                    "string": "%[2]v",
+                    "type": "error",
+                    "underlyingType": "interface{Error() string}",
+                    "argNum": 2,
+                    "expr": "err"
+                }
+            ]
+        },
+        {
+            "id": "Error while handling XMPP streams: {Err}",
+            "message": "Error while handling XMPP streams: {Err}",
+            "fuzzy": true,
+            "translation": "Error while handling XMPP streams: {Err}",
+            "placeholders": [
+                {
+                    "id": "Err",
+                    "string": "%[1]q",
+                    "type": "error",
+                    "underlyingType": "interface{Error() string}",
+                    "argNum": 1,
+                    "expr": "err"
+                }
+            ]
+        },
+        {
+            "id": "Error going offline: {Err}",
+            "message": "Error going offline: {Err}",
+            "fuzzy": true,
+            "translation": "Error going offline: {Err}",
+            "placeholders": [
+                {
+                    "id": "Err",
+                    "string": "%[1]q",
+                    "type": "error",
+                    "underlyingType": "interface{Error() string}",
+                    "argNum": 1,
+                    "expr": "err"
+                }
+            ]
+        },
+        {
+            "id": "Error closing the connection: {Err}",
+            "message": "Error closing the connection: {Err}",
+            "fuzzy": true,
+            "translation": "Error closing the connection: {Err}",
+            "placeholders": [
+                {
+                    "id": "Err",
+                    "string": "%[1]q",
+                    "type": "error",
+                    "underlyingType": "interface{Error() string}",
+                    "argNum": 1,
+                    "expr": "err"
+                }
+            ]
+        },
+        {
+            "id": "error occured during service discovery: {Err}",
+            "message": "error occured during service discovery: {Err}",
+            "fuzzy": true,
+            "translation": "error occured during service discovery: {Err}",
+            "placeholders": [
+                {
+                    "id": "Err",
+                    "string": "%[1]v",
+                    "type": "error",
+                    "underlyingType": "interface{Error() string}",
+                    "argNum": 1,
+                    "expr": "err"
+                }
+            ]
+        },
+        {
+            "id": "error when closing the items iterator: {Err}",
+            "message": "error when closing the items iterator: {Err}",
+            "fuzzy": true,
+            "translation": "error when closing the items iterator: {Err}",
+            "placeholders": [
+                {
+                    "id": "Err",
+                    "string": "%[1]v",
+                    "type": "error",
+                    "underlyingType": "interface{Error() string}",
+                    "argNum": 1,
+                    "expr": "err"
+                }
+            ]
+        },
+        {
+            "id": "feature discovery failed for {JID}: {Err}",
+            "message": "feature discovery failed for {JID}: {Err}",
+            "fuzzy": true,
+            "translation": "feature discovery failed for {JID}: {Err}",
+            "placeholders": [
+                {
+                    "id": "JID",
+                    "string": "%[1]q",
+                    "type": "mellium.im/xmpp/jid.JID",
+                    "underlyingType": "struct{locallen int; domainlen int; data []byte}",
+                    "argNum": 1,
+                    "expr": "j"
+                },
+                {
+                    "id": "Err",
+                    "string": "%[2]v",
+                    "type": "error",
+                    "underlyingType": "interface{Error() string}",
+                    "argNum": 2,
+                    "expr": "err"
+                }
+            ]
+        },
+        {
+            "id": "error enabling carbons: {Err}",
+            "message": "error enabling carbons: {Err}",
+            "fuzzy": true,
+            "translation": "error enabling carbons: {Err}",
+            "placeholders": [
+                {
+                    "id": "Err",
+                    "string": "%[1]q",
+                    "type": "error",
+                    "underlyingType": "interface{Error() string}",
+                    "argNum": 1,
+                    "expr": "err"
+                }
+            ]
+        },
+        {
+            "id": "error fetching roster: {Err}",
+            "message": "error fetching roster: {Err}",
+            "fuzzy": true,
+            "translation": "error fetching roster: {Err}",
+            "placeholders": [
+                {
+                    "id": "Err",
+                    "string": "%[1]q",
+                    "type": "error",
+                    "underlyingType": "interface{Error() string}",
+                    "argNum": 1,
+                    "expr": "err"
+                }
+            ]
+        },
+        {
+            "id": "To fix this, contact your server administrator and ask them to enable {ModName}",
+            "message": "To fix this, contact your server administrator and ask them to enable {ModName}",
+            "fuzzy": true,
+            "translation": "To fix this, contact your server administrator and ask them to enable {ModName}",
+            "placeholders": [
+                {
+                    "id": "ModName",
+                    "string": "%[1]q",
+                    "type": "string",
+                    "underlyingType": "string",
+                    "argNum": 1,
+                    "expr": "modName"
+                }
+            ]
+        },
+        {
+            "id": "failed to get the recipient",
+            "message": "failed to get the recipient",
+            "fuzzy": true,
+            "translation": "failed to get the recipient"
+        },
+        {
+            "id": "error while picking files: {Err}",
+            "message": "error while picking files: {Err}",
+            "fuzzy": true,
+            "translation": "error while picking files: {Err}",
+            "placeholders": [
+                {
+                    "id": "Err",
+                    "string": "%[1]v",
+                    "type": "error",
+                    "underlyingType": "interface{Error() string}",
+                    "argNum": 1,
+                    "expr": "err"
+                }
+            ]
+        },
+        {
+            "id": "Away",
+            "message": "Away",
+            "fuzzy": true,
+            "translation": "Away"
+        },
+        {
+            "id": "Busy",
+            "message": "Busy",
+            "fuzzy": true,
+            "translation": "Busy"
+        },
+        {
+            "id": "Are you sure you want to quit?",
+            "message": "Are you sure you want to quit?",
+            "fuzzy": true,
+            "translation": "Are you sure you want to quit?"
+        },
+        {
+            "id": "Loading commands…",
+            "message": "Loading commands…",
+            "fuzzy": true,
+            "translation": "Loading commands…"
+        },
+        {
+            "id": "failed to read stderr of the notification subprocess: {Err}",
+            "message": "failed to read stderr of the notification subprocess: {Err}",
+            "fuzzy": true,
+            "translation": "failed to read stderr of the notification subprocess: {Err}",
+            "placeholders": [
+                {
+                    "id": "Err",
+                    "string": "%[1]v",
+                    "type": "error",
+                    "underlyingType": "interface{Error() string}",
+                    "argNum": 1,
+                    "expr": "err"
+                }
+            ]
+        },
+        {
+            "id": "failed to run notification command: {Err}",
+            "message": "failed to run notification command: {Err}",
+            "fuzzy": true,
+            "translation": "failed to run notification command: {Err}",
+            "placeholders": [
+                {
+                    "id": "Err",
+                    "string": "%[1]v",
+                    "type": "error",
+                    "underlyingType": "interface{Error() string}",
+                    "argNum": 1,
+                    "expr": "err"
+                }
+            ]
+        },
+        {
+            "id": "notification subprocess failed: {Err}\n{StderrData}",
+            "message": "notification subprocess failed: {Err}\n{StderrData}",
+            "fuzzy": true,
+            "translation": "notification subprocess failed: {Err}\n{StderrData}",
+            "placeholders": [
+                {
+                    "id": "Err",
+                    "string": "%[1]v",
+                    "type": "error",
+                    "underlyingType": "interface{Error() string}",
+                    "argNum": 1,
+                    "expr": "err"
+                },
+                {
+                    "id": "StderrData",
+                    "string": "%[2]s",
+                    "type": "[]byte",
+                    "underlyingType": "[]byte",
+                    "argNum": 2,
+                    "expr": "stderrData"
+                }
+            ]
+        },
+        {
+            "id": "error copying early log data to output buffer: {Err}",
+            "message": "error copying early log data to output buffer: {Err}",
+            "fuzzy": true,
+            "translation": "error copying early log data to output buffer: {Err}",
+            "placeholders": [
+                {
+                    "id": "Err",
+                    "string": "%[1]q",
+                    "type": "error",
+                    "underlyingType": "interface{Error() string}",
+                    "argNum": 1,
+                    "expr": "err"
+                }
+            ]
+        }
     ]
 }
