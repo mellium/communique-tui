@@ -1,10 +1,10 @@
 {
-    "language": "en-US",
+    "language": "de",
     "messages": [
         {
             "id": "error updating to roster ver {Ver}: {Err}",
             "message": "error updating to roster ver {Ver}: {Err}",
-            "translation": "error updating to roster ver {Ver}: {Err}",
+            "translation": "Error beim Aktuellisieren von roster Version {Ver}: {Err}",
             "placeholders": [
                 {
                     "id": "Ver",
@@ -27,7 +27,7 @@
         {
             "id": "error querying database for last seen messages: {Err}",
             "message": "error querying database for last seen messages: {Err}",
-            "translation": "error querying database for last seen messages: {Err}",
+            "translation": "Fehler bei einer Datenbankabfrage über die letzten Nachrichten: {Err}",
             "placeholders": [
                 {
                     "id": "Err",
@@ -42,7 +42,7 @@
         {
             "id": "error fetching history after {ID} for {JID}: {Err}",
             "message": "error fetching history after {ID} for {JID}: {Err}",
-            "translation": "error fetching history after {ID} for {JID}: {Err}",
+            "translation": "Fehler beim laden des Verlaufs nach {ID} für {JID}: {Err}",
             "placeholders": [
                 {
                     "id": "ID",
@@ -73,7 +73,7 @@
         {
             "id": "error bootstraping history for {JID}: {Err}",
             "message": "error bootstraping history for {JID}: {Err}",
-            "translation": "error bootstraping history for {JID}: {Err}",
+            "translation": "Error beim Bootstrappen des Verlaufs für {JID}: {Err}",
             "placeholders": [
                 {
                     "id": "JID",
@@ -96,7 +96,7 @@
         {
             "id": "error iterating over roster items: {Err}",
             "message": "error iterating over roster items: {Err}",
-            "translation": "error iterating over roster items: {Err}",
+            "translation": "Fehler beim iterieren über roster-Elemente: {Err}",
             "placeholders": [
                 {
                     "id": "Err",
@@ -111,7 +111,7 @@
         {
             "id": "error updating roster version: {Err}",
             "message": "error updating roster version: {Err}",
-            "translation": "error updating roster version: {Err}",
+            "translation": "Fehler beim aktuellisieren der roster-Version: {Err}",
             "placeholders": [
                 {
                     "id": "Err",
@@ -126,7 +126,7 @@
         {
             "id": "error marking message {Receipt} as received: {Err}",
             "message": "error marking message {Receipt} as received: {Err}",
-            "translation": "error marking message {Receipt} as received: {Err}",
+            "translation": "Fehler beim erstellen der Lesebestätigung für {Receipt}: {Err}",
             "placeholders": [
                 {
                     "id": "Receipt",
@@ -149,7 +149,7 @@
         {
             "id": "error writing received message to chat: {Err}",
             "message": "error writing received message to chat: {Err}",
-            "translation": "error writing received message to chat: {Err}",
+            "translation": "Fehler beim Schreiben der Nachricht in den Chat: {Err}",
             "placeholders": [
                 {
                     "id": "Err",
@@ -164,7 +164,7 @@
         {
             "id": "error writing message to database: {Err}",
             "message": "error writing message to database: {Err}",
-            "translation": "error writing message to database: {Err}",
+            "translation": "Fehler beim Schreiben der Datenbank: {Err}",
             "placeholders": [
                 {
                     "id": "Err",
@@ -179,7 +179,7 @@
         {
             "id": "error writing history message to chat: {Err}",
             "message": "error writing history message to chat: {Err}",
-            "translation": "error writing history message to chat: {Err}",
+            "translation": "Fehler beim Schreiben des Nachrchtenverlaufs: {Err}",
             "placeholders": [
                 {
                     "id": "Err",
@@ -194,7 +194,7 @@
         {
             "id": "error writing history to database: {Err}",
             "message": "error writing history to database: {Err}",
-            "translation": "error writing history to database: {Err}",
+            "translation": "Fehler beim Schreiben des Verlaufs in die Datenbank: {Err}",
             "placeholders": [
                 {
                     "id": "Err",
@@ -209,7 +209,7 @@
         {
             "id": "error inserting entity capbailities hash: {Err}",
             "message": "error inserting entity capbailities hash: {Err}",
-            "translation": "error inserting entity capbailities hash: {Err}",
+            "translation": "Fehler beim Einfügen des Entity-Capability-Hashs: {Err}",
             "placeholders": [
                 {
                     "id": "Err",
@@ -224,7 +224,7 @@
         {
             "id": "unrecognized client event: {E}({E_1})",
             "message": "unrecognized client event: {E}({E_1})",
-            "translation": "unrecognized client event: {E}({E_1})",
+            "translation": "Unbekanntes Client-Ereigniss: {E} ({E_1})",
             "placeholders": [
                 {
                     "id": "E",
@@ -247,7 +247,7 @@
         {
             "id": "error fetching info from cache: {Err}",
             "message": "error fetching info from cache: {Err}",
-            "translation": "error fetching info from cache: {Err}",
+            "translation": "Fehler beim Laden von Informationen auf dem Cache: {Err}",
             "placeholders": [
                 {
                     "id": "Err",
@@ -262,12 +262,12 @@
         {
             "id": "falling back to network query…",
             "message": "falling back to network query…",
-            "translation": "falling back to network query…"
+            "translation": "Rückfall zu Netzwerkanfrage.…"
         },
         {
             "id": "caps cache hit for {JID}: {Hash}:{DbHash}",
             "message": "caps cache hit for {JID}: {Hash}:{DbHash}",
-            "translation": "caps cache hit for {JID}: {Hash}:{DbHash}",
+            "translation": "Caps-Cache treffer für {JID}: {Hash}:{DbHash}",
             "placeholders": [
                 {
                     "id": "JID",
@@ -298,7 +298,7 @@
         {
             "id": "caps cache miss for {JID}: {Hash}:{DbHash}, {Hash}:{Ver}",
             "message": "caps cache miss for {JID}: {Hash}:{DbHash}, {Hash}:{Ver}",
-            "translation": "caps cache miss for {JID}: {Hash}:{DbHash}, {Hash}:{Ver}",
+            "translation": "Caps-Cache verfehlt für {JID}: {Hash}:{DbHash}, {Hash}:{Ver}",
             "placeholders": [
                 {
                     "id": "JID",
@@ -345,7 +345,7 @@
         {
             "id": "error saving entity caps to the database: {Err}",
             "message": "error saving entity caps to the database: {Err}",
-            "translation": "error saving entity caps to the database: {Err}",
+            "translation": "Fehler beim Speichern der Entity-Caps in die Datenbank: {Err}",
             "placeholders": [
                 {
                     "id": "Err",
@@ -360,27 +360,27 @@
         {
             "id": "Prev",
             "message": "Prev",
-            "translation": "Prev"
+            "translation": "Vorherig"
         },
         {
             "id": "Next",
             "message": "Next",
-            "translation": "Next"
+            "translation": "Nächstes"
         },
         {
             "id": "Complete",
             "message": "Complete",
-            "translation": "Complete"
+            "translation": "Vollständig"
         },
         {
             "id": "Cancel",
             "message": "Cancel",
-            "translation": "Cancel"
+            "translation": "Abbrechen"
         },
         {
             "id": "error writing history: {Err}",
             "message": "error writing history: {Err}",
-            "translation": "error writing history: {Err}",
+            "translation": "Fehler beim Speichern des Verlaufs: {Err}",
             "placeholders": [
                 {
                     "id": "Err",
@@ -395,7 +395,7 @@
         {
             "id": "error querying history for {JID}: {Err}",
             "message": "error querying history for {JID}: {Err}",
-            "translation": "error querying history for {JID}: {Err}",
+            "translation": "Fehler beim Abfragen des Verlaufs für {JID}: {Err}",
             "placeholders": [
                 {
                     "id": "JID",
@@ -418,7 +418,7 @@
         {
             "id": "Usage of communiqué:",
             "message": "Usage of communiqué:",
-            "translation": "Usage of communiqué:"
+            "translation": "Verwendung von communiqué:"
         },
         {
             "id": "DEBUG",
@@ -428,37 +428,37 @@
         {
             "id": "RECV",
             "message": "RECV",
-            "translation": "RECV"
+            "translation": "EMPFANGEN"
         },
         {
             "id": "SENT",
             "message": "SENT",
-            "translation": "SENT"
+            "translation": "GESENDET"
         },
         {
             "id": "the config file to load",
             "message": "the config file to load",
-            "translation": "the config file to load"
+            "translation": "Die zu ladente Konfigurationsdatei"
         },
         {
             "id": "override the account set in the config file",
             "message": "override the account set in the config file",
-            "translation": "override the account set in the config file"
+            "translation": "den eingestellten Account überschreiben"
         },
         {
             "id": "print this help message",
             "message": "print this help message",
-            "translation": "print this help message"
+            "translation": "Druckt diese Hilfe-Nachricht"
         },
         {
             "id": "print a default config file to stdout",
             "message": "print a default config file to stdout",
-            "translation": "print a default config file to stdout"
+            "translation": "Gibt die Standartkonfiguration in der Standartausgabe aus"
         },
         {
             "id": "Error encoding default config as TOML: {Err}",
             "message": "Error encoding default config as TOML: {Err}",
-            "translation": "Error encoding default config as TOML: {Err}",
+            "translation": "Fehler beim Kodieren der Standartkonfiguration als TOML: {Err}",
             "placeholders": [
                 {
                     "id": "Err",
@@ -473,7 +473,7 @@
         {
             "id": "{Err}\n\nTry running '{Args0} -config' to generate a default config file.",
             "message": "{Err}\n\nTry running '{Args0} -config' to generate a default config file.",
-            "translation": "{Err}\n\nTry running '{Args0} -config' to generate a default config file.",
+            "translation": "{Err}\n\nVersuche '{Args0} -config' auszuführen, um die Standartkonfiguration zu erzeugen.",
             "placeholders": [
                 {
                     "id": "Err",
@@ -496,7 +496,7 @@
         {
             "id": "error parsing config file: {Err}",
             "message": "error parsing config file: {Err}",
-            "translation": "error parsing config file: {Err}",
+            "translation": "Fehler beim parsen der Konfigurationsdatei: {Err}",
             "placeholders": [
                 {
                     "id": "Err",
@@ -511,7 +511,7 @@
         {
             "id": "error closing config file: {Err}",
             "message": "error closing config file: {Err}",
-            "translation": "error closing config file: {Err}",
+            "translation": "Fehler beim Schließen der Konfigurationsdatei: {Err}",
             "placeholders": [
                 {
                     "id": "Err",
@@ -526,7 +526,7 @@
         {
             "id": "account {DefaultAcct} not found in config file",
             "message": "account {DefaultAcct} not found in config file",
-            "translation": "account {DefaultAcct} not found in config file",
+            "translation": "Der Account {DefaultAcct} wurde nicht in der Konfigurationsdatei gefunden",
             "placeholders": [
                 {
                     "id": "DefaultAcct",
@@ -541,7 +541,7 @@
         {
             "id": "error parsing main account as XMPP address: {Err}",
             "message": "error parsing main account as XMPP address: {Err}",
-            "translation": "error parsing main account as XMPP address: {Err}",
+            "translation": "Fehler beim parsen der XMPP-Addresse des Hauptaccounts: {Err}",
             "placeholders": [
                 {
                     "id": "Err",
@@ -556,7 +556,7 @@
         {
             "id": "error opening database: {Err}",
             "message": "error opening database: {Err}",
-            "translation": "error opening database: {Err}",
+            "translation": "Fehler beim Öffnen der Datenbank: {Err}",
             "placeholders": [
                 {
                     "id": "Err",
@@ -571,7 +571,7 @@
         {
             "id": "error logging to pane: {Err}",
             "message": "error logging to pane: {Err}",
-            "translation": "error logging to pane: {Err}",
+            "translation": "Fehler beim Protokollieren zum Paneel: {Err}",
             "placeholders": [
                 {
                     "id": "Err",
@@ -586,7 +586,7 @@
         {
             "id": "error copying early log data to output buffer: {Err}",
             "message": "error copying early log data to output buffer: {Err}",
-            "translation": "error copying early log data to output buffer: {Err}",
+            "translation": "Fehler beim Kopieren früher Protokolldaten in den Ausgabepuffer: {Err}",
             "placeholders": [
                 {
                     "id": "Err",
@@ -601,7 +601,7 @@
         {
             "id": "running command: {PassCmd}",
             "message": "running command: {PassCmd}",
-            "translation": "running command: {PassCmd}",
+            "translation": "Führt Befehl aus: {PassCmd}",
             "placeholders": [
                 {
                     "id": "PassCmd",
@@ -616,7 +616,7 @@
         {
             "id": "error running password command, falling back to prompt: {Err}",
             "message": "error running password command, falling back to prompt: {Err}",
-            "translation": "error running password command, falling back to prompt: {Err}",
+            "translation": "Fehler beim Ausführen des Passwort-Befehls; Rückfall zur Passwortabfrage: {Err}",
             "placeholders": [
                 {
                     "id": "Err",
@@ -631,7 +631,7 @@
         {
             "id": "no user address specified, edit {Fpath} and add:\n\n\tjid=\"me@example.com\"",
             "message": "no user address specified, edit {Fpath} and add:\n\n\tjid=\"me@example.com\"",
-            "translation": "no user address specified, edit {Fpath} and add:\n\n\tjid=\"me@example.com\"",
+            "translation": "Keine Benutzeraddresse festgelegt, bearbeite {Fpath} und füge folgendes ein:\n\n\tjid=\"me@example.com\"",
             "placeholders": [
                 {
                     "id": "Fpath",
@@ -646,7 +646,7 @@
         {
             "id": "user address: {DefaultAcct}",
             "message": "user address: {DefaultAcct}",
-            "translation": "user address: {DefaultAcct}",
+            "translation": "Benutzeraddresse: {DefaultAcct}",
             "placeholders": [
                 {
                     "id": "DefaultAcct",
@@ -661,7 +661,7 @@
         {
             "id": "error parsing user address: {Err}",
             "message": "error parsing user address: {Err}",
-            "translation": "error parsing user address: {Err}",
+            "translation": "Fehler beim Parsen der Benutzeraddresse: {Err}",
             "placeholders": [
                 {
                     "id": "Err",
@@ -676,7 +676,7 @@
         {
             "id": "error parsing timeout, defaulting to 30s: {Err}",
             "message": "error parsing timeout, defaulting to 30s: {Err}",
-            "translation": "error parsing timeout, defaulting to 30s: {Err}",
+            "translation": "Fehler beim Parsen des Zeitlimits, rückfall zum Standartwert von 30s: {Err}",
             "placeholders": [
                 {
                     "id": "Err",
@@ -691,7 +691,7 @@
         {
             "id": "error creating keylog file: {Err}",
             "message": "error creating keylog file: {Err}",
-            "translation": "error creating keylog file: {Err}",
+            "translation": "Fehler beim Erstellen der Keylog-Datei: {Err}",
             "placeholders": [
                 {
                     "id": "Err",
@@ -706,7 +706,7 @@
         {
             "id": "error retrieving roster version, falling back to full roster fetch: {Err}",
             "message": "error retrieving roster version, falling back to full roster fetch: {Err}",
-            "translation": "error retrieving roster version, falling back to full roster fetch: {Err}",
+            "translation": "Fehler beim Feststellen der roster-Version, rückfall zu einer vollen roster-Abfrage: {Err}",
             "placeholders": [
                 {
                     "id": "Err",
@@ -721,7 +721,7 @@
         {
             "id": "initial login failed: {Err}",
             "message": "initial login failed: {Err}",
-            "translation": "initial login failed: {Err}",
+            "translation": "Initiale Anmeldung fehlgeschlagen: {Err}",
             "placeholders": [
                 {
                     "id": "Err",
@@ -736,7 +736,7 @@
         {
             "id": "logged in as: {LocalAddr}",
             "message": "logged in as: {LocalAddr}",
-            "translation": "logged in as: {LocalAddr}",
+            "translation": "Angemeldet als: {LocalAddr}",
             "placeholders": [
                 {
                     "id": "LocalAddr",
@@ -751,7 +751,7 @@
         {
             "id": "got signal: {Signal}",
             "message": "got signal: {Signal}",
-            "translation": "got signal: {Signal}",
+            "translation": "Signal bekommen: {Signal}",
             "placeholders": [
                 {
                     "id": "Signal",
@@ -766,7 +766,7 @@
         {
             "id": "executing command: {ExecCommand}",
             "message": "executing command: {ExecCommand}",
-            "translation": "executing command: {ExecCommand}",
+            "translation": "ausführen von Befehl: {ExecCommand}",
             "placeholders": [
                 {
                     "id": "ExecCommand",
@@ -781,7 +781,7 @@
         {
             "id": "error executing command {Node} on {JID}: {Err}",
             "message": "error executing command {Node} on {JID}: {Err}",
-            "translation": "error executing command {Node} on {JID}: {Err}",
+            "translation": "Fehler beim Ausführen vom Befehl {Node} auf {JID}: {Err}",
             "placeholders": [
                 {
                     "id": "Node",
@@ -812,7 +812,7 @@
         {
             "id": "error showing next command for {JID}: {Err}",
             "message": "error showing next command for {JID}: {Err}",
-            "translation": "error showing next command for {JID}: {Err}",
+            "translation": "Fehler beim anzeigen des nächsten Befehls für {JID}: {Err}",
             "placeholders": [
                 {
                     "id": "JID",
@@ -835,7 +835,7 @@
         {
             "id": "error fetching commands for {JID}: {Err}",
             "message": "error fetching commands for {JID}: {Err}",
-            "translation": "error fetching commands for {JID}: {Err}",
+            "translation": "Fehler beim Abfragen der Befehle für {JID}: {Err}",
             "placeholders": [
                 {
                     "id": "JID",
@@ -858,7 +858,7 @@
         {
             "id": "error closing commands iter for {JID}: {Err}",
             "message": "error closing commands iter for {JID}: {Err}",
-            "translation": "error closing commands iter for {JID}: {Err}",
+            "translation": "Fehler beim Schließen des Befehlsiterators für {JID}: {Err}",
             "placeholders": [
                 {
                     "id": "JID",
@@ -881,7 +881,7 @@
         {
             "id": "error setting away status: {Err}",
             "message": "error setting away status: {Err}",
-            "translation": "error setting away status: {Err}",
+            "translation": "Fehler beim Setzen des Abwesent-Statuses: {Err}",
             "placeholders": [
                 {
                     "id": "Err",
@@ -896,7 +896,7 @@
         {
             "id": "error setting online status: {Err}",
             "message": "error setting online status: {Err}",
-            "translation": "error setting online status: {Err}",
+            "translation": "Fehler beim Setzen des Online-Statuses: {Err}",
             "placeholders": [
                 {
                     "id": "Err",
@@ -911,7 +911,7 @@
         {
             "id": "error setting busy status: {Err}",
             "message": "error setting busy status: {Err}",
-            "translation": "error setting busy status: {Err}",
+            "translation": "Fehler beim Setzen des Beschäfftigt-Statuses: {Err}",
             "placeholders": [
                 {
                     "id": "Err",
@@ -926,7 +926,7 @@
         {
             "id": "error going offline: {Err}",
             "message": "error going offline: {Err}",
-            "translation": "error going offline: {Err}",
+            "translation": "Fehler beim Offlinegehen: {Err}",
             "placeholders": [
                 {
                     "id": "Err",
@@ -941,7 +941,7 @@
         {
             "id": "error adding roster item {JID}: {Err}",
             "message": "error adding roster item {JID}: {Err}",
-            "translation": "error adding roster item {JID}: {Err}",
+            "translation": "Fehler beim Hinzufügen des roster-Elements {JID}: {Err}",
             "placeholders": [
                 {
                     "id": "JID",
@@ -964,7 +964,7 @@
         {
             "id": "error removing roster item {JID}: {Err}",
             "message": "error removing roster item {JID}: {Err}",
-            "translation": "error removing roster item {JID}: {Err}",
+            "translation": "Fehler beim Entfernen des roster-Elements {JID}: {Err}",
             "placeholders": [
                 {
                     "id": "JID",
@@ -987,7 +987,7 @@
         {
             "id": "error discovering bookmarks support: {Err}",
             "message": "error discovering bookmarks support: {Err}",
-            "translation": "error discovering bookmarks support: {Err}",
+            "translation": "Fehler beim Feststellen von Lesezeichenunterstützung: {Err}",
             "placeholders": [
                 {
                     "id": "Err",
@@ -1002,7 +1002,7 @@
         {
             "id": "error publishing legacy bookmark {JID}: {Err}",
             "message": "error publishing legacy bookmark {JID}: {Err}",
-            "translation": "error publishing legacy bookmark {JID}: {Err}",
+            "translation": "Fehler beim Veröffentlichen von Legacy-Lesezeichen {JID}: {Err}",
             "placeholders": [
                 {
                     "id": "JID",
@@ -1025,7 +1025,7 @@
         {
             "id": "error publishing bookmark {JID}: {Err}",
             "message": "error publishing bookmark {JID}: {Err}",
-            "translation": "error publishing bookmark {JID}: {Err}",
+            "translation": "Fehler beim Veröffentlich von Lesezeichen {JID}: {Err}",
             "placeholders": [
                 {
                     "id": "JID",
@@ -1048,7 +1048,7 @@
         {
             "id": "error removing legacy bookmark {JID}: {Err}",
             "message": "error removing legacy bookmark {JID}: {Err}",
-            "translation": "error removing legacy bookmark {JID}: {Err}",
+            "translation": "Error beim Entfernen des Legacy-Lesezeichens {JID}: {Err}",
             "placeholders": [
                 {
                     "id": "JID",
@@ -1071,7 +1071,7 @@
         {
             "id": "error removing bookmark {JID}: {Err}",
             "message": "error removing bookmark {JID}: {Err}",
-            "translation": "error removing bookmark {JID}: {Err}",
+            "translation": "Fehler beim Entfernen von Lesezeichen {JID}: {Err}",
             "placeholders": [
                 {
                     "id": "JID",
@@ -1094,7 +1094,7 @@
         {
             "id": "error sending presence pre-approval to {JIDe}: {Err}",
             "message": "error sending presence pre-approval to {JIDe}: {Err}",
-            "translation": "error sending presence pre-approval to {JIDe}: {Err}",
+            "translation": "Fehler beim Senden der Präsenzvorbestätigung to {JIDe}: {Err}",
             "placeholders": [
                 {
                     "id": "JIDe",
@@ -1117,7 +1117,7 @@
         {
             "id": "error sending presence request to {JIDe}: {Err}",
             "message": "error sending presence request to {JIDe}: {Err}",
-            "translation": "error sending presence request to {JIDe}: {Err}",
+            "translation": "Error beim Senden einer Präsenzanfrage an {JIDe}: {Err}",
             "placeholders": [
                 {
                     "id": "JIDe",
@@ -1140,7 +1140,7 @@
         {
             "id": "unrecognized ui event: {E}({E_1})",
             "message": "unrecognized ui event: {E}({E_1})",
-            "translation": "unrecognized ui event: {E}({E_1})",
+            "translation": "Unbekanntes Benutzeroberflächenereigniss: {E} ({E_1})",
             "placeholders": [
                 {
                     "id": "E",
@@ -1163,7 +1163,7 @@
         {
             "id": "error sending message: {Err}",
             "message": "error sending message: {Err}",
-            "translation": "error sending message: {Err}",
+            "translation": "Fehler beim Senden der Nachricht: {Err}",
             "placeholders": [
                 {
                     "id": "Err",
@@ -1178,7 +1178,7 @@
         {
             "id": "error saving sent message to history: {Err}",
             "message": "error saving sent message to history: {Err}",
-            "translation": "error saving sent message to history: {Err}",
+            "translation": "Fehler beim Speichern der gesendeten Nachricht in den Verlauf: {Err}",
             "placeholders": [
                 {
                     "id": "Err",
@@ -1193,7 +1193,7 @@
         {
             "id": "could not get the upload services: {Err}",
             "message": "could not get the upload services: {Err}",
-            "translation": "could not get the upload services: {Err}",
+            "translation": "Upload-Dienst konnte nicht gefunden werden: {Err}",
             "placeholders": [
                 {
                     "id": "Err",
@@ -1208,12 +1208,12 @@
         {
             "id": "no upload service available",
             "message": "no upload service available",
-            "translation": "no upload service available"
+            "translation": "Kein Upload-Dienst verfügbar"
         },
         {
             "id": "could not upload {Path}: {Err}",
             "message": "could not upload {Path}: {Err}",
-            "translation": "could not upload {Path}: {Err}",
+            "translation": "{Path} konnte nicht Hochgeladen werden: {Err}",
             "placeholders": [
                 {
                     "id": "Path",
@@ -1236,7 +1236,7 @@
         {
             "id": "error loading chat: {Err}",
             "message": "error loading chat: {Err}",
-            "translation": "error loading chat: {Err}",
+            "translation": "Fehler beim Laden des Chats: {Err}",
             "placeholders": [
                 {
                     "id": "Err",
@@ -1251,7 +1251,7 @@
         {
             "id": "invalid nick {Name} in config: {Err}",
             "message": "invalid nick {Name} in config: {Err}",
-            "translation": "invalid nick {Name} in config: {Err}",
+            "translation": "Ungültiger Spitzname {Name} in der Konfiguration: {Err}",
             "placeholders": [
                 {
                     "id": "Name",
@@ -1274,7 +1274,7 @@
         {
             "id": "joining room {JID}…",
             "message": "joining room {JID}…",
-            "translation": "joining room {JID}…",
+            "translation": "Tritt dem Raum {JID} bei…",
             "placeholders": [
                 {
                     "id": "JID",
@@ -1289,7 +1289,7 @@
         {
             "id": "error joining room {JID}: {Err}",
             "message": "error joining room {JID}: {Err}",
-            "translation": "error joining room {JID}: {Err}",
+            "translation": "Fehler beim Beitreten zu {JID}: {Err}",
             "placeholders": [
                 {
                     "id": "JID",
@@ -1312,7 +1312,7 @@
         {
             "id": "error fetching earliest message info for {PullToRefreshChat} from database: {Err}",
             "message": "error fetching earliest message info for {PullToRefreshChat} from database: {Err}",
-            "translation": "error fetching earliest message info for {PullToRefreshChat} from database: {Err}",
+            "translation": "Fehler beim Laden der Informationen für die erste Nachricht für {PullToRefreshChat} aus der Datenbank: {Err}",
             "placeholders": [
                 {
                     "id": "PullToRefreshChat",
@@ -1335,7 +1335,7 @@
         {
             "id": "no scrollback for {JID}",
             "message": "no scrollback for {JID}",
-            "translation": "no scrollback for {JID}",
+            "translation": "Kein Chatverlauf verfügbar für {JID}",
             "placeholders": [
                 {
                     "id": "JID",
@@ -1350,7 +1350,7 @@
         {
             "id": "fetching scrollback before {Time} for {JID}…",
             "message": "fetching scrollback before {Time} for {JID}…",
-            "translation": "fetching scrollback before {Time} for {JID}…",
+            "translation": "Laden des Verlaufs vor {Time} für {JID}…",
             "placeholders": [
                 {
                     "id": "Time",
@@ -1373,7 +1373,7 @@
         {
             "id": "error fetching scrollback for {JID}: {Err}",
             "message": "error fetching scrollback for {JID}: {Err}",
-            "translation": "error fetching scrollback for {JID}: {Err}",
+            "translation": "Fehler beim laden des Verlauf für {JID}: {Err}",
             "placeholders": [
                 {
                     "id": "JID",
@@ -1396,8 +1396,7 @@
         {
             "id": "error loading scrollback into pane for {JID}: {Err}",
             "message": "error loading scrollback into pane for {JID}: {Err}",
-            "translation": "error loading scrollback into pane for {JID}: {Err}",
-            "translatorComment": "Copied from source.",
+            "translation": "",
             "placeholders": [
                 {
                     "id": "JID",
@@ -1415,13 +1414,12 @@
                     "argNum": 2,
                     "expr": "err"
                 }
-            ],
-            "fuzzy": true
+            ]
         },
         {
             "id": "Error while handling XMPP streams: {Err}",
             "message": "Error while handling XMPP streams: {Err}",
-            "translation": "Error while handling XMPP streams: {Err}",
+            "translation": "Fehler beim Verarbeiten des XMPP-Streams: {Err}",
             "placeholders": [
                 {
                     "id": "Err",
@@ -1436,7 +1434,7 @@
         {
             "id": "Error going offline: {Err}",
             "message": "Error going offline: {Err}",
-            "translation": "Error going offline: {Err}",
+            "translation": "Fehler beim Offlinegehen: {Err}",
             "placeholders": [
                 {
                     "id": "Err",
@@ -1451,7 +1449,7 @@
         {
             "id": "Error closing the connection: {Err}",
             "message": "Error closing the connection: {Err}",
-            "translation": "Error closing the connection: {Err}",
+            "translation": "Fehler beim Schließen der Verbindung: {Err}",
             "placeholders": [
                 {
                     "id": "Err",
@@ -1466,7 +1464,7 @@
         {
             "id": "error occured during service discovery: {Err}",
             "message": "error occured during service discovery: {Err}",
-            "translation": "error occured during service discovery: {Err}",
+            "translation": "Fehler während der Dienste-Entdeckung: {Err}",
             "placeholders": [
                 {
                     "id": "Err",
@@ -1481,7 +1479,7 @@
         {
             "id": "error when closing the items iterator: {Err}",
             "message": "error when closing the items iterator: {Err}",
-            "translation": "error when closing the items iterator: {Err}",
+            "translation": "Fehler beim Schließen des Elemente-Iterators: {Err}",
             "placeholders": [
                 {
                     "id": "Err",
@@ -1496,7 +1494,7 @@
         {
             "id": "feature discovery failed for {JID}: {Err}",
             "message": "feature discovery failed for {JID}: {Err}",
-            "translation": "feature discovery failed for {JID}: {Err}",
+            "translation": "Funktionsernennung fehlgeschlagen für {JID}: {Err}",
             "placeholders": [
                 {
                     "id": "JID",
@@ -1519,7 +1517,7 @@
         {
             "id": "error enabling carbons: {Err}",
             "message": "error enabling carbons: {Err}",
-            "translation": "error enabling carbons: {Err}",
+            "translation": "",
             "placeholders": [
                 {
                     "id": "Err",
@@ -1534,7 +1532,7 @@
         {
             "id": "error fetching roster: {Err}",
             "message": "error fetching roster: {Err}",
-            "translation": "error fetching roster: {Err}",
+            "translation": "Fehler beim Laden von roster: {Err}",
             "placeholders": [
                 {
                     "id": "Err",
@@ -1549,7 +1547,7 @@
         {
             "id": "error fetching bookmarks: {Err}",
             "message": "error fetching bookmarks: {Err}",
-            "translation": "error fetching bookmarks: {Err}",
+            "translation": "Fehler beim Laden der Lesezeichen: {Err}",
             "placeholders": [
                 {
                     "id": "Err",
@@ -1564,7 +1562,7 @@
         {
             "id": "error fetching version information: {Err}",
             "message": "error fetching version information: {Err}",
-            "translation": "error fetching version information: {Err}",
+            "translation": "Fehler beim Laden von Versionsinformationen: {Err}",
             "placeholders": [
                 {
                     "id": "Err",
@@ -1579,7 +1577,7 @@
         {
             "id": "To fix this, contact your server administrator and ask them to enable {ModName}",
             "message": "To fix this, contact your server administrator and ask them to enable {ModName}",
-            "translation": "To fix this, contact your server administrator and ask them to enable {ModName}",
+            "translation": "Um dieses Problem zu lösen, kontaktiere bitte den Administrator des Servers und frage nach, ob {ModName} aktiviert werden kann.",
             "placeholders": [
                 {
                     "id": "ModName",
@@ -1594,12 +1592,12 @@
         {
             "id": "Your server does not support bookmark unification, an important feature that stops newer clients from seeing a different list of chat rooms than older clients that do not yet support the latest features.",
             "message": "Your server does not support bookmark unification, an important feature that stops newer clients from seeing a different list of chat rooms than older clients that do not yet support the latest features.",
-            "translation": "Your server does not support bookmark unification, an important feature that stops newer clients from seeing a different list of chat rooms than older clients that do not yet support the latest features."
+            "translation": "Dein Server unterstützt Lesezeichenunifikation nicht. Diese Funktion verhindert, dass neuere Clients eine andere Chatliste sehen, als Ältere, die noch nicht die neusten Funktionen unterstützen."
         },
         {
             "id": "error closing bookmarks stream: {Error}",
             "message": "error closing bookmarks stream: {Error}",
-            "translation": "error closing bookmarks stream: {Error}",
+            "translation": "Fehler beim Schließen des Lesezeichen-Streams: {Error}",
             "placeholders": [
                 {
                     "id": "Error",
@@ -1614,7 +1612,7 @@
         {
             "id": "Error closing roster stream: {Error}",
             "message": "Error closing roster stream: {Error}",
-            "translation": "Error closing roster stream: {Error}",
+            "translation": "Fehler beim Schließen des roster-Streams: {Error}",
             "placeholders": [
                 {
                     "id": "Error",
@@ -1629,7 +1627,7 @@
         {
             "id": "possibly spoofed history message from {From}",
             "message": "possibly spoofed history message from {From}",
-            "translation": "possibly spoofed history message from {From}",
+            "translation": "potentiell gefälschter Nachrichtenverlauf von {From}",
             "placeholders": [
                 {
                     "id": "From",
@@ -1644,12 +1642,12 @@
         {
             "id": "Add Contact",
             "message": "Add Contact",
-            "translation": "Add Contact"
+            "translation": "Kontakt hinzufügen"
         },
         {
             "id": "Address",
             "message": "Address",
-            "translation": "Address"
+            "translation": "Addresse"
         },
         {
             "id": "Name",
@@ -1659,22 +1657,22 @@
         {
             "id": "Channels",
             "message": "Channels",
-            "translation": "Channels"
+            "translation": "Kanäle"
         },
         {
             "id": "Conversation",
             "message": "Conversation",
-            "translation": "Conversation"
+            "translation": "Konversation"
         },
         {
             "id": "failed to get the recipient",
             "message": "failed to get the recipient",
-            "translation": "failed to get the recipient"
+            "translation": "Empfänger kann nicht gefunden werden"
         },
         {
             "id": "error while picking files: {Err}",
             "message": "error while picking files: {Err}",
-            "translation": "error while picking files: {Err}",
+            "translation": "Fehler beim Auswählen von Datein: {Err}",
             "placeholders": [
                 {
                     "id": "Err",
@@ -1689,27 +1687,27 @@
         {
             "id": "Conversations",
             "message": "Conversations",
-            "translation": "Conversations"
+            "translation": "Konversationen"
         },
         {
             "id": "Logs",
             "message": "Logs",
-            "translation": "Logs"
+            "translation": "Protokolle"
         },
         {
             "id": "Remove",
             "message": "Remove",
-            "translation": "Remove"
+            "translation": "Entfernen"
         },
         {
             "id": "Remove this contact from your roster?",
             "message": "Remove this contact from your roster?",
-            "translation": "Remove this contact from your roster?"
+            "translation": "Kontakt vom Roster entfernen?"
         },
         {
             "id": "Remove this channel?",
             "message": "Remove this channel?",
-            "translation": "Remove this channel?"
+            "translation": "Kanal entfernen?"
         },
         {
             "id": "Offline",
@@ -1724,47 +1722,47 @@
         {
             "id": "Away",
             "message": "Away",
-            "translation": "Away"
+            "translation": "Abwesend"
         },
         {
             "id": "Busy",
             "message": "Busy",
-            "translation": "Busy"
+            "translation": "Beschäfftigt"
         },
         {
             "id": "Are you sure you want to quit?",
             "message": "Are you sure you want to quit?",
-            "translation": "Are you sure you want to quit?"
+            "translation": "Bist du dir sicher, dass du Schließen willst?"
         },
         {
             "id": "Quit",
             "message": "Quit",
-            "translation": "Quit"
+            "translation": "Beenden"
         },
         {
             "id": "Join",
             "message": "Join",
-            "translation": "Join"
+            "translation": "Beitreten"
         },
         {
             "id": "Join Channel",
             "message": "Join Channel",
-            "translation": "Join Channel"
+            "translation": "Kanal beitreten"
         },
         {
             "id": "Add",
             "message": "Add",
-            "translation": "Add"
+            "translation": "Hinzufügen"
         },
         {
             "id": "Commands",
             "message": "Commands",
-            "translation": "Commands"
+            "translation": "Befehle"
         },
         {
             "id": "Loading commands…",
             "message": "Loading commands…",
-            "translation": "Loading commands…"
+            "translation": "Lade Befehle…"
         },
         {
             "id": "Exec",
@@ -1774,7 +1772,7 @@
         {
             "id": "failed to read stderr of the notification subprocess: {Err}",
             "message": "failed to read stderr of the notification subprocess: {Err}",
-            "translation": "failed to read stderr of the notification subprocess: {Err}",
+            "translation": "Standartfehlerausgabe vom Benachrichtigungsprozesses konnte nicht gelesen werden: {Err}",
             "placeholders": [
                 {
                     "id": "Err",
@@ -1789,7 +1787,7 @@
         {
             "id": "failed to run notification command: {Err}",
             "message": "failed to run notification command: {Err}",
-            "translation": "failed to run notification command: {Err}",
+            "translation": "Fehler beim Ausführen des Benachrichtigungsbefehls: {Err}",
             "placeholders": [
                 {
                     "id": "Err",
@@ -1804,7 +1802,7 @@
         {
             "id": "notification subprocess failed: {Err}\n{StderrData}",
             "message": "notification subprocess failed: {Err}\n{StderrData}",
-            "translation": "notification subprocess failed: {Err}\n{StderrData}",
+            "translation": "Benachrichtigungsunterprozess abgestürzt: {Err}\n{StderrData}",
             "placeholders": [
                 {
                     "id": "Err",

@@ -328,7 +328,7 @@ func pullToRefresh(e event.PullToRefreshChat, c *client.Client, pane *ui.UI, db 
 		debug.Print(p.Sprintf("error fetching scrollback for %v: %v", e.JID, err))
 	}
 	if err := loadBuffer(ctx, pane, db, roster.Item(e), "", logger); err != nil {
-		logger.Print(p.Sprintf("error scrollback for %v: %v", e.JID, err))
+		logger.Print(p.Sprintf("error loading scrollback into pane for %v: %v", e.JID, err))
 		return
 	}
 	// TODO: scroll to an offset that keeps context so that we don't lose

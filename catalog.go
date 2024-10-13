@@ -27,6 +27,7 @@ func (d *dictionary) Lookup(key string) (data string, ok bool) {
 
 func init() {
 	dict := map[string]catalog.Dictionary{
+		"de":    &dictionary{index: deIndex, data: deData},
 		"en_US": &dictionary{index: en_USIndex, data: en_USData},
 	}
 	fallback := language.MustParse("en-US")
@@ -40,19 +41,19 @@ func init() {
 var messageKeyToIndex = map[string]int{
 	"%v\n\nTry running '%s -config' to generate a default config file.": 33,
 	"Add":                              118,
-	"Add Contact":                      99,
-	"Address":                          100,
+	"Add Contact":                      98,
+	"Address":                          99,
 	"Are you sure you want to quit?":   114,
 	"Away":                             112,
 	"Busy":                             113,
 	"Cancel":                           21,
-	"Channels":                         102,
+	"Channels":                         101,
 	"Commands":                         119,
 	"Complete":                         20,
-	"Conversation":                     103,
+	"Conversation":                     102,
 	"Conversations":                    105,
 	"DEBUG":                            25,
-	"Error closing roster stream: %q":  97,
+	"Error closing roster stream: %q":  96,
 	"Error closing the connection: %q": 86,
 	"Error encoding default config as TOML: %v": 32,
 	"Error going offline: %q":                   85,
@@ -62,7 +63,7 @@ var messageKeyToIndex = map[string]int{
 	"Join Channel":                              117,
 	"Loading commands…":                         120,
 	"Logs":                                      106,
-	"Name":                                      101,
+	"Name":                                      100,
 	"Next":                                      19,
 	"Offline":                                   110,
 	"Online":                                    111,
@@ -73,37 +74,38 @@ var messageKeyToIndex = map[string]int{
 	"Remove this channel?":                      109,
 	"Remove this contact from your roster?":     108,
 	"SENT":                                      27,
-	"To fix this, contact your server administrator and ask them to enable %q": 94,
+	"To fix this, contact your server administrator and ask them to enable %q": 93,
 	"Usage of communiqué:\n\n": 24,
-	"Your server does not support bookmark unification, an important feature that stops newer clients from seeing a different list of chat rooms than older clients that do not yet support the latest features.": 95,
+	"Your server does not support bookmark unification, an important feature that stops newer clients from seeing a different list of chat rooms than older clients that do not yet support the latest features.": 94,
 	"account %q not found in config file":                                         36,
 	"caps cache hit for %s: %s:%s":                                                15,
 	"caps cache miss for %s: %s:%s, %[2]s:%[4]s":                                  16,
 	"could not get the upload services: %v":                                       73,
-	"could not upload %q: %v":                                                     74,
+	"could not upload %q: %v":                                                     75,
 	"error adding roster item %s: %v":                                             61,
 	"error bootstraping history for %s: %v":                                       3,
-	"error closing bookmarks stream: %v":                                          96,
+	"error closing bookmarks stream: %v":                                          95,
 	"error closing commands iter for %q: %v":                                      56,
 	"error closing config file: %v":                                               35,
 	"error copying early log data to output buffer: %q":                           40,
 	"error creating keylog file: %q":                                              47,
 	"error discovering bookmarks support: %v":                                     63,
-	"error enabling carbons: %q":                                                  90,
+	"error enabling carbons: %q":                                                  126,
 	"error executing command %q on %q: %v":                                        53,
-	"error fetching bookmarks: %q":                                                92,
+	"error fetching bookmarks: %q":                                                91,
 	"error fetching commands for %q: %v":                                          55,
-	"error fetching earliest message info for %v from database: %v":               79,
+	"error fetching earliest message info for %v from database: %v":               80,
 	"error fetching history after %s for %s: %v":                                  2,
 	"error fetching info from cache: %v":                                          13,
-	"error fetching roster: %q":                                                   91,
-	"error fetching scrollback for %v: %v":                                        82,
-	"error fetching version information: %v":                                      93,
+	"error fetching roster: %q":                                                   90,
+	"error fetching scrollback for %v: %v":                                        83,
+	"error fetching version information: %v":                                      92,
 	"error going offline: %v":                                                     60,
 	"error inserting entity capbailities hash: %v":                                11,
 	"error iterating over roster items: %v":                                       4,
-	"error joining room %s: %v":                                                   78,
-	"error loading chat: %v":                                                      75,
+	"error joining room %s: %v":                                                   79,
+	"error loading chat: %v":                                                      76,
+	"error loading scrollback into pane for %v: %v":                               125,
 	"error logging to pane: %v":                                                   39,
 	"error marking message %q as received: %v":                                    6,
 	"error occured during service discovery: %v":                                  87,
@@ -123,7 +125,6 @@ var messageKeyToIndex = map[string]int{
 	"error running password command, falling back to prompt: %v":                  42,
 	"error saving entity caps to the database: %v":                                17,
 	"error saving sent message to history: %v":                                    72,
-	"error scrollback for %v: %v":                                                 83,
 	"error sending message: %v":                                                   71,
 	"error sending presence pre-approval to %s: %v":                               68,
 	"error sending presence request to %s: %v":                                    69,
@@ -141,21 +142,23 @@ var messageKeyToIndex = map[string]int{
 	"error writing message to database: %v":                                       8,
 	"error writing received message to chat: %v":                                  7,
 	"executing command: %+v":                                                      52,
+	"failed to get the recipient":                                                 103,
 	"failed to read stderr of the notification subprocess: %v":                    122,
 	"failed to run notification command: %v":                                      123,
 	"falling back to network query…":                                              14,
 	"feature discovery failed for %q: %v":                                         89,
-	"fetching scrollback before %v for %v…":                                       81,
+	"fetching scrollback before %v for %v…":                                       82,
 	"got signal: %v":                                                              51,
 	"initial login failed: %v":                                                    49,
-	"invalid nick %s in config: %v":                                               76,
-	"joining room %v…":                                                            77,
+	"invalid nick %s in config: %v":                                               77,
+	"joining room %v…":                                                            78,
 	"logged in as: %q":                                                            50,
-	"no scrollback for %v":                                                        80,
+	"no scrollback for %v":                                                        81,
+	"no upload service available":                                                 74,
 	"no user address specified, edit %q and add:\n\n\tjid=\"me@example.com\"\n\n": 43,
 	"notification subprocess failed: %v\n%s":                                      124,
 	"override the account set in the config file":                                 29,
-	"possibly spoofed history message from %s":                                    98,
+	"possibly spoofed history message from %s":                                    97,
 	"print a default config file to stdout":                                       31,
 	"print this help message":                                                     30,
 	"running command: %q":                                                         41,
@@ -165,7 +168,131 @@ var messageKeyToIndex = map[string]int{
 	"user address: %q":                                                            44,
 }
 
-var en_USIndex = []uint32{ // 126 elements
+var deIndex = []uint32{ // 128 elements
+	// Entry 0 - 1F
+	0x00000000, 0x0000003a, 0x00000081, 0x000000bd,
+	0x000000f4, 0x00000127, 0x0000015c, 0x00000199,
+	0x000001d0, 0x000001fb, 0x0000022f, 0x0000026a,
+	0x000002a3, 0x000002cf, 0x00000308, 0x00000329,
+	0x00000354, 0x0000038d, 0x000003cb, 0x000003d4,
+	0x000003de, 0x000003eb, 0x000003f5, 0x0000041f,
+	0x00000453, 0x00000475, 0x0000047b, 0x00000485,
+	0x0000048e, 0x000004b1, 0x000004da, 0x000004f7,
+	// Entry 20 - 3F
+	0x00000531, 0x00000570, 0x000005c8, 0x000005fa,
+	0x00000630, 0x00000672, 0x000006b0, 0x000006d9,
+	0x00000706, 0x0000074e, 0x00000767, 0x000007b9,
+	0x00000822, 0x0000083a, 0x00000869, 0x000008b6,
+	0x000008e4, 0x00000940, 0x00000969, 0x0000097f,
+	0x00000996, 0x000009b4, 0x000009ed, 0x00000a2a,
+	0x00000a5d, 0x00000a9b, 0x00000acb, 0x00000af9,
+	0x00000b2e, 0x00000b4e, 0x00000b87, 0x00000bbe,
+	// Entry 40 - 5F
+	0x00000bfb, 0x00000c3c, 0x00000c74, 0x00000cae,
+	0x00000ce1, 0x00000d20, 0x00000d58, 0x00000d91,
+	0x00000db9, 0x00000dfe, 0x00000e30, 0x00000e4e,
+	0x00000e7b, 0x00000e9e, 0x00000ed6, 0x00000ef2,
+	0x00000f18, 0x00000f79, 0x00000fa0, 0x00000fcb,
+	0x00000ffb, 0x0000102b, 0x0000104b, 0x00001078,
+	0x000010a6, 0x000010db, 0x0000110f, 0x00001133,
+	0x0000115c, 0x0000118f, 0x0000120c, 0x000012d1,
+	// Entry 60 - 7F
+	0x00001307, 0x00001338, 0x0000136d, 0x00001381,
+	0x0000138a, 0x0000138f, 0x00001397, 0x000013a4,
+	0x000013ca, 0x000013f3, 0x00001402, 0x0000140d,
+	0x00001417, 0x00001435, 0x00001446, 0x0000144e,
+	0x00001455, 0x0000145e, 0x0000146c, 0x0000149b,
+	0x000014a3, 0x000014ad, 0x000014bd, 0x000014c9,
+	0x000014d1, 0x000014e1, 0x000014e6, 0x0000153e,
+	0x00001579, 0x000015b0, 0x000015b0, 0x000015b0,
+} // Size: 536 bytes
+
+const deData string = "" + // Size: 5552 bytes
+	"\x02Error beim Aktuellisieren von roster Version %[1]q: %[2]v\x02Fehler " +
+	"bei einer Datenbankabfrage über die letzten Nachrichten: %[1]v\x02Fehler" +
+	" beim laden des Verlaufs nach %[1]s für %[2]s: %[3]v\x02Error beim Boots" +
+	"trappen des Verlaufs für %[1]s: %[2]v\x02Fehler beim iterieren über rost" +
+	"er-Elemente: %[1]v\x02Fehler beim aktuellisieren der roster-Version: %[1" +
+	"]v\x02Fehler beim erstellen der Lesebestätigung für %[1]q: %[2]v\x02Fehl" +
+	"er beim Schreiben der Nachricht in den Chat: %[1]v\x02Fehler beim Schrei" +
+	"ben der Datenbank: %[1]v\x02Fehler beim Schreiben des Nachrchtenverlaufs" +
+	": %[1]v\x02Fehler beim Schreiben des Verlaufs in die Datenbank: %[1]v" +
+	"\x02Fehler beim Einfügen des Entity-Capability-Hashs: %[1]v\x02Unbekannt" +
+	"es Client-Ereigniss: %[1]T (%[1]q)\x02Fehler beim Laden von Informatione" +
+	"n auf dem Cache: %[1]v\x02Rückfall zu Netzwerkanfrage.…\x02Caps-Cache tr" +
+	"effer für %[1]s: %[2]s:%[3]s\x02Caps-Cache verfehlt für %[1]s: %[2]s:%[3" +
+	"]s, %[2]s:%[4]s\x02Fehler beim Speichern der Entity-Caps in die Datenban" +
+	"k: %[1]v\x02Vorherig\x02Nächstes\x02Vollständig\x02Abbrechen\x02Fehler b" +
+	"eim Speichern des Verlaufs: %[1]v\x02Fehler beim Abfragen des Verlaufs f" +
+	"ür %[1]s: %[2]v\x04\x00\x02\x0a\x0a\x1c\x02Verwendung von communiqué:" +
+	"\x02DEBUG\x02EMPFANGEN\x02GESENDET\x02Die zu ladente Konfigurationsdatei" +
+	"\x02den eingestellten Account überschreiben\x02Druckt diese Hilfe-Nachri" +
+	"cht\x02Gibt die Standartkonfiguration in der Standartausgabe aus\x02Fehl" +
+	"er beim Kodieren der Standartkonfiguration als TOML: %[1]v\x02%[1]v\x0a" +
+	"\x0aVersuche '%[2]s -config' auszuführen, um die Standartkonfiguration z" +
+	"u erzeugen.\x02Fehler beim parsen der Konfigurationsdatei: %[1]v\x02Fehl" +
+	"er beim Schließen der Konfigurationsdatei: %[1]v\x02Der Account %[1]q wu" +
+	"rde nicht in der Konfigurationsdatei gefunden\x02Fehler beim parsen der " +
+	"XMPP-Addresse des Hauptaccounts: %[1]v\x02Fehler beim Öffnen der Datenba" +
+	"nk: %[1]v\x02Fehler beim Protokollieren zum Paneel: %[1]v\x02Fehler beim" +
+	" Kopieren früher Protokolldaten in den Ausgabepuffer: %[1]q\x02Führt Bef" +
+	"ehl aus: %[1]q\x02Fehler beim Ausführen des Passwort-Befehls; Rückfall z" +
+	"ur Passwortabfrage: %[1]v\x04\x00\x02\x0a\x0ac\x02Keine Benutzeraddresse" +
+	" festgelegt, bearbeite %[1]q und füge folgendes ein:\x0a\x0a\x09jid=\x22" +
+	"me@example.com\x22\x02Benutzeraddresse: %[1]q\x02Fehler beim Parsen der " +
+	"Benutzeraddresse: %[1]q\x02Fehler beim Parsen des Zeitlimits, rückfall z" +
+	"um Standartwert von 30s: %[1]q\x02Fehler beim Erstellen der Keylog-Datei" +
+	": %[1]q\x02Fehler beim Feststellen der roster-Version, rückfall zu einer" +
+	" vollen roster-Abfrage: %[1]v\x02Initiale Anmeldung fehlgeschlagen: %[1]" +
+	"v\x02Angemeldet als: %[1]q\x02Signal bekommen: %[1]v\x02ausführen von Be" +
+	"fehl: %+[1]v\x02Fehler beim Ausführen vom Befehl %[1]q auf %[2]q: %[3]v" +
+	"\x02Fehler beim anzeigen des nächsten Befehls für %[1]q: %[2]v\x02Fehler" +
+	" beim Abfragen der Befehle für %[1]q: %[2]v\x02Fehler beim Schließen des" +
+	" Befehlsiterators für %[1]q: %[2]v\x02Fehler beim Setzen des Abwesent-St" +
+	"atuses: %[1]v\x02Fehler beim Setzen des Online-Statuses: %[1]v\x02Fehler" +
+	" beim Setzen des Beschäfftigt-Statuses: %[1]v\x02Fehler beim Offlinegehe" +
+	"n: %[1]v\x02Fehler beim Hinzufügen des roster-Elements %[1]s: %[2]v\x02F" +
+	"ehler beim Entfernen des roster-Elements %[1]s: %[2]v\x02Fehler beim Fes" +
+	"tstellen von Lesezeichenunterstützung: %[1]v\x02Fehler beim Veröffentlic" +
+	"hen von Legacy-Lesezeichen %[1]s: %[2]v\x02Fehler beim Veröffentlich von" +
+	" Lesezeichen %[1]s: %[2]v\x02Error beim Entfernen des Legacy-Lesezeichen" +
+	"s %[1]s: %[2]v\x02Fehler beim Entfernen von Lesezeichen %[1]s: %[2]v\x02" +
+	"Fehler beim Senden der Präsenzvorbestätigung to %[1]s: %[2]v\x02Error be" +
+	"im Senden einer Präsenzanfrage an %[1]s: %[2]v\x02Unbekanntes Benutzerob" +
+	"erflächenereigniss: %[1]T (%[1]q)\x02Fehler beim Senden der Nachricht: %" +
+	"[1]v\x02Fehler beim Speichern der gesendeten Nachricht in den Verlauf: %" +
+	"[1]v\x02Upload-Dienst konnte nicht gefunden werden: %[1]v\x02Kein Upload" +
+	"-Dienst verfügbar\x02%[1]q konnte nicht Hochgeladen werden: %[2]v\x02Feh" +
+	"ler beim Laden des Chats: %[1]v\x02Ungültiger Spitzname %[1]s in der Kon" +
+	"figuration: %[2]v\x02Tritt dem Raum %[1]v bei…\x02Fehler beim Beitreten " +
+	"zu %[1]s: %[2]v\x02Fehler beim Laden der Informationen für die erste Nac" +
+	"hricht für %[1]v aus der Datenbank: %[2]v\x02Kein Chatverlauf verfügbar " +
+	"für %[1]v\x02Laden des Verlaufs vor %[1]v für %[2]v…\x02Fehler beim lade" +
+	"n des Verlauf für %[1]v: %[2]v\x02Fehler beim Verarbeiten des XMPP-Strea" +
+	"ms: %[1]q\x02Fehler beim Offlinegehen: %[1]q\x02Fehler beim Schließen de" +
+	"r Verbindung: %[1]q\x02Fehler während der Dienste-Entdeckung: %[1]v\x02F" +
+	"ehler beim Schließen des Elemente-Iterators: %[1]v\x02Funktionsernennung" +
+	" fehlgeschlagen für %[1]q: %[2]v\x02Fehler beim Laden von roster: %[1]q" +
+	"\x02Fehler beim Laden der Lesezeichen: %[1]q\x02Fehler beim Laden von Ve" +
+	"rsionsinformationen: %[1]v\x02Um dieses Problem zu lösen, kontaktiere bi" +
+	"tte den Administrator des Servers und frage nach, ob %[1]q aktiviert wer" +
+	"den kann.\x02Dein Server unterstützt Lesezeichenunifikation nicht. Diese" +
+	" Funktion verhindert, dass neuere Clients eine andere Chatliste sehen, a" +
+	"ls Ältere, die noch nicht die neusten Funktionen unterstützen.\x02Fehler" +
+	" beim Schließen des Lesezeichen-Streams: %[1]v\x02Fehler beim Schließen " +
+	"des roster-Streams: %[1]q\x02potentiell gefälschter Nachrichtenverlauf v" +
+	"on %[1]s\x02Kontakt hinzufügen\x02Addresse\x02Name\x02Kanäle\x02Konversa" +
+	"tion\x02Empfänger kann nicht gefunden werden\x02Fehler beim Auswählen vo" +
+	"n Datein: %[1]v\x02Konversationen\x02Protokolle\x02Entfernen\x02Kontakt " +
+	"vom Roster entfernen?\x02Kanal entfernen?\x02Offline\x02Online\x02Abwese" +
+	"nd\x02Beschäfftigt\x02Bist du dir sicher, dass du Schließen willst?\x02B" +
+	"eenden\x02Beitreten\x02Kanal beitreten\x02Hinzufügen\x02Befehle\x02Lade " +
+	"Befehle…\x02Exec\x02Standartfehlerausgabe vom Benachrichtigungsprozesses" +
+	" konnte nicht gelesen werden: %[1]v\x02Fehler beim Ausführen des Benachr" +
+	"ichtigungsbefehls: %[1]v\x02Benachrichtigungsunterprozess abgestürzt: %[" +
+	"1]v\x0a%[2]s"
+
+var en_USIndex = []uint32{ // 128 elements
 	// Entry 0 - 1F
 	0x00000000, 0x0000002a, 0x00000060, 0x00000094,
 	0x000000c0, 0x000000e9, 0x0000010e, 0x0000013d,
@@ -187,24 +314,24 @@ var en_USIndex = []uint32{ // 126 elements
 	// Entry 40 - 5F
 	0x00000916, 0x00000944, 0x0000096b, 0x00000997,
 	0x000009bc, 0x000009f0, 0x00000a1f, 0x00000a43,
-	0x00000a60, 0x00000a8c, 0x00000ab5, 0x00000ad3,
-	0x00000aed, 0x00000b11, 0x00000b27, 0x00000b47,
-	0x00000b8b, 0x00000ba3, 0x00000bd1, 0x00000bfc,
-	0x00000c1e, 0x00000c47, 0x00000c62, 0x00000c86,
-	0x00000cb4, 0x00000ce1, 0x00000d0b, 0x00000d29,
-	0x00000d46, 0x00000d66, 0x00000d90, 0x00000ddc,
+	0x00000a60, 0x00000a8c, 0x00000ab5, 0x00000ad1,
+	0x00000aef, 0x00000b09, 0x00000b2d, 0x00000b43,
+	0x00000b63, 0x00000ba7, 0x00000bbf, 0x00000bed,
+	0x00000c18, 0x00000c41, 0x00000c5c, 0x00000c80,
+	0x00000cae, 0x00000cdb, 0x00000d05, 0x00000d22,
+	0x00000d42, 0x00000d6c, 0x00000db8, 0x00000e84,
 	// Entry 60 - 7F
-	0x00000ea8, 0x00000ece, 0x00000ef1, 0x00000f1d,
-	0x00000f29, 0x00000f31, 0x00000f36, 0x00000f3f,
-	0x00000f4c, 0x00000f6d, 0x00000f7b, 0x00000f80,
-	0x00000f87, 0x00000fad, 0x00000fc2, 0x00000fca,
-	0x00000fd1, 0x00000fd6, 0x00000fdb, 0x00000ffa,
-	0x00000fff, 0x00001004, 0x00001011, 0x00001015,
-	0x0000101e, 0x00001032, 0x00001037, 0x00001073,
-	0x0000109d, 0x000010c9,
-} // Size: 528 bytes
+	0x00000eaa, 0x00000ecd, 0x00000ef9, 0x00000f05,
+	0x00000f0d, 0x00000f12, 0x00000f1b, 0x00000f28,
+	0x00000f44, 0x00000f65, 0x00000f73, 0x00000f78,
+	0x00000f7f, 0x00000fa5, 0x00000fba, 0x00000fc2,
+	0x00000fc9, 0x00000fce, 0x00000fd3, 0x00000ff2,
+	0x00000ff7, 0x00000ffc, 0x00001009, 0x0000100d,
+	0x00001016, 0x0000102a, 0x0000102f, 0x0000106b,
+	0x00001095, 0x000010c1, 0x000010f5, 0x00001113,
+} // Size: 536 bytes
 
-const en_USData string = "" + // Size: 4297 bytes
+const en_USData string = "" + // Size: 4371 bytes
 	"\x02error updating to roster ver %[1]q: %[2]v\x02error querying database" +
 	" for last seen messages: %[1]v\x02error fetching history after %[1]s for" +
 	" %[2]s: %[3]v\x02error bootstraping history for %[1]s: %[2]v\x02error it" +
@@ -247,29 +374,30 @@ const en_USData string = "" + // Size: 4297 bytes
 	"2]v\x02error sending presence request to %[1]s: %[2]v\x02unrecognized ui" +
 	" event: %[1]T(%[1]q)\x02error sending message: %[1]v\x02error saving sen" +
 	"t message to history: %[1]v\x02could not get the upload services: %[1]v" +
-	"\x02could not upload %[1]q: %[2]v\x02error loading chat: %[1]v\x02invali" +
-	"d nick %[1]s in config: %[2]v\x02joining room %[1]v…\x02error joining ro" +
-	"om %[1]s: %[2]v\x02error fetching earliest message info for %[1]v from d" +
-	"atabase: %[2]v\x02no scrollback for %[1]v\x02fetching scrollback before " +
-	"%[1]v for %[2]v…\x02error fetching scrollback for %[1]v: %[2]v\x02error " +
-	"scrollback for %[1]v: %[2]v\x02Error while handling XMPP streams: %[1]q" +
-	"\x02Error going offline: %[1]q\x02Error closing the connection: %[1]q" +
-	"\x02error occured during service discovery: %[1]v\x02error when closing " +
-	"the items iterator: %[1]v\x02feature discovery failed for %[1]q: %[2]v" +
-	"\x02error enabling carbons: %[1]q\x02error fetching roster: %[1]q\x02err" +
-	"or fetching bookmarks: %[1]q\x02error fetching version information: %[1]" +
-	"v\x02To fix this, contact your server administrator and ask them to enab" +
-	"le %[1]q\x02Your server does not support bookmark unification, an import" +
-	"ant feature that stops newer clients from seeing a different list of cha" +
-	"t rooms than older clients that do not yet support the latest features." +
-	"\x02error closing bookmarks stream: %[1]v\x02Error closing roster stream" +
-	": %[1]q\x02possibly spoofed history message from %[1]s\x02Add Contact" +
-	"\x02Address\x02Name\x02Channels\x02Conversation\x02error while picking f" +
-	"iles: %[1]v\x02Conversations\x02Logs\x02Remove\x02Remove this contact fr" +
-	"om your roster?\x02Remove this channel?\x02Offline\x02Online\x02Away\x02" +
-	"Busy\x02Are you sure you want to quit?\x02Quit\x02Join\x02Join Channel" +
-	"\x02Add\x02Commands\x02Loading commands…\x02Exec\x02failed to read stder" +
-	"r of the notification subprocess: %[1]v\x02failed to run notification co" +
-	"mmand: %[1]v\x02notification subprocess failed: %[1]v\x0a%[2]s"
+	"\x02no upload service available\x02could not upload %[1]q: %[2]v\x02erro" +
+	"r loading chat: %[1]v\x02invalid nick %[1]s in config: %[2]v\x02joining " +
+	"room %[1]v…\x02error joining room %[1]s: %[2]v\x02error fetching earlies" +
+	"t message info for %[1]v from database: %[2]v\x02no scrollback for %[1]v" +
+	"\x02fetching scrollback before %[1]v for %[2]v…\x02error fetching scroll" +
+	"back for %[1]v: %[2]v\x02Error while handling XMPP streams: %[1]q\x02Err" +
+	"or going offline: %[1]q\x02Error closing the connection: %[1]q\x02error " +
+	"occured during service discovery: %[1]v\x02error when closing the items " +
+	"iterator: %[1]v\x02feature discovery failed for %[1]q: %[2]v\x02error fe" +
+	"tching roster: %[1]q\x02error fetching bookmarks: %[1]q\x02error fetchin" +
+	"g version information: %[1]v\x02To fix this, contact your server adminis" +
+	"trator and ask them to enable %[1]q\x02Your server does not support book" +
+	"mark unification, an important feature that stops newer clients from see" +
+	"ing a different list of chat rooms than older clients that do not yet su" +
+	"pport the latest features.\x02error closing bookmarks stream: %[1]v\x02E" +
+	"rror closing roster stream: %[1]q\x02possibly spoofed history message fr" +
+	"om %[1]s\x02Add Contact\x02Address\x02Name\x02Channels\x02Conversation" +
+	"\x02failed to get the recipient\x02error while picking files: %[1]v\x02C" +
+	"onversations\x02Logs\x02Remove\x02Remove this contact from your roster?" +
+	"\x02Remove this channel?\x02Offline\x02Online\x02Away\x02Busy\x02Are you" +
+	" sure you want to quit?\x02Quit\x02Join\x02Join Channel\x02Add\x02Comman" +
+	"ds\x02Loading commands…\x02Exec\x02failed to read stderr of the notifica" +
+	"tion subprocess: %[1]v\x02failed to run notification command: %[1]v\x02n" +
+	"otification subprocess failed: %[1]v\x0a%[2]s\x02error loading scrollbac" +
+	"k into pane for %[1]v: %[2]v\x02error enabling carbons: %[1]q"
 
-	// Total table size 4825 bytes (4KiB); checksum: C85D7D17
+	// Total table size 10995 bytes (10KiB); checksum: 9CA6B867
