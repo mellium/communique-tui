@@ -1656,30 +1656,6 @@
             ]
         },
         {
-            "id": "error scrollback for {JID}: {Err}",
-            "message": "error scrollback for {JID}: {Err}",
-            "fuzzy": true,
-            "translation": "error scrollback for {JID}: {Err}",
-            "placeholders": [
-                {
-                    "id": "JID",
-                    "string": "%[1]v",
-                    "type": "mellium.im/xmpp/jid.JID",
-                    "underlyingType": "struct{locallen int; domainlen int; data []byte}",
-                    "argNum": 1,
-                    "expr": "e.JID"
-                },
-                {
-                    "id": "Err",
-                    "string": "%[2]v",
-                    "type": "error",
-                    "underlyingType": "interface{Error() string}",
-                    "argNum": 2,
-                    "expr": "err"
-                }
-            ]
-        },
-        {
             "id": "Error while handling XMPP streams: {Err}",
             "message": "Error while handling XMPP streams: {Err}",
             "fuzzy": true,
