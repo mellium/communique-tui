@@ -164,7 +164,7 @@ Try running '%s -config' to generate a default config file.`, err, os.Args[0]))
 	if err != nil {
 		logger.Fatal(p.Sprintf("error parsing main account as XMPP address: %v", err))
 	}
-	db, err := storage.OpenDB(dbCtx, appName, account.Bare().String(), acct.DB, schema, debug)
+	db, err := storage.OpenDB(dbCtx, appName, account.Bare().String(), acct.DB, schema, p, debug)
 	if err != nil {
 		logger.Fatal(p.Sprintf("error opening database: %v", err))
 	}

@@ -1640,6 +1640,115 @@
             ]
         },
         {
+            "id": "error finding user home directory: {Err}",
+            "message": "error finding user home directory: {Err}",
+            "translation": "error finding user home directory: {Err}",
+            "translatorComment": "Copied from source.",
+            "placeholders": [
+                {
+                    "id": "Err",
+                    "string": "%[1]v",
+                    "type": "error",
+                    "underlyingType": "interface{Error() string}",
+                    "argNum": 1,
+                    "expr": "err"
+                }
+            ],
+            "fuzzy": true
+        },
+        {
+            "id": "error getting current working directory: {Err}",
+            "message": "error getting current working directory: {Err}",
+            "translation": "error getting current working directory: {Err}",
+            "translatorComment": "Copied from source.",
+            "placeholders": [
+                {
+                    "id": "Err",
+                    "string": "%[1]v",
+                    "type": "error",
+                    "underlyingType": "interface{Error() string}",
+                    "argNum": 1,
+                    "expr": "err"
+                }
+            ],
+            "fuzzy": true
+        },
+        {
+            "id": "error creating db dir, skipping: {Err}",
+            "message": "error creating db dir, skipping: {Err}",
+            "translation": "error creating db dir, skipping: {Err}",
+            "translatorComment": "Copied from source.",
+            "placeholders": [
+                {
+                    "id": "Err",
+                    "string": "%[1]v",
+                    "type": "error",
+                    "underlyingType": "interface{Error() string}",
+                    "argNum": 1,
+                    "expr": "err"
+                }
+            ],
+            "fuzzy": true
+        },
+        {
+            "id": "error opening or creating db, skipping: {Err}",
+            "message": "error opening or creating db, skipping: {Err}",
+            "translation": "error opening or creating db, skipping: {Err}",
+            "translatorComment": "Copied from source.",
+            "placeholders": [
+                {
+                    "id": "Err",
+                    "string": "%[1]v",
+                    "type": "error",
+                    "underlyingType": "interface{Error() string}",
+                    "argNum": 1,
+                    "expr": "err"
+                }
+            ],
+            "fuzzy": true
+        },
+        {
+            "id": "error closing db file: {Err}",
+            "message": "error closing db file: {Err}",
+            "translation": "error closing db file: {Err}",
+            "translatorComment": "Copied from source.",
+            "placeholders": [
+                {
+                    "id": "Err",
+                    "string": "%[1]v",
+                    "type": "error",
+                    "underlyingType": "interface{Error() string}",
+                    "argNum": 1,
+                    "expr": "err"
+                }
+            ],
+            "fuzzy": true
+        },
+        {
+            "id": "could not create or open database for writing",
+            "message": "could not create or open database for writing",
+            "translation": "could not create or open database for writing",
+            "translatorComment": "Copied from source.",
+            "fuzzy": true
+        },
+        {
+            "id": "bad hash type found in database: {Err}",
+            "message": "bad hash type found in database: {Err}",
+            "translation": "bad hash type found in database: {Err}",
+            "translatorComment": "Copied from source.",
+            "placeholders": [
+                {
+                    "id": "Err",
+                    "string": "%[1]v",
+                    "type": "error",
+                    "underlyingType": "interface{Error() string}",
+                    "argNum": 1,
+                    "expr": "err"
+                }
+            ],
+            "fuzzy": true
+        },
+        {
             "id": "Add Contact",
             "message": "Add Contact",
             "translation": "Add Contact"

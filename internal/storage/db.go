@@ -20,6 +20,7 @@ import (
 
 	_ "modernc.org/sqlite"
 
+	"golang.org/x/text/message"
 	"mellium.im/communique/internal/client/event"
 	"mellium.im/xmpp/crypto"
 	"mellium.im/xmpp/disco"
@@ -57,6 +58,7 @@ type DB struct {
 	insertIdentJID    *sql.Stmt
 	insertFeature     *sql.Stmt
 	insertFeatureJID  *sql.Stmt
+	p                 *message.Printer
 	debug             *log.Logger
 }
 
@@ -65,7 +67,7 @@ type DB struct {
 // If dbFile is empty a fallback sequence of names is used starting with
 // $XDG_DATA_HOME, then falling back to $HOME/.local/share, then falling back to
 // the current working directory.
-func OpenDB(ctx context.Context, appName, account, dbFile, schema string, debug *log.Logger) (*DB, error) {
+func OpenDB(ctx context.Context, appName, account, dbFile, schema string, p *message.Printer, debug *log.Logger) (*DB, error) {
 	const (
 		dbDriver = "sqlite"
 	)
@@ -82,13 +84,13 @@ func OpenDB(ctx context.Context, appName, account, dbFile, schema string, debug 
 		}
 		home, err := os.UserHomeDir()
 		if err != nil {
-			debug.Printf("error finding user home directory: %v", err)
+			debug.Print(p.Sprintf("error finding user home directory: %v", err))
 		} else {
 			paths = append(paths, filepath.Join(home, ".local", "share", appName, dbFileName))
 		}
 		fPath, err = os.Getwd()
 		if err != nil {
-			debug.Printf("error getting current working directory: %v", err)
+			debug.Print(p.Sprintf("error getting current working directory: %v", err))
 		} else {
 			paths = append(paths, filepath.Join(fPath, dbFileName))
 		}
@@ -96,33 +98,33 @@ func OpenDB(ctx context.Context, appName, account, dbFile, schema string, debug 
 
 	// Create the path to the db file if it does not exist.
 	fPath = ""
-	for _, p := range paths {
-		if p == ":memory:" {
-			fPath = p
+	for _, path := range paths {
+		if path == ":memory:" {
+			fPath = path
 			break
 		}
 
-		err := os.MkdirAll(filepath.Dir(p), 0750)
+		err := os.MkdirAll(filepath.Dir(path), 0750)
 		if err != nil {
-			debug.Printf("error creating db dir, skipping: %v", err)
+			debug.Print(p.Sprintf("error creating db dir, skipping: %v", err))
 			continue
 		}
 		// Create the database file if it does not exist, similar to touch(1).
 		/* #nosec */
-		fd, err := os.OpenFile(p, os.O_RDWR|os.O_CREATE, 0600)
+		fd, err := os.OpenFile(path, os.O_RDWR|os.O_CREATE, 0600)
 		if err != nil {
-			debug.Printf("error opening or creating db, skipping: %v", err)
+			debug.Print(p.Sprintf("error opening or creating db, skipping: %v", err))
 			continue
 		}
 		err = fd.Close()
 		if err != nil {
-			debug.Printf("error closing db file: %v", err)
+			debug.Print(p.Sprintf("error closing db file: %v", err))
 		}
-		fPath = p
+		fPath = path
 		break
 	}
 	if fPath == "" {
-		return nil, errors.New("could not create or open database for writing")
+		return nil, errors.New(p.Sprintf("could not create or open database for writing"))
 	}
 
 	db, err := sql.Open(dbDriver, fPath)
@@ -722,7 +724,7 @@ func (db *DB) GetInfo(ctx context.Context, j jid.JID) (disco.Info, disco.Caps, e
 		}
 		h, err := crypto.Parse(hash)
 		if err != nil {
-			db.debug.Printf("bad hash type found in database: %v", err)
+			db.debug.Print(db.p.Sprintf("bad hash type found in database: %v", err))
 		}
 		caps.Hash = h
 

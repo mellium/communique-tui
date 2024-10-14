@@ -45,19 +45,19 @@ var messageKeyToIndex = map[string]int{
 	"Address":                          99,
 	"Are you sure you want to quit?":   114,
 	"Away":                             112,
-	"Away %s":                          136,
+	"Away %s":                          143,
 	"Busy":                             113,
-	"Busy %s":                          137,
+	"Busy %s":                          144,
 	"Cancel":                           21,
 	"Channels":                         101,
-	"Chat: %q (%s)":                    131,
+	"Chat: %q (%s)":                    138,
 	"Commands":                         119,
 	"Complete":                         20,
 	"Conversation":                     102,
 	"Conversations":                    105,
 	"DEBUG":                            25,
-	"Data Form":                        140,
-	"Enter password for: %q":           129,
+	"Data Form":                        147,
+	"Enter password for: %q":           136,
 	"Error closing roster stream: %q":  96,
 	"Error closing the connection: %q": 86,
 	"Error encoding default config as TOML: %v": 32,
@@ -67,36 +67,38 @@ var messageKeyToIndex = map[string]int{
 	"Join":                                      116,
 	"Join Channel":                              117,
 	"Loading commands…":                         120,
-	"Login":                                     128,
+	"Login":                                     135,
 	"Logs":                                      106,
 	"Name":                                      100,
 	"Next":                                      19,
-	"No commands found for %v!":                 148,
+	"No commands found for %v!":                 155,
 	"Offline":                                   110,
-	"Offline %s":                                138,
+	"Offline %s":                                145,
 	"Online":                                    111,
-	"Online %s":                                 135,
-	"Password":                                  127,
-	"Pick Address":                              150,
+	"Online %s":                                 142,
+	"Password":                                  134,
+	"Pick Address":                              157,
 	"Prev":                                      18,
 	"Quit":                                      115,
 	"RECV":                                      26,
 	"Remove":                                    107,
 	"Remove this channel?":                      109,
 	"Remove this contact from your roster?":     108,
-	"Roster":                                    130,
-	"Roster info:":                              151,
+	"Roster":                                    137,
+	"Roster info:":                              158,
 	"SENT":                                      27,
-	"Search":                                    133,
-	"Select":                                    149,
-	"Set Status":                                134,
-	"Status: %s":                                132,
+	"Search":                                    140,
+	"Select":                                    156,
+	"Set Status":                                141,
+	"Status: %s":                                139,
 	"To fix this, contact your server administrator and ask them to enable %q": 93,
 	"Usage of communiqué:\n\n": 24,
 	"Your server does not support bookmark unification, an important feature that stops newer clients from seeing a different list of chat rooms than older clients that do not yet support the latest features.": 94,
 	"account %q not found in config file":                                         36,
+	"bad hash type found in database: %v":                                         133,
 	"caps cache hit for %s: %s:%s":                                                15,
 	"caps cache miss for %s: %s:%s, %[2]s:%[4]s":                                  16,
+	"could not create or open database for writing":                               132,
 	"could not get the upload services: %v":                                       73,
 	"could not upload %q: %v":                                                     75,
 	"error adding roster item %s: %v":                                             61,
@@ -104,12 +106,14 @@ var messageKeyToIndex = map[string]int{
 	"error closing bookmarks stream: %v":                                          95,
 	"error closing commands iter for %q: %v":                                      56,
 	"error closing config file: %v":                                               35,
+	"error closing db file: %v":                                                   131,
 	"error copying early log data to output buffer: %q":                           40,
+	"error creating db dir, skipping: %v":                                         129,
 	"error creating keylog file: %q":                                              47,
 	"error discovering bookmarks support: %v":                                     63,
 	"error enabling carbons: %q":                                                  126,
 	"error executing command %q on %q: %v":                                        53,
-	"error executing info template: %v":                                           154,
+	"error executing info template: %v":                                           161,
 	"error fetching bookmarks: %q":                                                91,
 	"error fetching commands for %q: %v":                                          55,
 	"error fetching earliest message info for %v from database: %v":               80,
@@ -118,6 +122,8 @@ var messageKeyToIndex = map[string]int{
 	"error fetching roster: %q":                                                   90,
 	"error fetching scrollback for %v: %v":                                        83,
 	"error fetching version information: %v":                                      92,
+	"error finding user home directory: %v":                                       127,
+	"error getting current working directory: %v":                                 128,
 	"error going offline: %v":                                                     60,
 	"error inserting entity capbailities hash: %v":                                11,
 	"error iterating over roster items: %v":                                       4,
@@ -128,8 +134,9 @@ var messageKeyToIndex = map[string]int{
 	"error marking message %q as received: %v":                                    6,
 	"error occured during service discovery: %v":                                  87,
 	"error opening database: %v":                                                  38,
+	"error opening or creating db, skipping: %v":                                  130,
 	"error parsing config file: %v":                                               34,
-	"error parsing jid-multi value for field %s: %v":                              142,
+	"error parsing jid-multi value for field %s: %v":                              149,
 	"error parsing main account as XMPP address: %v":                              37,
 	"error parsing timeout, defaulting to 30s: %q":                                46,
 	"error parsing user address: %q":                                              45,
@@ -148,14 +155,14 @@ var messageKeyToIndex = map[string]int{
 	"error sending presence pre-approval to %s: %v":                               68,
 	"error sending presence request to %s: %v":                                    69,
 	"error setting away status: %v":                                               57,
-	"error setting bool form field %s: %v":                                        141,
+	"error setting bool form field %s: %v":                                        148,
 	"error setting busy status: %v":                                               59,
-	"error setting jid form field %s: %v":                                         144,
-	"error setting jid-multi form field %s: %v":                                   143,
-	"error setting list or list-multi form field %s: %v":                          145,
+	"error setting jid form field %s: %v":                                         151,
+	"error setting jid-multi form field %s: %v":                                   150,
+	"error setting list or list-multi form field %s: %v":                          152,
 	"error setting online status: %v":                                             58,
-	"error setting password form field %s: %v":                                    147,
-	"error setting text or text-multi form field %s: %v":                          146,
+	"error setting password form field %s: %v":                                    154,
+	"error setting text or text-multi form field %s: %v":                          153,
 	"error showing next command for %q: %v":                                       54,
 	"error updating roster version: %v":                                           5,
 	"error updating to roster ver %q: %v":                                         0,
@@ -178,9 +185,9 @@ var messageKeyToIndex = map[string]int{
 	"invalid nick %s in config: %v":                                               77,
 	"joining room %v…":                                                            78,
 	"logged in as: %q":                                                            50,
-	"no file picker set, see the example configuration file for more information": 139,
+	"no file picker set, see the example configuration file for more information": 146,
 	"no scrollback for %v":                                                        81,
-	"no sidebar open, not showing info pane…":                                     152,
+	"no sidebar open, not showing info pane…":                                     159,
 	"no upload service available":                                                 74,
 	"no user address specified, edit %q and add:\n\n\tjid=\"me@example.com\"\n\n": 43,
 	"notification subprocess failed: %v\n%s":                                      124,
@@ -191,12 +198,12 @@ var messageKeyToIndex = map[string]int{
 	"running command: %q":                                                         41,
 	"the config file to load":                                                     28,
 	"unrecognized client event: %T(%[1]q)":                                        12,
-	"unrecognized sidebar item type %T, not showing info…":                        153,
+	"unrecognized sidebar item type %T, not showing info…":                        160,
 	"unrecognized ui event: %T(%[1]q)":                                            70,
 	"user address: %q":                                                            44,
 }
 
-var deIndex = []uint32{ // 156 elements
+var deIndex = []uint32{ // 163 elements
 	// Entry 0 - 1F
 	0x00000000, 0x0000003a, 0x00000081, 0x000000bd,
 	0x000000f4, 0x00000127, 0x0000015c, 0x00000199,
@@ -241,7 +248,10 @@ var deIndex = []uint32{ // 156 elements
 	0x000015b0, 0x000015b0, 0x000015b0, 0x000015b0,
 	0x000015b0, 0x000015b0, 0x000015b0, 0x000015b0,
 	0x000015b0, 0x000015b0, 0x000015b0, 0x000015b0,
-} // Size: 648 bytes
+	0x000015b0, 0x000015b0, 0x000015b0, 0x000015b0,
+	// Entry A0 - BF
+	0x000015b0, 0x000015b0, 0x000015b0,
+} // Size: 676 bytes
 
 const deData string = "" + // Size: 5552 bytes
 	"\x02Error beim Aktuellisieren von roster Version %[1]q: %[2]v\x02Fehler " +
@@ -328,7 +338,7 @@ const deData string = "" + // Size: 5552 bytes
 	"ichtigungsbefehls: %[1]v\x02Benachrichtigungsunterprozess abgestürzt: %[" +
 	"1]v\x0a%[2]s"
 
-var en_USIndex = []uint32{ // 156 elements
+var en_USIndex = []uint32{ // 163 elements
 	// Entry 0 - 1F
 	0x00000000, 0x0000002a, 0x00000060, 0x00000094,
 	0x000000c0, 0x000000e9, 0x0000010e, 0x0000013d,
@@ -366,16 +376,19 @@ var en_USIndex = []uint32{ // 156 elements
 	0x00001016, 0x0000102a, 0x0000102f, 0x0000106b,
 	0x00001095, 0x000010c1, 0x000010f5, 0x00001113,
 	// Entry 80 - 9F
-	0x0000111c, 0x00001122, 0x0000113c, 0x00001143,
-	0x00001157, 0x00001165, 0x0000116c, 0x00001177,
-	0x00001184, 0x0000118f, 0x0000119a, 0x000011a8,
-	0x000011f4, 0x000011fe, 0x00001229, 0x0000125e,
-	0x0000128e, 0x000012b8, 0x000012f1, 0x0000132a,
-	0x00001359, 0x00001376, 0x0000137d, 0x0000138a,
-	0x00001397, 0x000013c1, 0x000013fb, 0x00001420,
-} // Size: 648 bytes
+	0x0000113c, 0x0000116b, 0x00001192, 0x000011c0,
+	0x000011dd, 0x0000120b, 0x00001232, 0x0000123b,
+	0x00001241, 0x0000125b, 0x00001262, 0x00001276,
+	0x00001284, 0x0000128b, 0x00001296, 0x000012a3,
+	0x000012ae, 0x000012b9, 0x000012c7, 0x00001313,
+	0x0000131d, 0x00001348, 0x0000137d, 0x000013ad,
+	0x000013d7, 0x00001410, 0x00001449, 0x00001478,
+	0x00001495, 0x0000149c, 0x000014a9, 0x000014b6,
+	// Entry A0 - BF
+	0x000014e0, 0x0000151a, 0x0000153f,
+} // Size: 676 bytes
 
-const en_USData string = "" + // Size: 5152 bytes
+const en_USData string = "" + // Size: 5439 bytes
 	"\x02error updating to roster ver %[1]q: %[2]v\x02error querying database" +
 	" for last seen messages: %[1]v\x02error fetching history after %[1]s for" +
 	" %[2]s: %[3]v\x02error bootstraping history for %[1]s: %[2]v\x02error it" +
@@ -442,18 +455,23 @@ const en_USData string = "" + // Size: 5152 bytes
 	"ds\x02Loading commands…\x02Exec\x02failed to read stderr of the notifica" +
 	"tion subprocess: %[1]v\x02failed to run notification command: %[1]v\x02n" +
 	"otification subprocess failed: %[1]v\x0a%[2]s\x02error loading scrollbac" +
-	"k into pane for %[1]v: %[2]v\x02error enabling carbons: %[1]q\x02Passwor" +
-	"d\x02Login\x02Enter password for: %[1]q\x02Roster\x02Chat: %[1]q (%[2]s)" +
-	"\x02Status: %[1]s\x02Search\x02Set Status\x02Online %[1]s\x02Away %[1]s" +
-	"\x02Busy %[1]s\x02Offline %[1]s\x02no file picker set, see the example c" +
-	"onfiguration file for more information\x02Data Form\x02error setting boo" +
-	"l form field %[1]s: %[2]v\x02error parsing jid-multi value for field %[1" +
-	"]s: %[2]v\x02error setting jid-multi form field %[1]s: %[2]v\x02error se" +
-	"tting jid form field %[1]s: %[2]v\x02error setting list or list-multi fo" +
-	"rm field %[1]s: %[2]v\x02error setting text or text-multi form field %[1" +
-	"]s: %[2]v\x02error setting password form field %[1]s: %[2]v\x02No comman" +
-	"ds found for %[1]v!\x02Select\x02Pick Address\x02Roster info:\x02no side" +
-	"bar open, not showing info pane…\x02unrecognized sidebar item type %[1]T" +
-	", not showing info…\x02error executing info template: %[1]v"
+	"k into pane for %[1]v: %[2]v\x02error enabling carbons: %[1]q\x02error f" +
+	"inding user home directory: %[1]v\x02error getting current working direc" +
+	"tory: %[1]v\x02error creating db dir, skipping: %[1]v\x02error opening o" +
+	"r creating db, skipping: %[1]v\x02error closing db file: %[1]v\x02could " +
+	"not create or open database for writing\x02bad hash type found in databa" +
+	"se: %[1]v\x02Password\x02Login\x02Enter password for: %[1]q\x02Roster" +
+	"\x02Chat: %[1]q (%[2]s)\x02Status: %[1]s\x02Search\x02Set Status\x02Onli" +
+	"ne %[1]s\x02Away %[1]s\x02Busy %[1]s\x02Offline %[1]s\x02no file picker " +
+	"set, see the example configuration file for more information\x02Data For" +
+	"m\x02error setting bool form field %[1]s: %[2]v\x02error parsing jid-mul" +
+	"ti value for field %[1]s: %[2]v\x02error setting jid-multi form field %[" +
+	"1]s: %[2]v\x02error setting jid form field %[1]s: %[2]v\x02error setting" +
+	" list or list-multi form field %[1]s: %[2]v\x02error setting text or tex" +
+	"t-multi form field %[1]s: %[2]v\x02error setting password form field %[1" +
+	"]s: %[2]v\x02No commands found for %[1]v!\x02Select\x02Pick Address\x02R" +
+	"oster info:\x02no sidebar open, not showing info pane…\x02unrecognized s" +
+	"idebar item type %[1]T, not showing info…\x02error executing info templa" +
+	"te: %[1]v"
 
-	// Total table size 12000 bytes (11KiB); checksum: 64F0E26
+	// Total table size 12343 bytes (12KiB); checksum: 27C6F3E9
