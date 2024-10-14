@@ -801,7 +801,7 @@ func (db *DB) UpsertDisco(ctx context.Context, j jid.JID, caps disco.Caps, info 
 		e := xml.NewEncoder(&buf)
 		err = e.EncodeToken(xml.StartElement{Name: xml.Name{Local: "forms"}})
 		if err != nil {
-			return fmt.Errorf("encoding root forms start element failed: %v", err)
+			return fmt.Errorf("encoding root forms start element failed: %w", err)
 		}
 		for i := range info.Form {
 			err = e.Encode(&info.Form[i])
@@ -811,7 +811,7 @@ func (db *DB) UpsertDisco(ctx context.Context, j jid.JID, caps disco.Caps, info 
 		}
 		err = e.EncodeToken(xml.EndElement{Name: xml.Name{Local: "forms"}})
 		if err != nil {
-			return fmt.Errorf("encoding root forms end element failed: %v", err)
+			return fmt.Errorf("encoding root forms end element failed: %w", err)
 		}
 		err = e.Flush()
 		if err != nil {
@@ -832,12 +832,12 @@ func (db *DB) UpsertDisco(ctx context.Context, j jid.JID, caps disco.Caps, info 
 			var identID int64
 			err := insertIdent.QueryRowContext(ctx, ident.Category, ident.Name, ident.Type, ident.Lang).Scan(&identID)
 			if err != nil {
-				return fmt.Errorf("error inserting identity %v: %v", ident, err)
+				return fmt.Errorf("error inserting identity %v: %w", ident, err)
 			}
 			if identID != 0 {
 				_, err = insertIdentJID.ExecContext(ctx, jidID, identID)
 				if err != nil {
-					return fmt.Errorf("error inserting identity caps joiner: %v", err)
+					return fmt.Errorf("error inserting identity caps joiner: %w", err)
 				}
 			}
 		}
@@ -845,12 +845,12 @@ func (db *DB) UpsertDisco(ctx context.Context, j jid.JID, caps disco.Caps, info 
 			var featID int64
 			err := insertFeatures.QueryRowContext(ctx, feat.Var).Scan(&featID)
 			if err != nil {
-				return fmt.Errorf("error inserting feature %s: %v", feat.Var, err)
+				return fmt.Errorf("error inserting feature %s: %w", feat.Var, err)
 			}
 			if featID != 0 {
 				_, err = insertFeatureJID.ExecContext(ctx, jidID, featID)
 				if err != nil {
-					return fmt.Errorf("error inserting feature caps joiner: %v", err)
+					return fmt.Errorf("error inserting feature caps joiner: %w", err)
 				}
 			}
 		}
