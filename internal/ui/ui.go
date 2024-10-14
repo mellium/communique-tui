@@ -829,9 +829,9 @@ dd: remove contact
 !: execute command
 s: change status
 
-Chat:
+[::b]Chat[::-]
 
-Ctrl+u: send files via HTTP upload (no E2E encryption!)`).
+Ctrl+u: upload file(s)`).
 		SetDoneFunc(func(int, string) {
 			onEsc()
 		})
