@@ -6,12 +6,18 @@ package ui
 
 import (
 	"github.com/rivo/tview"
+	"golang.org/x/text/message"
 )
 
-func statusModal(done func(buttonIndex int, buttonLabel string)) *Modal {
+func statusModal(p *message.Printer, done func(buttonIndex int, buttonLabel string)) *Modal {
 	mod := NewModal().
-		SetText("Set Status").
-		AddButtons([]string{"Online [green]●", "Away [orange]◓", "Busy [red]◑", "Offline ○"}).
+		SetText(p.Sprintf("Set Status")).
+		AddButtons([]string{
+			p.Sprintf("Online %s", "[green]●"),
+			p.Sprintf("Away %s", "[orange]◓"),
+			p.Sprintf("Busy %s", "[red]◑"),
+			p.Sprintf("Offline %s", "○"),
+		}).
 		SetDoneFunc(done).
 		SetBackgroundColor(tview.Styles.PrimitiveBackgroundColor)
 	mod.SetInputCapture(modalClose(func() {

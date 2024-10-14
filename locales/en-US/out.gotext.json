@@ -1397,7 +1397,6 @@
             "id": "error loading scrollback into pane for {JID}: {Err}",
             "message": "error loading scrollback into pane for {JID}: {Err}",
             "translation": "error loading scrollback into pane for {JID}: {Err}",
-            "translatorComment": "Copied from source.",
             "placeholders": [
                 {
                     "id": "JID",
@@ -1415,8 +1414,7 @@
                     "argNum": 2,
                     "expr": "err"
                 }
-            ],
-            "fuzzy": true
+            ]
         },
         {
             "id": "Error while handling XMPP streams: {Err}",
@@ -1712,6 +1710,93 @@
             "translation": "Remove this channel?"
         },
         {
+            "id": "Password",
+            "message": "Password",
+            "translation": "Password",
+            "translatorComment": "Copied from source.",
+            "fuzzy": true
+        },
+        {
+            "id": "Login",
+            "message": "Login",
+            "translation": "Login",
+            "translatorComment": "Copied from source.",
+            "fuzzy": true
+        },
+        {
+            "id": "Enter password for: {Addr}",
+            "message": "Enter password for: {Addr}",
+            "translation": "Enter password for: {Addr}",
+            "translatorComment": "Copied from source.",
+            "placeholders": [
+                {
+                    "id": "Addr",
+                    "string": "%[1]q",
+                    "type": "string",
+                    "underlyingType": "string",
+                    "argNum": 1,
+                    "expr": "addr"
+                }
+            ],
+            "fuzzy": true
+        },
+        {
+            "id": "Roster",
+            "message": "Roster",
+            "translation": "Roster",
+            "translatorComment": "Copied from source.",
+            "fuzzy": true
+        },
+        {
+            "id": "Chat: {Main} ({Secondary})",
+            "message": "Chat: {Main} ({Secondary})",
+            "translation": "Chat: {Main} ({Secondary})",
+            "translatorComment": "Copied from source.",
+            "placeholders": [
+                {
+                    "id": "Main",
+                    "string": "%[1]q",
+                    "type": "string",
+                    "underlyingType": "string",
+                    "argNum": 1,
+                    "expr": "main"
+                },
+                {
+                    "id": "Secondary",
+                    "string": "%[2]s",
+                    "type": "string",
+                    "underlyingType": "string",
+                    "argNum": 2,
+                    "expr": "secondary"
+                }
+            ],
+            "fuzzy": true
+        },
+        {
+            "id": "Status: {Main}",
+            "message": "Status: {Main}",
+            "translation": "Status: {Main}",
+            "translatorComment": "Copied from source.",
+            "placeholders": [
+                {
+                    "id": "Main",
+                    "string": "%[1]s",
+                    "type": "string",
+                    "underlyingType": "string",
+                    "argNum": 1,
+                    "expr": "main"
+                }
+            ],
+            "fuzzy": true
+        },
+        {
+            "id": "Search",
+            "message": "Search",
+            "translation": "Search",
+            "translatorComment": "Copied from source.",
+            "fuzzy": true
+        },
+        {
             "id": "Offline",
             "message": "Offline",
             "translation": "Offline"
@@ -1730,6 +1815,88 @@
             "id": "Busy",
             "message": "Busy",
             "translation": "Busy"
+        },
+        {
+            "id": "Set Status",
+            "message": "Set Status",
+            "translation": "Set Status",
+            "translatorComment": "Copied from source.",
+            "fuzzy": true
+        },
+        {
+            "id": "Online {Green}",
+            "message": "Online {Green}",
+            "translation": "Online {Green}",
+            "translatorComment": "Copied from source.",
+            "placeholders": [
+                {
+                    "id": "Green",
+                    "string": "%[1]s",
+                    "type": "string",
+                    "underlyingType": "string",
+                    "argNum": 1,
+                    "expr": "\"[green]●\""
+                }
+            ],
+            "fuzzy": true
+        },
+        {
+            "id": "Away {Orange}",
+            "message": "Away {Orange}",
+            "translation": "Away {Orange}",
+            "translatorComment": "Copied from source.",
+            "placeholders": [
+                {
+                    "id": "Orange",
+                    "string": "%[1]s",
+                    "type": "string",
+                    "underlyingType": "string",
+                    "argNum": 1,
+                    "expr": "\"[orange]◓\""
+                }
+            ],
+            "fuzzy": true
+        },
+        {
+            "id": "Busy {Red}",
+            "message": "Busy {Red}",
+            "translation": "Busy {Red}",
+            "translatorComment": "Copied from source.",
+            "placeholders": [
+                {
+                    "id": "Red",
+                    "string": "%[1]s",
+                    "type": "string",
+                    "underlyingType": "string",
+                    "argNum": 1,
+                    "expr": "\"[red]◑\""
+                }
+            ],
+            "fuzzy": true
+        },
+        {
+            "id": "Offline {}",
+            "message": "Offline {}",
+            "translation": "Offline {}",
+            "translatorComment": "Copied from source.",
+            "placeholders": [
+                {
+                    "id": "",
+                    "string": "%[1]s",
+                    "type": "string",
+                    "underlyingType": "string",
+                    "argNum": 1,
+                    "expr": "\"○\""
+                }
+            ],
+            "fuzzy": true
+        },
+        {
+            "id": "no file picker set, see the example configuration file for more information",
+            "message": "no file picker set, see the example configuration file for more information",
+            "translation": "no file picker set, see the example configuration file for more information",
+            "translatorComment": "Copied from source.",
+            "fuzzy": true
         },
         {
             "id": "Are you sure you want to quit?",
@@ -1767,9 +1934,270 @@
             "translation": "Loading commands…"
         },
         {
+            "id": "Data Form",
+            "message": "Data Form",
+            "translation": "Data Form",
+            "translatorComment": "Copied from source.",
+            "fuzzy": true
+        },
+        {
+            "id": "error setting bool form field {Var}: {Err}",
+            "message": "error setting bool form field {Var}: {Err}",
+            "translation": "error setting bool form field {Var}: {Err}",
+            "translatorComment": "Copied from source.",
+            "placeholders": [
+                {
+                    "id": "Var",
+                    "string": "%[1]s",
+                    "type": "string",
+                    "underlyingType": "string",
+                    "argNum": 1,
+                    "expr": "field.Var"
+                },
+                {
+                    "id": "Err",
+                    "string": "%[2]v",
+                    "type": "error",
+                    "underlyingType": "interface{Error() string}",
+                    "argNum": 2,
+                    "expr": "err"
+                }
+            ],
+            "fuzzy": true
+        },
+        {
+            "id": "error parsing jid-multi value for field {Var}: {Err}",
+            "message": "error parsing jid-multi value for field {Var}: {Err}",
+            "translation": "error parsing jid-multi value for field {Var}: {Err}",
+            "translatorComment": "Copied from source.",
+            "placeholders": [
+                {
+                    "id": "Var",
+                    "string": "%[1]s",
+                    "type": "string",
+                    "underlyingType": "string",
+                    "argNum": 1,
+                    "expr": "field.Var"
+                },
+                {
+                    "id": "Err",
+                    "string": "%[2]v",
+                    "type": "error",
+                    "underlyingType": "interface{Error() string}",
+                    "argNum": 2,
+                    "expr": "err"
+                }
+            ],
+            "fuzzy": true
+        },
+        {
+            "id": "error setting jid-multi form field {Var}: {Err}",
+            "message": "error setting jid-multi form field {Var}: {Err}",
+            "translation": "error setting jid-multi form field {Var}: {Err}",
+            "translatorComment": "Copied from source.",
+            "placeholders": [
+                {
+                    "id": "Var",
+                    "string": "%[1]s",
+                    "type": "string",
+                    "underlyingType": "string",
+                    "argNum": 1,
+                    "expr": "field.Var"
+                },
+                {
+                    "id": "Err",
+                    "string": "%[2]v",
+                    "type": "error",
+                    "underlyingType": "interface{Error() string}",
+                    "argNum": 2,
+                    "expr": "err"
+                }
+            ],
+            "fuzzy": true
+        },
+        {
+            "id": "error setting jid form field {Var}: {Err}",
+            "message": "error setting jid form field {Var}: {Err}",
+            "translation": "error setting jid form field {Var}: {Err}",
+            "translatorComment": "Copied from source.",
+            "placeholders": [
+                {
+                    "id": "Var",
+                    "string": "%[1]s",
+                    "type": "string",
+                    "underlyingType": "string",
+                    "argNum": 1,
+                    "expr": "field.Var"
+                },
+                {
+                    "id": "Err",
+                    "string": "%[2]v",
+                    "type": "error",
+                    "underlyingType": "interface{Error() string}",
+                    "argNum": 2,
+                    "expr": "err"
+                }
+            ],
+            "fuzzy": true
+        },
+        {
+            "id": "error setting list or list-multi form field {Var}: {Err}",
+            "message": "error setting list or list-multi form field {Var}: {Err}",
+            "translation": "error setting list or list-multi form field {Var}: {Err}",
+            "translatorComment": "Copied from source.",
+            "placeholders": [
+                {
+                    "id": "Var",
+                    "string": "%[1]s",
+                    "type": "string",
+                    "underlyingType": "string",
+                    "argNum": 1,
+                    "expr": "field.Var"
+                },
+                {
+                    "id": "Err",
+                    "string": "%[2]v",
+                    "type": "error",
+                    "underlyingType": "interface{Error() string}",
+                    "argNum": 2,
+                    "expr": "err"
+                }
+            ],
+            "fuzzy": true
+        },
+        {
+            "id": "error setting text or text-multi form field {Var}: {Err}",
+            "message": "error setting text or text-multi form field {Var}: {Err}",
+            "translation": "error setting text or text-multi form field {Var}: {Err}",
+            "translatorComment": "Copied from source.",
+            "placeholders": [
+                {
+                    "id": "Var",
+                    "string": "%[1]s",
+                    "type": "string",
+                    "underlyingType": "string",
+                    "argNum": 1,
+                    "expr": "field.Var"
+                },
+                {
+                    "id": "Err",
+                    "string": "%[2]v",
+                    "type": "error",
+                    "underlyingType": "interface{Error() string}",
+                    "argNum": 2,
+                    "expr": "err"
+                }
+            ],
+            "fuzzy": true
+        },
+        {
+            "id": "error setting password form field {Var}: {Err}",
+            "message": "error setting password form field {Var}: {Err}",
+            "translation": "error setting password form field {Var}: {Err}",
+            "translatorComment": "Copied from source.",
+            "placeholders": [
+                {
+                    "id": "Var",
+                    "string": "%[1]s",
+                    "type": "string",
+                    "underlyingType": "string",
+                    "argNum": 1,
+                    "expr": "field.Var"
+                },
+                {
+                    "id": "Err",
+                    "string": "%[2]v",
+                    "type": "error",
+                    "underlyingType": "interface{Error() string}",
+                    "argNum": 2,
+                    "expr": "err"
+                }
+            ],
+            "fuzzy": true
+        },
+        {
             "id": "Exec",
             "message": "Exec",
             "translation": "Exec"
+        },
+        {
+            "id": "No commands found for {JID}!",
+            "message": "No commands found for {JID}!",
+            "translation": "No commands found for {JID}!",
+            "translatorComment": "Copied from source.",
+            "placeholders": [
+                {
+                    "id": "JID",
+                    "string": "%[1]v",
+                    "type": "mellium.im/xmpp/jid.JID",
+                    "underlyingType": "struct{locallen int; domainlen int; data []byte}",
+                    "argNum": 1,
+                    "expr": "j"
+                }
+            ],
+            "fuzzy": true
+        },
+        {
+            "id": "Select",
+            "message": "Select",
+            "translation": "Select",
+            "translatorComment": "Copied from source.",
+            "fuzzy": true
+        },
+        {
+            "id": "Pick Address",
+            "message": "Pick Address",
+            "translation": "Pick Address",
+            "translatorComment": "Copied from source.",
+            "fuzzy": true
+        },
+        {
+            "id": "Roster info:",
+            "message": "Roster info:",
+            "translation": "Roster info:",
+            "translatorComment": "Copied from source.",
+            "fuzzy": true
+        },
+        {
+            "id": "no sidebar open, not showing info pane…",
+            "message": "no sidebar open, not showing info pane…",
+            "translation": "no sidebar open, not showing info pane…",
+            "translatorComment": "Copied from source.",
+            "fuzzy": true
+        },
+        {
+            "id": "unrecognized sidebar item type {Item}, not showing info…",
+            "message": "unrecognized sidebar item type {Item}, not showing info…",
+            "translation": "unrecognized sidebar item type {Item}, not showing info…",
+            "translatorComment": "Copied from source.",
+            "placeholders": [
+                {
+                    "id": "Item",
+                    "string": "%[1]T",
+                    "type": "interface{}",
+                    "underlyingType": "interface{}",
+                    "argNum": 1,
+                    "expr": "item"
+                }
+            ],
+            "fuzzy": true
+        },
+        {
+            "id": "error executing info template: {Err}",
+            "message": "error executing info template: {Err}",
+            "translation": "error executing info template: {Err}",
+            "translatorComment": "Copied from source.",
+            "placeholders": [
+                {
+                    "id": "Err",
+                    "string": "%[1]v",
+                    "type": "error",
+                    "underlyingType": "interface{Error() string}",
+                    "argNum": 1,
+                    "expr": "err"
+                }
+            ],
+            "fuzzy": true
         },
         {
             "id": "failed to read stderr of the notification subprocess: {Err}",

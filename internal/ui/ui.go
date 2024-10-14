@@ -101,7 +101,7 @@ func (ui *UI) Printer() *message.Printer {
 func (ui *UI) FilePicker() ([]string, error) {
 	var results []string
 	if len(ui.filePicker) == 0 {
-		return results, errors.New("no file picker set, see the example configuration file for more information")
+		return results, errors.New(ui.p.Sprintf("no file picker set, see the example configuration file for more information"))
 	}
 	cmd := exec.Command(ui.filePicker[0], ui.filePicker[1:]...) // #nosec G204
 	cmd.Stdin = os.Stdin
@@ -274,7 +274,7 @@ func New(p *message.Printer, logger *log.Logger, opts ...Option) *UI {
 	buffers.AddPage(logsPageName, logs, true, true)
 	ui.logWriter = logs
 
-	setStatusPage := statusModal(func(buttonIndex int, buttonLabel string) {
+	setStatusPage := statusModal(p, func(buttonIndex int, buttonLabel string) {
 		switch buttonIndex {
 		case 0:
 			ui.handler(event.StatusOnline{})
@@ -288,7 +288,7 @@ func New(p *message.Printer, logger *log.Logger, opts ...Option) *UI {
 		ui.pages.HidePage(setStatusPageName)
 	})
 
-	getPasswordPage := passwordModal(ui.addr, func(getPasswordPage *tview.Form) {
+	getPasswordPage := passwordModal(p, ui.addr, func(getPasswordPage *tview.Form) {
 		ui.passPrompt <- getPasswordPage.GetFormItem(0).(*tview.InputField).GetText()
 		ui.pages.HidePage(getPasswordPageName)
 	})
@@ -614,13 +614,14 @@ func (ui *UI) ShowLoadCmd(j jid.JID) {
 
 // ShowForm displays an ad-hoc commands form.
 func (ui *UI) ShowForm(formData *form.Data, buttons []string, onDone func(string)) {
+	p := ui.Printer()
 	defer func() {
 		ui.buffers.SwitchToPage(cmdPageName)
 		ui.app.SetFocus(ui.buffers)
 		ui.Redraw()
 	}()
 	ui.cmdPane.Form().SetButtonsAlign(tview.AlignLeft)
-	title := "Data Form"
+	title := p.Sprintf("Data Form")
 	if t := formData.Title(); t != "" {
 		title = t
 	}
@@ -634,7 +635,7 @@ func (ui *UI) ShowForm(formData *form.Data, buttons []string, onDone func(string
 			box.AddCheckbox(field.Label, def, func(checked bool) {
 				_, err := formData.Set(field.Var, checked)
 				if err != nil {
-					ui.debug.Printf("error setting bool form field %s: %v", field.Var, err)
+					ui.debug.Print(p.Sprintf("error setting bool form field %s: %v", field.Var, err))
 				}
 			})
 		case form.TypeFixed:
@@ -661,12 +662,12 @@ func (ui *UI) ShowForm(formData *form.Data, buttons []string, onDone func(string
 			box.AddDropDown(field.Label, opts, 0, func(option string, optionIndex int) {
 				j, err := jid.Parse(option)
 				if err != nil {
-					ui.debug.Printf("error parsing jid-multi value for field %s: %v", field.Var, err)
+					ui.debug.Print(p.Sprintf("error parsing jid-multi value for field %s: %v", field.Var, err))
 					return
 				}
 				_, err = formData.Set(field.Var, j)
 				if err != nil {
-					ui.debug.Printf("error setting jid-multi form field %s: %v", field.Var, err)
+					ui.debug.Print(p.Sprintf("error setting jid-multi form field %s: %v", field.Var, err))
 				}
 			})
 		case form.TypeJID:
@@ -678,7 +679,7 @@ func (ui *UI) ShowForm(formData *form.Data, buttons []string, onDone func(string
 				j := jid.MustParse(text)
 				_, err := formData.Set(field.Var, j)
 				if err != nil {
-					ui.debug.Printf("error setting jid form field %s: %v", field.Var, err)
+					ui.debug.Print(p.Sprintf("error setting jid form field %s: %v", field.Var, err))
 				}
 			})
 		case form.TypeListMulti, form.TypeList:
@@ -687,7 +688,7 @@ func (ui *UI) ShowForm(formData *form.Data, buttons []string, onDone func(string
 			box.AddDropDown(field.Label, opts, 0, func(option string, optionIndex int) {
 				_, err := formData.Set(field.Var, option)
 				if err != nil {
-					ui.debug.Printf("error setting list or list-multi form field %s: %v", field.Var, err)
+					ui.debug.Print(p.Sprintf("error setting list or list-multi form field %s: %v", field.Var, err))
 				}
 			})
 		case form.TypeTextMulti, form.TypeText:
@@ -696,7 +697,7 @@ func (ui *UI) ShowForm(formData *form.Data, buttons []string, onDone func(string
 			box.AddInputField(field.Label, t, 20, nil, func(text string) {
 				_, err := formData.Set(field.Var, text)
 				if err != nil {
-					ui.debug.Printf("error setting text or text-multi form field %s: %v", field.Var, err)
+					ui.debug.Print(p.Sprintf("error setting text or text-multi form field %s: %v", field.Var, err))
 				}
 			})
 		case form.TypeTextPrivate:
@@ -705,7 +706,7 @@ func (ui *UI) ShowForm(formData *form.Data, buttons []string, onDone func(string
 			box.AddPasswordField(field.Label, t, 20, '*', func(text string) {
 				_, err := formData.Set(field.Var, text)
 				if err != nil {
-					ui.debug.Printf("error setting password form field %s: %v", field.Var, err)
+					ui.debug.Print(p.Sprintf("error setting password form field %s: %v", field.Var, err))
 				}
 			})
 		}
@@ -761,7 +762,7 @@ func (ui *UI) SetCommands(j jid.JID, c []commands.Command) {
 
 	if len(c) == 0 {
 		ui.cmdPane.Form().SetButtonsAlign(tview.AlignCenter)
-		ui.cmdPane.SetText("Commands", fmt.Sprintf("No commands found for %v!", j))
+		ui.cmdPane.SetText(p.Sprintf("Commands"), p.Sprintf("No commands found for %v!", j))
 		return
 	}
 
@@ -770,7 +771,7 @@ func (ui *UI) SetCommands(j jid.JID, c []commands.Command) {
 	for _, name := range c {
 		cmds = append(cmds, name.Name)
 	}
-	ui.cmdPane.SetText("Commands", j.String())
+	ui.cmdPane.SetText(p.Sprintf("Commands"), j.String())
 	var idx int
 	ui.cmdPane.Form().
 		Clear(true).
@@ -935,11 +936,12 @@ func (ui *UI) PickResource(f func(jid.JID, bool)) {
 		f(item.JID, true)
 		return
 	}
+	p := ui.Printer()
 	var idx int
-	const selectButton = "Select"
-	mod := NewModal().SetText("Pick Address").
+	selectButton := p.Sprintf("Select")
+	mod := NewModal().SetText(p.Sprintf("Pick Address")).
 		AddButtons([]string{selectButton})
-	mod.Form().AddDropDown("Address", opts, 0, func(_ string, optionIndex int) {
+	mod.Form().AddDropDown(p.Sprintf("Address"), opts, 0, func(_ string, optionIndex int) {
 		idx = optionIndex
 	})
 	mod.SetDoneFunc(func(_ int, label string) {
@@ -961,16 +963,20 @@ func (ui *UI) PickResource(f func(jid.JID, bool)) {
 	ui.app.SetFocus(ui.pages)
 }
 
-var infoTmpl = template.Must(template.New("info").Funcs(template.FuncMap{
-	"formatPresence": formatPresence,
-}).Parse(`
+// ShowRosterInfo displays more info about the currently selected roster item.
+func (ui *UI) ShowRosterInfo() {
+	p := ui.Printer()
+	var infoTmpl = template.Must(template.New("info").Funcs(template.FuncMap{
+		"formatPresence": formatPresence,
+		"printf":         p.Sprintf,
+	}).Parse(`
 🛈
 
 {{ .Name }}
 {{ if ne .JID.String .Name }}{{ .JID }}{{ end }}
 
-{{ if .Room }}Bookmarked: {{ if .Bookmarked}}🔖{{ else }}✘{{ end }}{{ end }}
-{{ if not .Room }}Subscription:
+{{ if .Room }}{{ printf "Bookmarked"}}: {{ if .Bookmarked}}🔖{{ else }}✘{{ end }}{{ end }}
+{{ if not .Room }}{{ printf "Subscription" }}:
 {{- if eq .Subscription "both" -}}
 ⇆
 {{- else if eq .Subscription "to" -}}
@@ -981,22 +987,20 @@ var infoTmpl = template.Must(template.New("info").Funcs(template.FuncMap{
 ✘
 {{- end -}}
 {{- end }}
-{{ if .Group }}Groups: {{ print "%v" .Group }}{{ end }}
+{{ if .Group }}{{ printf "Groups" }}: {{ print "%v" .Group }}{{ end }}
 {{ if .Presences }}
-Resources:
+{{ printf "Resources" }}:
 
 {{ formatPresence .Presences }}
 {{ end }}
 `))
 
-// ShowRosterInfo displays more info about the currently selected roster item.
-func (ui *UI) ShowRosterInfo() {
 	onEsc := func() {
 		ui.pages.HidePage(infoPageName)
 		ui.pages.RemovePage(infoPageName)
 	}
 	mod := NewModal().
-		SetText(`Roster info:`).
+		SetText(p.Sprintf(`Roster info:`)).
 		SetDoneFunc(func(int, string) {
 			onEsc()
 		})
@@ -1004,7 +1008,7 @@ func (ui *UI) ShowRosterInfo() {
 
 	v, ok := ui.sidebar.GetSelected()
 	if !ok {
-		ui.debug.Printf("no sidebar open, not showing info pane…")
+		ui.debug.Print(p.Sprintf("no sidebar open, not showing info pane…"))
 		return
 	}
 
@@ -1054,14 +1058,14 @@ func (ui *UI) ShowRosterInfo() {
 		infoData.Presences = item.presences
 		infoData.Subscription = item.Subscription
 	default:
-		ui.debug.Printf("unrecognized sidebar item type %T, not showing info…", item)
+		ui.debug.Print(p.Sprintf("unrecognized sidebar item type %T, not showing info…", item))
 		return
 	}
 
 	var buf strings.Builder
 	err := infoTmpl.Execute(&buf, infoData)
 	if err != nil {
-		ui.debug.Printf("error executing info template: %v", err)
+		ui.debug.Print(p.Sprintf("error executing info template: %v", err))
 		return
 	}
 
@@ -1158,6 +1162,7 @@ func (ui *UI) handleInput(event *tcell.EventKey) *tcell.EventKey {
 
 // Notify runs the notification command.
 func (ui *UI) Notify() {
+	p := ui.Printer()
 	if len(ui.notify) == 0 {
 		return
 	}
@@ -1168,17 +1173,17 @@ func (ui *UI) Notify() {
 	cmd.Stdout = os.Stdout
 	stderr, err := cmd.StderrPipe()
 	if err != nil {
-		ui.logger.Print(ui.p.Sprintf("failed to read stderr of the notification subprocess: %v", err))
+		ui.logger.Print(p.Sprintf("failed to read stderr of the notification subprocess: %v", err))
 		return
 	}
 	var stderrData []byte
 	if err = cmd.Start(); err != nil {
-		ui.logger.Print(ui.p.Sprintf("failed to run notification command: %v", err))
+		ui.logger.Print(p.Sprintf("failed to run notification command: %v", err))
 		return
 	}
 	stderrData, _ = io.ReadAll(stderr)
 	if err = cmd.Wait(); err != nil {
-		ui.logger.Print(ui.p.Sprintf("notification subprocess failed: %v\n%s", err, stderrData))
+		ui.logger.Print(p.Sprintf("notification subprocess failed: %v\n%s", err, stderrData))
 		return
 	}
 }

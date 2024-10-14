@@ -5,21 +5,20 @@
 package ui
 
 import (
-	"fmt"
-
 	"github.com/rivo/tview"
+	"golang.org/x/text/message"
 )
 
-func passwordModal(addr string, done func(*tview.Form)) tview.Primitive {
+func passwordModal(p *message.Printer, addr string, done func(*tview.Form)) tview.Primitive {
 	getPasswordPage := tview.NewForm().
-		AddPasswordField("Password", "", 0, 0, nil).
+		AddPasswordField(p.Sprintf("Password"), "", 0, 0, nil).
 		SetButtonsAlign(tview.AlignRight)
-	getPasswordPage.AddButton("Login", func() {
+	getPasswordPage.AddButton(p.Sprintf("Login"), func() {
 		done(getPasswordPage)
 	})
 	getPasswordPage.
 		SetBorder(true).
-		SetTitle(fmt.Sprintf("Enter password for: %q", addr))
+		SetTitle(p.Sprintf("Enter password for: %q", addr))
 
 	return tview.NewGrid().
 		SetColumns(0, 50, 0).

@@ -1710,6 +1710,79 @@
             "translation": "Kanal entfernen?"
         },
         {
+            "id": "Password",
+            "message": "Password",
+            "translation": ""
+        },
+        {
+            "id": "Login",
+            "message": "Login",
+            "translation": ""
+        },
+        {
+            "id": "Enter password for: {Addr}",
+            "message": "Enter password for: {Addr}",
+            "translation": "",
+            "placeholders": [
+                {
+                    "id": "Addr",
+                    "string": "%[1]q",
+                    "type": "string",
+                    "underlyingType": "string",
+                    "argNum": 1,
+                    "expr": "addr"
+                }
+            ]
+        },
+        {
+            "id": "Roster",
+            "message": "Roster",
+            "translation": ""
+        },
+        {
+            "id": "Chat: {Main} ({Secondary})",
+            "message": "Chat: {Main} ({Secondary})",
+            "translation": "",
+            "placeholders": [
+                {
+                    "id": "Main",
+                    "string": "%[1]q",
+                    "type": "string",
+                    "underlyingType": "string",
+                    "argNum": 1,
+                    "expr": "main"
+                },
+                {
+                    "id": "Secondary",
+                    "string": "%[2]s",
+                    "type": "string",
+                    "underlyingType": "string",
+                    "argNum": 2,
+                    "expr": "secondary"
+                }
+            ]
+        },
+        {
+            "id": "Status: {Main}",
+            "message": "Status: {Main}",
+            "translation": "",
+            "placeholders": [
+                {
+                    "id": "Main",
+                    "string": "%[1]s",
+                    "type": "string",
+                    "underlyingType": "string",
+                    "argNum": 1,
+                    "expr": "main"
+                }
+            ]
+        },
+        {
+            "id": "Search",
+            "message": "Search",
+            "translation": ""
+        },
+        {
             "id": "Offline",
             "message": "Offline",
             "translation": "Offline"
@@ -1728,6 +1801,76 @@
             "id": "Busy",
             "message": "Busy",
             "translation": "Beschäfftigt"
+        },
+        {
+            "id": "Set Status",
+            "message": "Set Status",
+            "translation": ""
+        },
+        {
+            "id": "Online {Green}",
+            "message": "Online {Green}",
+            "translation": "",
+            "placeholders": [
+                {
+                    "id": "Green",
+                    "string": "%[1]s",
+                    "type": "string",
+                    "underlyingType": "string",
+                    "argNum": 1,
+                    "expr": "\"[green]●\""
+                }
+            ]
+        },
+        {
+            "id": "Away {Orange}",
+            "message": "Away {Orange}",
+            "translation": "",
+            "placeholders": [
+                {
+                    "id": "Orange",
+                    "string": "%[1]s",
+                    "type": "string",
+                    "underlyingType": "string",
+                    "argNum": 1,
+                    "expr": "\"[orange]◓\""
+                }
+            ]
+        },
+        {
+            "id": "Busy {Red}",
+            "message": "Busy {Red}",
+            "translation": "",
+            "placeholders": [
+                {
+                    "id": "Red",
+                    "string": "%[1]s",
+                    "type": "string",
+                    "underlyingType": "string",
+                    "argNum": 1,
+                    "expr": "\"[red]◑\""
+                }
+            ]
+        },
+        {
+            "id": "Offline {}",
+            "message": "Offline {}",
+            "translation": "",
+            "placeholders": [
+                {
+                    "id": "",
+                    "string": "%[1]s",
+                    "type": "string",
+                    "underlyingType": "string",
+                    "argNum": 1,
+                    "expr": "\"○\""
+                }
+            ]
+        },
+        {
+            "id": "no file picker set, see the example configuration file for more information",
+            "message": "no file picker set, see the example configuration file for more information",
+            "translation": ""
         },
         {
             "id": "Are you sure you want to quit?",
@@ -1765,9 +1908,240 @@
             "translation": "Lade Befehle…"
         },
         {
+            "id": "Data Form",
+            "message": "Data Form",
+            "translation": ""
+        },
+        {
+            "id": "error setting bool form field {Var}: {Err}",
+            "message": "error setting bool form field {Var}: {Err}",
+            "translation": "",
+            "placeholders": [
+                {
+                    "id": "Var",
+                    "string": "%[1]s",
+                    "type": "string",
+                    "underlyingType": "string",
+                    "argNum": 1,
+                    "expr": "field.Var"
+                },
+                {
+                    "id": "Err",
+                    "string": "%[2]v",
+                    "type": "error",
+                    "underlyingType": "interface{Error() string}",
+                    "argNum": 2,
+                    "expr": "err"
+                }
+            ]
+        },
+        {
+            "id": "error parsing jid-multi value for field {Var}: {Err}",
+            "message": "error parsing jid-multi value for field {Var}: {Err}",
+            "translation": "",
+            "placeholders": [
+                {
+                    "id": "Var",
+                    "string": "%[1]s",
+                    "type": "string",
+                    "underlyingType": "string",
+                    "argNum": 1,
+                    "expr": "field.Var"
+                },
+                {
+                    "id": "Err",
+                    "string": "%[2]v",
+                    "type": "error",
+                    "underlyingType": "interface{Error() string}",
+                    "argNum": 2,
+                    "expr": "err"
+                }
+            ]
+        },
+        {
+            "id": "error setting jid-multi form field {Var}: {Err}",
+            "message": "error setting jid-multi form field {Var}: {Err}",
+            "translation": "",
+            "placeholders": [
+                {
+                    "id": "Var",
+                    "string": "%[1]s",
+                    "type": "string",
+                    "underlyingType": "string",
+                    "argNum": 1,
+                    "expr": "field.Var"
+                },
+                {
+                    "id": "Err",
+                    "string": "%[2]v",
+                    "type": "error",
+                    "underlyingType": "interface{Error() string}",
+                    "argNum": 2,
+                    "expr": "err"
+                }
+            ]
+        },
+        {
+            "id": "error setting jid form field {Var}: {Err}",
+            "message": "error setting jid form field {Var}: {Err}",
+            "translation": "",
+            "placeholders": [
+                {
+                    "id": "Var",
+                    "string": "%[1]s",
+                    "type": "string",
+                    "underlyingType": "string",
+                    "argNum": 1,
+                    "expr": "field.Var"
+                },
+                {
+                    "id": "Err",
+                    "string": "%[2]v",
+                    "type": "error",
+                    "underlyingType": "interface{Error() string}",
+                    "argNum": 2,
+                    "expr": "err"
+                }
+            ]
+        },
+        {
+            "id": "error setting list or list-multi form field {Var}: {Err}",
+            "message": "error setting list or list-multi form field {Var}: {Err}",
+            "translation": "",
+            "placeholders": [
+                {
+                    "id": "Var",
+                    "string": "%[1]s",
+                    "type": "string",
+                    "underlyingType": "string",
+                    "argNum": 1,
+                    "expr": "field.Var"
+                },
+                {
+                    "id": "Err",
+                    "string": "%[2]v",
+                    "type": "error",
+                    "underlyingType": "interface{Error() string}",
+                    "argNum": 2,
+                    "expr": "err"
+                }
+            ]
+        },
+        {
+            "id": "error setting text or text-multi form field {Var}: {Err}",
+            "message": "error setting text or text-multi form field {Var}: {Err}",
+            "translation": "",
+            "placeholders": [
+                {
+                    "id": "Var",
+                    "string": "%[1]s",
+                    "type": "string",
+                    "underlyingType": "string",
+                    "argNum": 1,
+                    "expr": "field.Var"
+                },
+                {
+                    "id": "Err",
+                    "string": "%[2]v",
+                    "type": "error",
+                    "underlyingType": "interface{Error() string}",
+                    "argNum": 2,
+                    "expr": "err"
+                }
+            ]
+        },
+        {
+            "id": "error setting password form field {Var}: {Err}",
+            "message": "error setting password form field {Var}: {Err}",
+            "translation": "",
+            "placeholders": [
+                {
+                    "id": "Var",
+                    "string": "%[1]s",
+                    "type": "string",
+                    "underlyingType": "string",
+                    "argNum": 1,
+                    "expr": "field.Var"
+                },
+                {
+                    "id": "Err",
+                    "string": "%[2]v",
+                    "type": "error",
+                    "underlyingType": "interface{Error() string}",
+                    "argNum": 2,
+                    "expr": "err"
+                }
+            ]
+        },
+        {
             "id": "Exec",
             "message": "Exec",
             "translation": "Exec"
+        },
+        {
+            "id": "No commands found for {JID}!",
+            "message": "No commands found for {JID}!",
+            "translation": "",
+            "placeholders": [
+                {
+                    "id": "JID",
+                    "string": "%[1]v",
+                    "type": "mellium.im/xmpp/jid.JID",
+                    "underlyingType": "struct{locallen int; domainlen int; data []byte}",
+                    "argNum": 1,
+                    "expr": "j"
+                }
+            ]
+        },
+        {
+            "id": "Select",
+            "message": "Select",
+            "translation": ""
+        },
+        {
+            "id": "Pick Address",
+            "message": "Pick Address",
+            "translation": ""
+        },
+        {
+            "id": "Roster info:",
+            "message": "Roster info:",
+            "translation": ""
+        },
+        {
+            "id": "no sidebar open, not showing info pane…",
+            "message": "no sidebar open, not showing info pane…",
+            "translation": ""
+        },
+        {
+            "id": "unrecognized sidebar item type {Item}, not showing info…",
+            "message": "unrecognized sidebar item type {Item}, not showing info…",
+            "translation": "",
+            "placeholders": [
+                {
+                    "id": "Item",
+                    "string": "%[1]T",
+                    "type": "interface{}",
+                    "underlyingType": "interface{}",
+                    "argNum": 1,
+                    "expr": "item"
+                }
+            ]
+        },
+        {
+            "id": "error executing info template: {Err}",
+            "message": "error executing info template: {Err}",
+            "translation": "",
+            "placeholders": [
+                {
+                    "id": "Err",
+                    "string": "%[1]v",
+                    "type": "error",
+                    "underlyingType": "interface{Error() string}",
+                    "argNum": 1,
+                    "expr": "err"
+                }
+            ]
         },
         {
             "id": "failed to read stderr of the notification subprocess: {Err}",

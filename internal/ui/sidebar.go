@@ -6,7 +6,6 @@ package ui
 
 import (
 	"bytes"
-	"fmt"
 	"strconv"
 	"strings"
 	"sync"
@@ -53,14 +52,14 @@ func newSidebar(p *message.Printer, ui *UI, statusSelect func()) *Sidebar {
 		statusSelect: statusSelect,
 		p:            p,
 	}
-	r.roster = newRoster(func() {
+	r.roster = newRoster(p, func() {
 		ui.pages.ShowPage(delRosterPageName)
 		ui.pages.SendToFront(delRosterPageName)
 		ui.app.SetFocus(ui.pages)
 	})
 	r.roster.OnChanged(func(idx int, main string, secondary string, shortcut rune) {
 		main = strings.TrimPrefix(main, highlightTag)
-		ui.statusBar.SetText(fmt.Sprintf("Chat: %q (%s)", main, secondary))
+		ui.statusBar.SetText(p.Sprintf("Chat: %q (%s)", main, secondary))
 	})
 	r.bookmarks = newBookmarks(ui.p, func() {
 		ui.pages.ShowPage(delBookmarkPageName)
@@ -69,16 +68,16 @@ func newSidebar(p *message.Printer, ui *UI, statusSelect func()) *Sidebar {
 	})
 	r.bookmarks.OnChanged(func(idx int, main string, secondary string, shortcut rune) {
 		main = strings.TrimPrefix(main, highlightTag)
-		ui.statusBar.SetText(fmt.Sprintf("Chat: %q (%s)", main, secondary))
+		ui.statusBar.SetText(p.Sprintf("Chat: %q (%s)", main, secondary))
 	})
 	r.conversations = newConversations(ui.p)
 	r.conversations.OnChanged(func(idx int, main string, secondary string, shortcut rune) {
 		if idx == 0 {
-			ui.statusBar.SetText("Status: " + main)
+			ui.statusBar.SetText(p.Sprintf("Status: %s", main))
 			return
 		}
 		main = strings.TrimPrefix(main, highlightTag)
-		ui.statusBar.SetText(fmt.Sprintf("Chat: %q (%s)", main, secondary))
+		ui.statusBar.SetText(p.Sprintf("Chat: %q (%s)", main, secondary))
 	})
 	r.pages.AddAndSwitchToPage(r.conversations.list.GetTitle(), r.conversations, true)
 	r.pages.AddPage(r.bookmarks.list.GetTitle(), r.bookmarks, true, false)
@@ -103,7 +102,7 @@ func newSidebar(p *message.Printer, ui *UI, statusSelect func()) *Sidebar {
 		AddItem(r.statusButton, 1, 0, false).
 		AddItem(r.pages, 0, 1, true)
 
-	r.search.SetPlaceholder("Search").
+	r.search.SetPlaceholder(p.Sprintf("Search")).
 		SetFieldBackgroundColor(tview.Styles.PrimitiveBackgroundColor).
 		SetDoneFunc(func(key tcell.Key) {
 			switch key {

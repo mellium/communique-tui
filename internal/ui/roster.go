@@ -11,6 +11,7 @@ import (
 
 	"github.com/gdamore/tcell/v2"
 	"github.com/rivo/tview"
+	"golang.org/x/text/message"
 	"mellium.im/xmpp/jid"
 	"mellium.im/xmpp/roster"
 )
@@ -54,7 +55,7 @@ type Roster struct {
 }
 
 // newRoster creates a new roster widget with the provided options.
-func newRoster(onDelete func()) *Roster {
+func newRoster(p *message.Printer, onDelete func()) *Roster {
 	r := &Roster{
 		items:    make(map[string]RosterItem),
 		itemLock: &sync.Mutex{},
@@ -66,7 +67,7 @@ func newRoster(onDelete func()) *Roster {
 		SetBorderPadding(0, 0, 1, 0)
 	r.flex.AddItem(r.list, 0, 1, true).
 		SetDirection(tview.FlexRow)
-	r.list.SetTitle("Roster")
+	r.list.SetTitle(p.Sprintf("Roster"))
 
 	return r
 }
