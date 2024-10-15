@@ -549,7 +549,7 @@ func (c *Client) Upload(ctx context.Context, path string, jid jid.JID) (string, 
 	defer func() {
 		err := file.Close()
 		if err != nil && !errors.Is(err, os.ErrClosed) {
-			c.debug.Printf("error when closing file: %v", err)
+			c.debug.Print(c.p.Sprintf("error closing file: %v", err))
 		}
 	}()
 
@@ -559,7 +559,7 @@ func (c *Client) Upload(ctx context.Context, path string, jid jid.JID) (string, 
 	}
 
 	if info.IsDir() {
-		return "", errors.New("cannot upload directory")
+		return "", errors.New(c.p.Sprintf("cannot upload directory"))
 	}
 
 	name := filepath.Base(path)
@@ -586,12 +586,12 @@ func (c *Client) Upload(ctx context.Context, path string, jid jid.JID) (string, 
 	defer func() {
 		err := resp.Body.Close()
 		if err != nil {
-			c.debug.Printf("error when closing response body: %v", err)
+			c.debug.Print(c.p.Sprintf("error when closing response body: %v", err))
 		}
 	}()
 
 	if resp.StatusCode != http.StatusCreated {
-		return "", fmt.Errorf("unexpected status code: %d (%s)", resp.StatusCode, http.StatusText(resp.StatusCode))
+		return "", errors.New(c.p.Sprintf("unexpected status code: %d (%s)", resp.StatusCode, http.StatusText(resp.StatusCode)))
 	}
 
 	return slot.GetURL.String(), nil

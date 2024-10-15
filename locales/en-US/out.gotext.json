@@ -1625,6 +1625,72 @@
             ]
         },
         {
+            "id": "error closing file: {Err}",
+            "message": "error closing file: {Err}",
+            "translation": "error closing file: {Err}",
+            "translatorComment": "Copied from source.",
+            "placeholders": [
+                {
+                    "id": "Err",
+                    "string": "%[1]v",
+                    "type": "error",
+                    "underlyingType": "interface{Error() string}",
+                    "argNum": 1,
+                    "expr": "err"
+                }
+            ],
+            "fuzzy": true
+        },
+        {
+            "id": "cannot upload directory",
+            "message": "cannot upload directory",
+            "translation": "cannot upload directory",
+            "translatorComment": "Copied from source.",
+            "fuzzy": true
+        },
+        {
+            "id": "error when closing response body: {Err}",
+            "message": "error when closing response body: {Err}",
+            "translation": "error when closing response body: {Err}",
+            "translatorComment": "Copied from source.",
+            "placeholders": [
+                {
+                    "id": "Err",
+                    "string": "%[1]v",
+                    "type": "error",
+                    "underlyingType": "interface{Error() string}",
+                    "argNum": 1,
+                    "expr": "err"
+                }
+            ],
+            "fuzzy": true
+        },
+        {
+            "id": "unexpected status code: {StatusCode} ({StatusCode_1})",
+            "message": "unexpected status code: {StatusCode} ({StatusCode_1})",
+            "translation": "unexpected status code: {StatusCode} ({StatusCode_1})",
+            "translatorComment": "Copied from source.",
+            "placeholders": [
+                {
+                    "id": "StatusCode",
+                    "string": "%[1]d",
+                    "type": "int",
+                    "underlyingType": "int",
+                    "argNum": 1,
+                    "expr": "resp.StatusCode"
+                },
+                {
+                    "id": "StatusCode_1",
+                    "string": "%[2]s",
+                    "type": "string",
+                    "underlyingType": "string",
+                    "argNum": 2,
+                    "expr": "http.StatusText(resp.StatusCode)"
+                }
+            ],
+            "fuzzy": true
+        },
+        {
             "id": "possibly spoofed history message from {From}",
             "message": "possibly spoofed history message from {From}",
             "translation": "possibly spoofed history message from {From}",
