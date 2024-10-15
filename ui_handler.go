@@ -256,7 +256,7 @@ func uploadFile(c *client.Client, logger *log.Logger, debug *log.Logger, db *sto
 		logger.Print(p.Sprintf("could not upload %q: %v", event.Path, err))
 		return
 	}
-	debug.Printf("uploaded %q as %s", event.Path, url)
+	debug.Print(p.Sprintf("uploaded %q as %s", event.Path, url))
 	event.Message.Body = url
 	sendMessage(c, logger, db, ui, event.Message)
 }

@@ -142,7 +142,7 @@ func loadBuffer(ctx context.Context, pane *ui.UI, db *storage.DB, ev roster.Item
 	}
 	if err := iter.Err(); err != nil {
 		history.SetText(err.Error())
-		logger.Println(p.Sprintf("error querying history for %s: %v", ev.JID, err))
+		logger.Print(p.Sprintf("error querying history for %s: %v", ev.JID, err))
 	}
 	history.ScrollToEnd()
 	return nil

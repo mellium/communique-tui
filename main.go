@@ -116,7 +116,7 @@ func main() {
 	}
 
 	if genConfig {
-		err = printConfig(os.Stdout)
+		err = printConfig(os.Stdout, p)
 		if err != nil {
 			logger.Fatal(p.Sprintf("Error encoding default config as TOML: %v", err))
 		}
@@ -125,7 +125,7 @@ func main() {
 
 	f, fpath, err := configFile(configPath)
 	if err != nil {
-		logger.Fatalf(p.Sprintf(`%v
+		logger.Fatal(p.Sprintf(`%v
 
 Try running '%s -config' to generate a default config file.`, err, os.Args[0]))
 	}

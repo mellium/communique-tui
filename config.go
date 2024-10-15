@@ -13,6 +13,7 @@ import (
 	"github.com/BurntSushi/toml"
 	"github.com/gdamore/tcell/v2"
 	"github.com/rivo/tview"
+	"golang.org/x/text/message"
 )
 
 func getColor(name string) tcell.Color {
@@ -31,7 +32,7 @@ func colorName(color tcell.Color) string {
 	return fmt.Sprintf("#%06x", color.Hex())
 }
 
-func printConfig(w io.Writer) error {
+func printConfig(w io.Writer, p *message.Printer) error {
 	e := toml.NewEncoder(w)
 	e.Indent = "\t"
 	defConfig := config{
@@ -52,7 +53,7 @@ func printConfig(w io.Writer) error {
 		}},
 	}
 	defConfig.UI.Theme = "default"
-	_, err := fmt.Fprintf(w, `# This is a config file for Communiqué.
+	_, err := p.Fprintf(w, `# This is a config file for Communiqué.
 # If the -f option is not provided, Communiqué will search for a config file in:
 #
 #   - ./communiqué.toml

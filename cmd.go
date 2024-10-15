@@ -126,12 +126,12 @@ func showCmd(pane *ui.UI, client *client.Client, resp commands.Response, payload
 					defer cancel()
 					_, trc, err := resp.Cancel().Execute(ctx, nil, client.Session)
 					if err != nil {
-						debug.Printf("error canceling command session: %v", err)
+						debug.Print(p.Sprintf("error canceling command session: %v", err))
 					}
 					if trc != nil {
 						err = trc.Close()
 						if err != nil {
-							debug.Printf("error closing cancel command payload: %v", err)
+							debug.Print(p.Sprintf("error closing cancel command payload: %v", err))
 						}
 					}
 				}()
@@ -148,12 +148,12 @@ func showCmd(pane *ui.UI, client *client.Client, resp commands.Response, payload
 		if resp.Status != "completed" && resp.Status != "canceled" {
 			resp, trc, err := nextCmd.Execute(ctx, payload, client.Session)
 			if err != nil {
-				debug.Printf("error closing command session: %v", err)
+				debug.Print(p.Sprintf("error closing command session: %v", err))
 			}
 			go func() {
 				err = showCmd(pane, client, resp, trc, debug)
 				if err != nil {
-					debug.Printf("error showing next command: %v", err)
+					debug.Print(p.Sprintf("error showing next command: %v", err))
 				}
 			}()
 		}
