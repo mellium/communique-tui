@@ -10,7 +10,6 @@ import (
 	"database/sql"
 	"encoding/xml"
 	"errors"
-	"fmt"
 	"log"
 	"os"
 	"path/filepath"
@@ -22,6 +21,7 @@ import (
 
 	"golang.org/x/text/message"
 	"mellium.im/communique/internal/client/event"
+	"mellium.im/communique/internal/localerr"
 	"mellium.im/xmpp/crypto"
 	"mellium.im/xmpp/disco"
 	"mellium.im/xmpp/disco/info"
@@ -129,19 +129,19 @@ func OpenDB(ctx context.Context, appName, account, dbFile, schema string, p *mes
 
 	db, err := sql.Open(dbDriver, fPath)
 	if err != nil {
-		return nil, fmt.Errorf("error opening DB: %w", err)
+		return nil, localerr.Wrap(p, "error opening DB: %v", err)
 	}
 	_, err = db.Exec("PRAGMA foreign_keys = ON")
 	if err != nil {
 		/* #nosec */
 		db.Close()
-		return nil, fmt.Errorf("error enabling foreign keys: %w", err)
+		return nil, localerr.Wrap(p, "error enabling foreign keys: %v", err)
 	}
 	_, err = db.Exec(schema)
 	if err != nil {
 		/* #nosec */
 		db.Close()
-		return nil, fmt.Errorf("error applying schema: %w", err)
+		return nil, localerr.Wrap(p, "error applying schema: %v", err)
 	}
 	return prepareQueries(ctx, db, debug)
 }
@@ -720,7 +720,7 @@ func (db *DB) GetInfo(ctx context.Context, j jid.JID) (disco.Info, disco.Caps, e
 		var hash string
 		err := tx.Stmt(db.getCaps).QueryRowContext(ctx, queryJID).Scan(&hash, &caps.Ver)
 		if err != nil {
-			return fmt.Errorf("error getting caps: %w", err)
+			return localerr.Wrap(db.p, "error getting caps: %v", err)
 		}
 		h, err := crypto.Parse(hash)
 		if err != nil {
@@ -731,48 +731,48 @@ func (db *DB) GetInfo(ctx context.Context, j jid.JID) (disco.Info, disco.Caps, e
 		// Query disco identities.
 		rows, err := tx.Stmt(db.getIdent).QueryContext(ctx, queryJID)
 		if err != nil {
-			return fmt.Errorf("error getting identities: %w", err)
+			return localerr.Wrap(db.p, "error getting identities: %v", err)
 		}
 		for rows.Next() {
 			var ident info.Identity
 			err = rows.Scan(&ident.Category, &ident.Name, &ident.Type, &ident.Lang)
 			if err != nil {
-				return fmt.Errorf("error scanning identity: %w", err)
+				return localerr.Wrap(db.p, "error scanning identity: %v", err)
 			}
 			discoInfo.Identity = append(discoInfo.Identity, ident)
 		}
 		if err = rows.Err(); err != nil {
-			return fmt.Errorf("error iterating over identity rows: %w", err)
+			return localerr.Wrap(db.p, "error iterating over identity rows: %v", err)
 		}
 		if err = rows.Close(); err != nil {
-			return fmt.Errorf("error closing identity rows: %w", err)
+			return localerr.Wrap(db.p, "error closing identity rows: %v", err)
 		}
 
 		// Query disco features.
 		rows, err = tx.Stmt(db.getFeature).QueryContext(ctx, queryJID)
 		if err != nil {
-			return fmt.Errorf("error getting features: %w", err)
+			return localerr.Wrap(db.p, "error getting features: %v", err)
 		}
 		for rows.Next() {
 			var feat info.Feature
 			err = rows.Scan(&feat.Var)
 			if err != nil {
-				return fmt.Errorf("error scanning feature row: %w", err)
+				return localerr.Wrap(db.p, "error scanning feature row: %v", err)
 			}
 			discoInfo.Features = append(discoInfo.Features, feat)
 		}
 		if err = rows.Err(); err != nil {
-			return fmt.Errorf("error iterating over feature rows: %w", err)
+			return localerr.Wrap(db.p, "error iterating over feature rows: %v", err)
 		}
 		if err = rows.Close(); err != nil {
-			return fmt.Errorf("error closing feature rows: %w", err)
+			return localerr.Wrap(db.p, "error closing feature rows: %v", err)
 		}
 
 		// Query disco forms.
 		var forms string
 		err = tx.Stmt(db.getForms).QueryRowContext(ctx, queryJID).Scan(&forms)
 		if err != nil && err != sql.ErrNoRows {
-			return fmt.Errorf("error querying for disco forms: %w", err)
+			return localerr.Wrap(db.p, "error querying for disco forms: %v", err)
 		}
 		if forms != "" {
 			s := struct {
@@ -781,7 +781,7 @@ func (db *DB) GetInfo(ctx context.Context, j jid.JID) (disco.Info, disco.Caps, e
 			}{}
 			err = xml.NewDecoder(strings.NewReader(forms)).Decode(&s)
 			if err != nil {
-				return fmt.Errorf("error decoding forms: %w", err)
+				return localerr.Wrap(db.p, "error decoding forms: %v", err)
 			}
 			discoInfo.Form = s.Forms
 		}
@@ -796,34 +796,34 @@ func (db *DB) UpsertDisco(ctx context.Context, j jid.JID, caps disco.Caps, info 
 	return execTx(ctx, db, func(ctx context.Context, tx *sql.Tx) error {
 		_, err := tx.Stmt(db.insertCaps).ExecContext(ctx, caps.Hash.String(), caps.Ver)
 		if err != nil && err != sql.ErrNoRows {
-			return fmt.Errorf("error inserting caps: %w", err)
+			return localerr.Wrap(db.p, "error inserting caps: %v", err)
 		}
 
 		var buf strings.Builder
 		e := xml.NewEncoder(&buf)
 		err = e.EncodeToken(xml.StartElement{Name: xml.Name{Local: "forms"}})
 		if err != nil {
-			return fmt.Errorf("encoding root forms start element failed: %w", err)
+			return localerr.Wrap(db.p, "encoding root forms start element failed: %v", err)
 		}
 		for i := range info.Form {
 			err = e.Encode(&info.Form[i])
 			if err != nil {
-				return fmt.Errorf("encoding form failed: %w", err)
+				return localerr.Wrap(db.p, "encoding form failed: %v", err)
 			}
 		}
 		err = e.EncodeToken(xml.EndElement{Name: xml.Name{Local: "forms"}})
 		if err != nil {
-			return fmt.Errorf("encoding root forms end element failed: %w", err)
+			return localerr.Wrap(db.p, "encoding root forms end element failed: %v", err)
 		}
 		err = e.Flush()
 		if err != nil {
-			return fmt.Errorf("flushing encoded form failed: %w", err)
+			return localerr.Wrap(db.p, "flushing encoded form failed: %v", err)
 		}
 
 		var jidID int64
 		err = tx.Stmt(db.insertJIDCapsForm).QueryRowContext(ctx, j.String(), caps.Ver, buf.String()).Scan(&jidID)
 		if err != nil && err != sql.ErrNoRows {
-			return fmt.Errorf("error inserting JIDCapsForm: %w", err)
+			return localerr.Wrap(db.p, "error inserting JIDCapsForm: %v", err)
 		}
 
 		insertIdent := tx.Stmt(db.insertIdent)
@@ -834,12 +834,12 @@ func (db *DB) UpsertDisco(ctx context.Context, j jid.JID, caps disco.Caps, info 
 			var identID int64
 			err := insertIdent.QueryRowContext(ctx, ident.Category, ident.Name, ident.Type, ident.Lang).Scan(&identID)
 			if err != nil {
-				return fmt.Errorf("error inserting identity %v: %w", ident, err)
+				return localerr.Wrap(db.p, "error inserting identity %v: %v", ident, err)
 			}
 			if identID != 0 {
 				_, err = insertIdentJID.ExecContext(ctx, jidID, identID)
 				if err != nil {
-					return fmt.Errorf("error inserting identity caps joiner: %w", err)
+					return localerr.Wrap(db.p, "error inserting identity caps joiner: %v", err)
 				}
 			}
 		}
@@ -847,12 +847,12 @@ func (db *DB) UpsertDisco(ctx context.Context, j jid.JID, caps disco.Caps, info 
 			var featID int64
 			err := insertFeatures.QueryRowContext(ctx, feat.Var).Scan(&featID)
 			if err != nil {
-				return fmt.Errorf("error inserting feature %s: %w", feat.Var, err)
+				return localerr.Wrap(db.p, "error inserting feature %s: %v", feat.Var, err)
 			}
 			if featID != 0 {
 				_, err = insertFeatureJID.ExecContext(ctx, jidID, featID)
 				if err != nil {
-					return fmt.Errorf("error inserting feature caps joiner: %w", err)
+					return localerr.Wrap(db.p, "error inserting feature caps joiner: %v", err)
 				}
 			}
 		}
@@ -868,22 +868,22 @@ func (db *DB) GetServices(ctx context.Context, feature info.Feature) ([]jid.JID,
 	err := execTx(ctx, db, func(ctx context.Context, tx *sql.Tx) error {
 		rows, err := tx.Stmt(db.getServices).QueryContext(ctx, feature.Var)
 		if err != nil {
-			return fmt.Errorf("error getting services: %w", err)
+			return localerr.Wrap(db.p, "error getting services: %v", err)
 		}
 		var jStr string
 		for rows.Next() {
 			err = rows.Scan(&jStr)
 			if err != nil {
-				return fmt.Errorf("error scanning services: %w", err)
+				return localerr.Wrap(db.p, "error scanning services: %v", err)
 			}
 			j, err := jid.Parse(jStr)
 			if err != nil {
-				return fmt.Errorf("failed to parse service JID: %w", err)
+				return localerr.Wrap(db.p, "failed to parse service JID: %v", err)
 			}
 			results = append(results, j)
 		}
 		if err = rows.Err(); err != nil {
-			return fmt.Errorf("error iterating over services rows: %w", err)
+			return localerr.Wrap(db.p, "error iterating over services rows: %v", err)
 		}
 		return nil
 	})

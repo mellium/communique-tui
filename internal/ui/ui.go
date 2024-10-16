@@ -24,6 +24,7 @@ import (
 	"golang.org/x/text/message"
 
 	"mellium.im/communique/internal/client/event"
+	"mellium.im/communique/internal/localerr"
 	"mellium.im/xmpp/bookmarks"
 	"mellium.im/xmpp/commands"
 	"mellium.im/xmpp/form"
@@ -107,11 +108,11 @@ func (ui *UI) FilePicker() ([]string, error) {
 	cmd.Stdin = os.Stdin
 	stderr, err := cmd.StderrPipe()
 	if err != nil {
-		return results, fmt.Errorf("failed to read process' standard error: %w", err)
+		return results, localerr.Wrap(ui.p, "failed to read process' standard error: %v", err)
 	}
 	stdout, err := cmd.StdoutPipe()
 	if err != nil {
-		return results, fmt.Errorf("failed to read process' standard output: %w", err)
+		return results, localerr.Wrap(ui.p, "failed to read process' standard output: %v", err)
 	}
 	var stdoutData, stderrData []byte
 	ui.app.Suspend(func() {
@@ -126,7 +127,7 @@ func (ui *UI) FilePicker() ([]string, error) {
 		}
 	})
 	if err != nil {
-		return results, fmt.Errorf("error while picking files: %w", err)
+		return results, localerr.Wrap(ui.p, "error while picking files: %v", err)
 	}
 	scanner := bufio.NewScanner(bytes.NewReader(stdoutData))
 	for scanner.Scan() {

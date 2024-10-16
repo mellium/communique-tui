@@ -9,7 +9,6 @@ import (
 	"crypto/tls"
 	"encoding/xml"
 	"errors"
-	"fmt"
 	"io"
 	"log"
 	"net/http"
@@ -22,6 +21,7 @@ import (
 	"golang.org/x/text/message"
 
 	"mellium.im/communique/internal/client/event"
+	"mellium.im/communique/internal/localerr"
 	legacybookmarks "mellium.im/legacy/bookmarks"
 	"mellium.im/sasl"
 	"mellium.im/xmlstream"
@@ -120,7 +120,7 @@ func (c *Client) reconnect(ctx context.Context) error {
 
 	conn, err := c.dialer.Dial(ctx, "tcp", c.addr)
 	if err != nil {
-		return fmt.Errorf("error dialing connection: %w", err)
+		return localerr.Wrap(p, "error dialing connection: %v", err)
 	}
 
 	var mechanisms []sasl.Mechanism
@@ -155,7 +155,7 @@ func (c *Client) reconnect(ctx context.Context) error {
 	})
 	c.Session, err = xmpp.NewSession(ctx, c.addr.Domain(), c.addr, conn, 0, negotiator)
 	if err != nil {
-		return fmt.Errorf("error negotiating session: %w", err)
+		return localerr.Wrap(p, "error negotiating session: %v", err)
 	}
 
 	c.online = true
