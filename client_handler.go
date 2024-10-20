@@ -143,7 +143,7 @@ func newClientHandler(client *client.Client, pane *ui.UI, db *storage.DB, logger
 			// If we sent the message that wasn't automated (it has a body), assume
 			// we've read everything before it.
 			if e.Sent && e.Body != "" {
-				pane.Roster().MarkRead(e.To.Bare().String())
+				pane.MarkRead(e.To.Bare().String())
 			}
 			if !e.Sent {
 				pane.Notify()
