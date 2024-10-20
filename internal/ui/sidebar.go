@@ -165,111 +165,14 @@ func (s *Sidebar) InputHandler() func(event *tcell.EventKey, setFocus func(p tvi
 			s.ui.ShowRosterInfo()
 			return
 		case 'o':
-			s.events.Reset()
-			roster := s.getFrontList()
-			if roster == nil {
-				return
-			}
-			for i := 0; i < roster.GetItemCount(); i++ {
-				idx := (i + roster.GetCurrentItem()) % roster.GetItemCount()
-				main, _ := roster.GetItemText(idx)
-				if strings.HasPrefix(main, highlightTag) {
-					roster.SetCurrentItem(idx)
-					_, item := s.pages.GetFrontPage()
-					if item != nil {
-						item.InputHandler()(tcell.NewEventKey(tcell.KeyCR, 0, tcell.ModNone), nil)
-					}
-				}
-			}
-			idx := (roster.GetCurrentItem() + 1) % roster.GetItemCount()
-			roster.SetCurrentItem(idx)
-			_, item := s.pages.GetFrontPage()
-			if item != nil {
-				item.InputHandler()(tcell.NewEventKey(tcell.KeyCR, 0, tcell.ModNone), nil)
-			}
+			s.openNextUnread()
 		case 'O':
-			s.events.Reset()
-			roster := s.getFrontList()
-			if roster == nil {
-				return
-			}
-			count := roster.GetItemCount()
-			currentItem := roster.GetCurrentItem()
-			for i := 0; i < count; i++ {
-				// Least positive remainder
-				idx := ((currentItem-i)%count + count) % count
-				main, _ := roster.GetItemText(idx)
-				if strings.HasPrefix(main, highlightTag) {
-					roster.SetCurrentItem(idx)
-					_, item := s.pages.GetFrontPage()
-					if item != nil {
-						item.InputHandler()(tcell.NewEventKey(tcell.KeyCR, 0, tcell.ModNone), nil)
-					}
-				}
-			}
-			idx := ((currentItem-1)%count + count) % count
-			roster.SetCurrentItem(idx)
-			_, item := s.pages.GetFrontPage()
-			if item != nil {
-				item.InputHandler()(tcell.NewEventKey(tcell.KeyCR, 0, tcell.ModNone), nil)
-			}
+			s.openPrevUnread()
 		case 'k':
-			roster := s.getFrontList()
-			if roster == nil {
-				return
-			}
-			if s.events.Len() > 1 {
-				n, err := strconv.Atoi(s.events.String()[0 : s.events.Len()-1])
-				if err == nil {
-					n = roster.GetCurrentItem() - n
-					if m := roster.GetItemCount() - 1; n > m {
-						n = m
-					}
-					if n < 0 {
-						n = 0
-					}
-					roster.SetCurrentItem(n)
-
-					s.events.Reset()
-					return
-				}
-			}
-
-			s.events.Reset()
-			cur := roster.GetCurrentItem()
-			if cur <= 0 {
-				return
-			}
-			roster.SetCurrentItem(cur - 1)
+			s.navigateUp()
 			return
 		case 'j':
-			roster := s.getFrontList()
-			if roster == nil {
-				return
-			}
-			if s.events.Len() > 1 {
-				n, err := strconv.Atoi(s.events.String()[0 : s.events.Len()-1])
-				if err == nil {
-					n = roster.GetCurrentItem() + n
-					if m := roster.GetItemCount() - 1; n > m {
-						n = m
-					}
-					if n < 0 {
-						n = 0
-					}
-					roster.SetCurrentItem(n)
-
-					s.events.Reset()
-					return
-				}
-			}
-
-			s.events.Reset()
-			cur := roster.GetCurrentItem()
-			if cur >= roster.GetItemCount()-1 {
-				return
-			}
-			roster.SetCurrentItem(cur + 1)
+			s.navigateDown()
 			return
 		case 'G':
 			roster := s.getFrontList()
@@ -304,22 +207,7 @@ func (s *Sidebar) InputHandler() func(event *tcell.EventKey, setFocus func(p tvi
 			if s.events.String() != "dd" {
 				return
 			}
-			_, item := s.pages.GetFrontPage()
-			if item == nil {
-				return
-			}
-			switch i := item.(type) {
-			case *Roster:
-				i.onDelete()
-			case *Bookmarks:
-				i.onDelete()
-			case *Conversations:
-				c, ok := i.GetSelected()
-				if !ok {
-					break
-				}
-				i.Delete(c.JID.String())
-			}
+			s.deleteItem()
 		case 's':
 			s.statusSelect()
 		case '1', '2', '3', '4', '5', '6', '7', '8', '9', '0':
@@ -363,6 +251,138 @@ func (s *Sidebar) InputHandler() func(event *tcell.EventKey, setFocus func(p tvi
 
 		s.events.Reset()
 	})
+}
+
+func (s *Sidebar) deleteItem() {
+	_, item := s.pages.GetFrontPage()
+	if item == nil {
+		return
+	}
+	switch i := item.(type) {
+	case *Roster:
+		i.onDelete()
+	case *Bookmarks:
+		i.onDelete()
+	case *Conversations:
+		c, ok := i.GetSelected()
+		if !ok {
+			break
+		}
+		i.Delete(c.JID.String())
+	}
+}
+
+func (s *Sidebar) navigateDown() {
+	roster := s.getFrontList()
+	if roster == nil {
+		return
+	}
+	if s.events.Len() > 1 {
+		n, err := strconv.Atoi(s.events.String()[0 : s.events.Len()-1])
+		if err == nil {
+			n = roster.GetCurrentItem() + n
+			if m := roster.GetItemCount() - 1; n > m {
+				n = m
+			}
+			if n < 0 {
+				n = 0
+			}
+			roster.SetCurrentItem(n)
+
+			s.events.Reset()
+			return
+		}
+	}
+
+	s.events.Reset()
+	cur := roster.GetCurrentItem()
+	if cur >= roster.GetItemCount()-1 {
+		return
+	}
+	roster.SetCurrentItem(cur + 1)
+}
+
+func (s *Sidebar) navigateUp() {
+	roster := s.getFrontList()
+	if roster == nil {
+		return
+	}
+	if s.events.Len() > 1 {
+		n, err := strconv.Atoi(s.events.String()[0 : s.events.Len()-1])
+		if err == nil {
+			n = roster.GetCurrentItem() - n
+			if m := roster.GetItemCount() - 1; n > m {
+				n = m
+			}
+			if n < 0 {
+				n = 0
+			}
+			roster.SetCurrentItem(n)
+
+			s.events.Reset()
+			return
+		}
+	}
+
+	s.events.Reset()
+	cur := roster.GetCurrentItem()
+	if cur <= 0 {
+		return
+	}
+	roster.SetCurrentItem(cur - 1)
+}
+
+func (s *Sidebar) openPrevUnread() {
+	s.events.Reset()
+	roster := s.getFrontList()
+	if roster == nil {
+		return
+	}
+	count := roster.GetItemCount()
+	currentItem := roster.GetCurrentItem()
+	for i := 0; i < count; i++ {
+		// Least positive remainder
+		idx := ((currentItem-i)%count + count) % count
+		main, _ := roster.GetItemText(idx)
+		if strings.HasPrefix(main, highlightTag) {
+			roster.SetCurrentItem(idx)
+			_, item := s.pages.GetFrontPage()
+			if item != nil {
+				item.InputHandler()(tcell.NewEventKey(tcell.KeyCR, 0, tcell.ModNone), nil)
+			}
+		}
+	}
+	idx := ((currentItem-1)%count + count) % count
+	roster.SetCurrentItem(idx)
+	_, item := s.pages.GetFrontPage()
+	if item != nil {
+		item.InputHandler()(tcell.NewEventKey(tcell.KeyCR, 0, tcell.ModNone), nil)
+	}
+}
+
+func (s *Sidebar) openNextUnread() {
+	s.events.Reset()
+	roster := s.getFrontList()
+	if roster == nil {
+		return
+	}
+	for i := 0; i < roster.GetItemCount(); i++ {
+		idx := (i + roster.GetCurrentItem()) % roster.GetItemCount()
+		main, _ := roster.GetItemText(idx)
+		if strings.HasPrefix(main, highlightTag) {
+			roster.SetCurrentItem(idx)
+			_, item := s.pages.GetFrontPage()
+			if item != nil {
+				item.InputHandler()(tcell.NewEventKey(tcell.KeyCR, 0, tcell.ModNone), nil)
+			}
+		}
+	}
+	idx := (roster.GetCurrentItem() + 1) % roster.GetItemCount()
+	roster.SetCurrentItem(idx)
+	_, item := s.pages.GetFrontPage()
+	if item != nil {
+		item.InputHandler()(tcell.NewEventKey(tcell.KeyCR, 0, tcell.ModNone), nil)
+	}
 }
 
 // MarkRead sets the given jid back to the normal font in whatever views it

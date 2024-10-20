@@ -145,36 +145,7 @@ func (cv *ConversationView) InputHandler() func(event *tcell.EventKey, setFocus 
 			})
 			cv.input.SetText("")
 		case tcell.KeyCtrlU:
-			p := cv.ui.Printer()
-
-			rcpt, ok := cv.ui.sidebar.conversations.GetSelected()
-			if !ok {
-				cv.ui.logger.Print(p.Sprintf("failed to get the recipient"))
-				return
-			}
-			typ := stanza.ChatMessage
-			to := rcpt.JID
-			if rcpt.Room {
-				typ = stanza.GroupChatMessage
-				to = to.Bare()
-			}
-			files, err := cv.ui.FilePicker()
-			if err != nil {
-				cv.ui.logger.Print(p.Sprintf("error while picking files: %v", err))
-				return
-			}
-			for _, file := range files {
-				cv.ui.handler(event.UploadFile{
-					Message: event.ChatMessage{
-						Message: stanza.Message{
-							To:   to,
-							Type: typ,
-						},
-						Sent: true,
-					},
-					Path: file,
-				})
-			}
+			cv.uploadFile()
 		default:
 			// Pass anything else to the input handler.
 			if cv.input.HasFocus() {
@@ -185,6 +156,39 @@ func (cv *ConversationView) InputHandler() func(event *tcell.EventKey, setFocus 
 				})
 			}
 		}
+	}
+}
+
+func (cv *ConversationView) uploadFile() {
+	p := cv.ui.Printer()
+
+	rcpt, ok := cv.ui.sidebar.conversations.GetSelected()
+	if !ok {
+		cv.ui.logger.Print(p.Sprintf("failed to get the recipient"))
+		return
+	}
+	typ := stanza.ChatMessage
+	to := rcpt.JID
+	if rcpt.Room {
+		typ = stanza.GroupChatMessage
+		to = to.Bare()
+	}
+	files, err := cv.ui.FilePicker()
+	if err != nil {
+		cv.ui.logger.Print(p.Sprintf("error while picking files: %v", err))
+		return
+	}
+	for _, file := range files {
+		cv.ui.handler(event.UploadFile{
+			Message: event.ChatMessage{
+				Message: stanza.Message{
+					To:   to,
+					Type: typ,
+				},
+				Sent: true,
+			},
+			Path: file,
+		})
 	}
 }
 
