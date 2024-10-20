@@ -6,8 +6,6 @@ steps:
     commands:
       - go version
       - go env
-    when:
-      - event: [tag, push, pull_request, release, manual]
   test:
     << : *info
     commands:
@@ -18,5 +16,9 @@ matrix:
     - 1.22
     - 1.23
 
+when:
+  - event: [tag, push, pull_request, release, manual]
+    path:
+      include: ['**/*.go', 'go.mod', 'go.sum']
 depends_on:
   - dco
