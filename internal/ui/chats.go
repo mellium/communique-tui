@@ -42,9 +42,9 @@ func NewConversationView(ui *UI) *ConversationView {
 	cv.Flex.SetBorder(false)
 	cv.Flex.AddItem(unreadTextView{TextView: cv.TextView}, 0, 100, false)
 	cv.Flex.AddItem(cv.input, 3, 1, true)
-	//cv.TextView.SetChangedFunc(func() {
-	//	ui.app.Draw()
-	//})
+	cv.TextView.SetChangedFunc(func() {
+		ui.app.Draw()
+	})
 	return &cv
 }
 
