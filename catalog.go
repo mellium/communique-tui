@@ -46,19 +46,19 @@ var messageKeyToIndex = map[string]int{
 	"Address":                          99,
 	"Are you sure you want to quit?":   114,
 	"Away":                             112,
-	"Away %s":                          183,
+	"Away %s":                          184,
 	"Busy":                             113,
-	"Busy %s":                          184,
+	"Busy %s":                          185,
 	"Cancel":                           21,
 	"Channels":                         101,
-	"Chat: %q (%s)":                    178,
+	"Chat: %q (%s)":                    179,
 	"Commands":                         119,
 	"Complete":                         20,
 	"Conversation":                     102,
 	"Conversations":                    105,
 	"DEBUG":                            25,
-	"Data Form":                        189,
-	"Enter password for: %q":           176,
+	"Data Form":                        190,
+	"Enter password for: %q":           177,
 	"Error closing roster stream: %q":  96,
 	"Error closing the connection: %q": 86,
 	"Error encoding default config as TOML: %v": 32,
@@ -68,46 +68,46 @@ var messageKeyToIndex = map[string]int{
 	"Join":                                      116,
 	"Join Channel":                              117,
 	"Loading commands…":                         120,
-	"Login":                                     175,
+	"Login":                                     176,
 	"Logs":                                      106,
 	"Name":                                      100,
 	"Next":                                      19,
-	"No commands found for %v!":                 197,
+	"No commands found for %v!":                 198,
 	"Offline":                                   110,
-	"Offline %s":                                185,
+	"Offline %s":                                186,
 	"Online":                                    111,
-	"Online %s":                                 182,
-	"Password":                                  174,
-	"Pick Address":                              199,
+	"Online %s":                                 183,
+	"Password":                                  175,
+	"Pick Address":                              200,
 	"Prev":                                      18,
 	"Quit":                                      115,
 	"RECV":                                      26,
 	"Remove":                                    107,
 	"Remove this channel?":                      109,
 	"Remove this contact from your roster?":     108,
-	"Roster":                                    177,
-	"Roster info:":                              200,
+	"Roster":                                    178,
+	"Roster info:":                              201,
 	"SENT":                                      27,
-	"Search":                                    180,
-	"Select":                                    198,
-	"Set Status":                                181,
-	"Status: %s":                                179,
+	"Search":                                    181,
+	"Select":                                    199,
+	"Set Status":                                182,
+	"Status: %s":                                180,
 	"To fix this, contact your server administrator and ask them to enable %q": 93,
 	"Usage of communiqué:\n\n": 24,
 	"Your server does not support bookmark unification, an important feature that stops newer clients from seeing a different list of chat rooms than older clients that do not yet support the latest features.": 94,
 	"account %q not found in config file":                                         36,
-	"bad hash type found in database: %v":                                         149,
-	"cannot upload directory":                                                     136,
+	"bad hash type found in database: %v":                                         150,
+	"cannot upload directory":                                                     137,
 	"caps cache hit for %s: %s:%s":                                                15,
 	"caps cache miss for %s: %s:%s, %[2]s:%[4]s":                                  16,
-	"could not create or open database for writing":                               144,
+	"could not create or open database for writing":                               145,
 	"could not get the upload services: %v":                                       73,
 	"could not upload %q: %v":                                                     75,
-	"encoding form failed: %v":                                                    162,
-	"encoding root forms end element failed: %v":                                  163,
-	"encoding root forms start element failed: %v":                                161,
+	"encoding form failed: %v":                                                    163,
+	"encoding root forms end element failed: %v":                                  164,
+	"encoding root forms start element failed: %v":                                162,
 	"error adding roster item %s: %v":                                             61,
-	"error applying schema: %v":                                                   147,
+	"error applying schema: %v":                                                   148,
 	"error bootstraping history for %s: %v":                                       3,
 	"error canceling command session: %v":                                         125,
 	"error closing bookmarks stream: %v":                                          95,
@@ -115,20 +115,20 @@ var messageKeyToIndex = map[string]int{
 	"error closing command session: %v":                                           127,
 	"error closing commands iter for %q: %v":                                      56,
 	"error closing config file: %v":                                               35,
-	"error closing db file: %v":                                                   143,
-	"error closing feature rows: %v":                                              157,
-	"error closing file: %v":                                                      135,
-	"error closing identity rows: %v":                                             153,
+	"error closing db file: %v":                                                   144,
+	"error closing feature rows: %v":                                              158,
+	"error closing file: %v":                                                      136,
+	"error closing identity rows: %v":                                             154,
 	"error copying early log data to output buffer: %q":                           40,
-	"error creating db dir, skipping: %v":                                         141,
+	"error creating db dir, skipping: %v":                                         142,
 	"error creating keylog file: %q":                                              47,
-	"error decoding forms: %v":                                                    159,
+	"error decoding forms: %v":                                                    160,
 	"error dialing connection: %v":                                                132,
 	"error discovering bookmarks support: %v":                                     63,
 	"error enabling carbons: %q":                                                  134,
-	"error enabling foreign keys: %v":                                             146,
+	"error enabling foreign keys: %v":                                             147,
 	"error executing command %q on %q: %v":                                        53,
-	"error executing info template: %v":                                           203,
+	"error executing info template: %v":                                           204,
 	"error fetching bookmarks: %q":                                                91,
 	"error fetching commands for %q: %v":                                          55,
 	"error fetching earliest message info for %v from database: %v":               80,
@@ -137,24 +137,24 @@ var messageKeyToIndex = map[string]int{
 	"error fetching roster: %q":                                                   90,
 	"error fetching scrollback for %v: %v":                                        83,
 	"error fetching version information: %v":                                      92,
-	"error finding user home directory: %v":                                       139,
-	"error getting caps: %v":                                                      148,
-	"error getting current working directory: %v":                                 140,
-	"error getting features: %v":                                                  154,
-	"error getting identities: %v":                                                150,
-	"error getting services: %v":                                                  170,
+	"error finding user home directory: %v":                                       140,
+	"error getting caps: %v":                                                      149,
+	"error getting current working directory: %v":                                 141,
+	"error getting features: %v":                                                  155,
+	"error getting identities: %v":                                                151,
+	"error getting services: %v":                                                  171,
 	"error going offline: %v":                                                     60,
-	"error inserting JIDCapsForm: %v":                                             165,
-	"error inserting caps: %v":                                                    160,
+	"error inserting JIDCapsForm: %v":                                             166,
+	"error inserting caps: %v":                                                    161,
 	"error inserting entity capbailities hash: %v":                                11,
-	"error inserting feature %s: %v":                                              168,
-	"error inserting feature caps joiner: %v":                                     169,
-	"error inserting identity %v: %v":                                             166,
-	"error inserting identity caps joiner: %v":                                    167,
-	"error iterating over feature rows: %v":                                       156,
-	"error iterating over identity rows: %v":                                      152,
+	"error inserting feature %s: %v":                                              169,
+	"error inserting feature caps joiner: %v":                                     170,
+	"error inserting identity %v: %v":                                             167,
+	"error inserting identity caps joiner: %v":                                    168,
+	"error iterating over feature rows: %v":                                       157,
+	"error iterating over identity rows: %v":                                      153,
 	"error iterating over roster items: %v":                                       4,
-	"error iterating over services rows: %v":                                      173,
+	"error iterating over services rows: %v":                                      174,
 	"error joining room %s: %v":                                                   79,
 	"error loading chat: %v":                                                      76,
 	"error loading scrollback into pane for %v: %v":                               131,
@@ -162,18 +162,18 @@ var messageKeyToIndex = map[string]int{
 	"error marking message %q as received: %v":                                    6,
 	"error negotiating session: %v":                                               133,
 	"error occured during service discovery: %v":                                  87,
-	"error opening DB: %v":                                                        145,
+	"error opening DB: %v":                                                        146,
 	"error opening database: %v":                                                  38,
-	"error opening or creating db, skipping: %v":                                  142,
+	"error opening or creating db, skipping: %v":                                  143,
 	"error parsing config file: %v":                                               34,
-	"error parsing jid-multi value for field %s: %v":                              191,
+	"error parsing jid-multi value for field %s: %v":                              192,
 	"error parsing main account as XMPP address: %v":                              37,
 	"error parsing timeout, defaulting to 30s: %q":                                46,
 	"error parsing user address: %q":                                              45,
 	"error publishing bookmark %s: %v":                                            65,
 	"error publishing legacy bookmark %s: %v":                                     64,
 	"error querying database for last seen messages: %v":                          1,
-	"error querying for disco forms: %v":                                          158,
+	"error querying for disco forms: %v":                                          159,
 	"error querying history for %s: %v":                                           23,
 	"error removing bookmark %s: %v":                                              67,
 	"error removing legacy bookmark %s: %v":                                       66,
@@ -182,26 +182,27 @@ var messageKeyToIndex = map[string]int{
 	"error running password command, falling back to prompt: %v":                  42,
 	"error saving entity caps to the database: %v":                                17,
 	"error saving sent message to history: %v":                                    72,
-	"error scanning feature row: %v":                                              155,
-	"error scanning identity: %v":                                                 151,
-	"error scanning services: %v":                                                 171,
+	"error scanning feature row: %v":                                              156,
+	"error scanning identity: %v":                                                 152,
+	"error scanning services: %v":                                                 172,
 	"error sending message: %v":                                                   71,
 	"error sending presence pre-approval to %s: %v":                               68,
 	"error sending presence request to %s: %v":                                    69,
 	"error setting away status: %v":                                               57,
-	"error setting bool form field %s: %v":                                        190,
+	"error setting bool form field %s: %v":                                        191,
 	"error setting busy status: %v":                                               59,
-	"error setting jid form field %s: %v":                                         193,
-	"error setting jid-multi form field %s: %v":                                   192,
-	"error setting list or list-multi form field %s: %v":                          194,
+	"error setting deadline: %v":                                                  135,
+	"error setting jid form field %s: %v":                                         194,
+	"error setting jid-multi form field %s: %v":                                   193,
+	"error setting list or list-multi form field %s: %v":                          195,
 	"error setting online status: %v":                                             58,
-	"error setting password form field %s: %v":                                    196,
-	"error setting text or text-multi form field %s: %v":                          195,
+	"error setting password form field %s: %v":                                    197,
+	"error setting text or text-multi form field %s: %v":                          196,
 	"error showing next command for %q: %v":                                       54,
 	"error showing next command: %v":                                              128,
 	"error updating roster version: %v":                                           5,
 	"error updating to roster ver %q: %v":                                         0,
-	"error when closing response body: %v":                                        137,
+	"error when closing response body: %v":                                        138,
 	"error when closing the items iterator: %v":                                   88,
 	"error while picking files: %v":                                               104,
 	"error writing history message to chat: %v":                                   9,
@@ -211,23 +212,23 @@ var messageKeyToIndex = map[string]int{
 	"error writing received message to chat: %v":                                  7,
 	"executing command: %+v":                                                      52,
 	"failed to get the recipient":                                                 103,
-	"failed to parse service JID: %v":                                             172,
-	"failed to read process' standard error: %v":                                  187,
-	"failed to read process' standard output: %v":                                 188,
+	"failed to parse service JID: %v":                                             173,
+	"failed to read process' standard error: %v":                                  188,
+	"failed to read process' standard output: %v":                                 189,
 	"failed to read stderr of the notification subprocess: %v":                    122,
 	"failed to run notification command: %v":                                      123,
 	"falling back to network query…":                                              14,
 	"feature discovery failed for %q: %v":                                         89,
 	"fetching scrollback before %v for %v…":                                       82,
-	"flushing encoded form failed: %v":                                            164,
+	"flushing encoded form failed: %v":                                            165,
 	"got signal: %v":                                                              51,
 	"initial login failed: %v":                                                    49,
 	"invalid nick %s in config: %v":                                               77,
 	"joining room %v…":                                                            78,
 	"logged in as: %q":                                                            50,
-	"no file picker set, see the example configuration file for more information": 186,
+	"no file picker set, see the example configuration file for more information": 187,
 	"no scrollback for %v":                                                        81,
-	"no sidebar open, not showing info pane…":                                     201,
+	"no sidebar open, not showing info pane…":                                     202,
 	"no upload service available":                                                 74,
 	"no user address specified, edit %q and add:\n\n\tjid=\"me@example.com\"\n\n": 43,
 	"notification subprocess failed: %v\n%s":                                      124,
@@ -237,15 +238,15 @@ var messageKeyToIndex = map[string]int{
 	"print this help message":                                                     30,
 	"running command: %q":                                                         41,
 	"the config file to load":                                                     28,
-	"unexpected status code: %d (%s)":                                             138,
+	"unexpected status code: %d (%s)":                                             139,
 	"unrecognized client event: %T(%[1]q)":                                        12,
-	"unrecognized sidebar item type %T, not showing info…":                        202,
+	"unrecognized sidebar item type %T, not showing info…":                        203,
 	"unrecognized ui event: %T(%[1]q)":                                            70,
 	"uploaded %q as %s":                                                           130,
 	"user address: %q":                                                            44,
 }
 
-var deIndex = []uint32{ // 205 elements
+var deIndex = []uint32{ // 206 elements
 	// Entry 0 - 1F
 	0x00000000, 0x0000003a, 0x00000081, 0x000000bd,
 	0x000000f4, 0x00000127, 0x0000015c, 0x00000199,
@@ -304,8 +305,8 @@ var deIndex = []uint32{ // 205 elements
 	0x000015b0, 0x000015b0, 0x000015b0, 0x000015b0,
 	0x000015b0, 0x000015b0, 0x000015b0, 0x000015b0,
 	0x000015b0, 0x000015b0, 0x000015b0, 0x000015b0,
-	0x000015b0,
-} // Size: 844 bytes
+	0x000015b0, 0x000015b0,
+} // Size: 848 bytes
 
 const deData string = "" + // Size: 5552 bytes
 	"\x02Error beim Aktuellisieren von roster Version %[1]q: %[2]v\x02Fehler " +
@@ -392,7 +393,7 @@ const deData string = "" + // Size: 5552 bytes
 	"ichtigungsbefehls: %[1]v\x02Benachrichtigungsunterprozess abgestürzt: %[" +
 	"1]v\x0a%[2]s"
 
-var en_USIndex = []uint32{ // 205 elements
+var en_USIndex = []uint32{ // 206 elements
 	// Entry 0 - 1F
 	0x00000000, 0x0000002a, 0x00000060, 0x00000094,
 	0x000000c0, 0x000000e9, 0x0000010e, 0x0000013d,
@@ -432,29 +433,29 @@ var en_USIndex = []uint32{ // 205 elements
 	// Entry 80 - 9F
 	0x00001139, 0x0000115b, 0x00001393, 0x000013ab,
 	0x000013df, 0x000013ff, 0x00001420, 0x0000143e,
-	0x00001458, 0x00001470, 0x00001498, 0x000014be,
-	0x000014e7, 0x00001516, 0x0000153d, 0x0000156b,
-	0x00001588, 0x000015b6, 0x000015ce, 0x000015f1,
-	0x0000160e, 0x00001628, 0x0000164f, 0x0000166f,
-	0x0000168e, 0x000016b8, 0x000016db, 0x000016f9,
-	0x0000171b, 0x00001744, 0x00001766, 0x0000178c,
+	0x0000145c, 0x00001476, 0x0000148e, 0x000014b6,
+	0x000014dc, 0x00001505, 0x00001534, 0x0000155b,
+	0x00001589, 0x000015a6, 0x000015d4, 0x000015ec,
+	0x0000160f, 0x0000162c, 0x00001646, 0x0000166d,
+	0x0000168d, 0x000016ac, 0x000016d6, 0x000016f9,
+	0x00001717, 0x00001739, 0x00001762, 0x00001784,
 	// Entry A0 - BF
-	0x000017a8, 0x000017c4, 0x000017f4, 0x00001810,
-	0x0000183e, 0x00001862, 0x00001885, 0x000018ab,
-	0x000018d7, 0x000018fc, 0x00001927, 0x00001945,
-	0x00001964, 0x00001987, 0x000019b1, 0x000019ba,
-	0x000019c0, 0x000019da, 0x000019e1, 0x000019f5,
-	0x00001a03, 0x00001a0a, 0x00001a15, 0x00001a22,
-	0x00001a2d, 0x00001a38, 0x00001a46, 0x00001a92,
-	0x00001ac0, 0x00001aef, 0x00001af9, 0x00001b24,
+	0x000017aa, 0x000017c6, 0x000017e2, 0x00001812,
+	0x0000182e, 0x0000185c, 0x00001880, 0x000018a3,
+	0x000018c9, 0x000018f5, 0x0000191a, 0x00001945,
+	0x00001963, 0x00001982, 0x000019a5, 0x000019cf,
+	0x000019d8, 0x000019de, 0x000019f8, 0x000019ff,
+	0x00001a13, 0x00001a21, 0x00001a28, 0x00001a33,
+	0x00001a40, 0x00001a4b, 0x00001a56, 0x00001a64,
+	0x00001ab0, 0x00001ade, 0x00001b0d, 0x00001b17,
 	// Entry C0 - DF
-	0x00001b59, 0x00001b89, 0x00001bb3, 0x00001bec,
-	0x00001c25, 0x00001c54, 0x00001c71, 0x00001c78,
-	0x00001c85, 0x00001c92, 0x00001cbc, 0x00001cf6,
-	0x00001d1b,
-} // Size: 844 bytes
+	0x00001b42, 0x00001b77, 0x00001ba7, 0x00001bd1,
+	0x00001c0a, 0x00001c43, 0x00001c72, 0x00001c8f,
+	0x00001c96, 0x00001ca3, 0x00001cb0, 0x00001cda,
+	0x00001d14, 0x00001d39,
+} // Size: 848 bytes
 
-const en_USData string = "" + // Size: 7451 bytes
+const en_USData string = "" + // Size: 7481 bytes
 	"\x02error updating to roster ver %[1]q: %[2]v\x02error querying database" +
 	" for last seen messages: %[1]v\x02error fetching history after %[1]s for" +
 	" %[2]s: %[3]v\x02error bootstraping history for %[1]s: %[2]v\x02error it" +
@@ -534,40 +535,41 @@ const en_USData string = "" + // Size: 7451 bytes
 	"\x0a# user will be prompted to enter a password.\x02uploaded %[1]q as %[" +
 	"2]s\x02error loading scrollback into pane for %[1]v: %[2]v\x02error dial" +
 	"ing connection: %[1]v\x02error negotiating session: %[1]v\x02error enabl" +
-	"ing carbons: %[1]q\x02error closing file: %[1]v\x02cannot upload directo" +
-	"ry\x02error when closing response body: %[1]v\x02unexpected status code:" +
-	" %[1]d (%[2]s)\x02error finding user home directory: %[1]v\x02error gett" +
-	"ing current working directory: %[1]v\x02error creating db dir, skipping:" +
-	" %[1]v\x02error opening or creating db, skipping: %[1]v\x02error closing" +
-	" db file: %[1]v\x02could not create or open database for writing\x02erro" +
-	"r opening DB: %[1]v\x02error enabling foreign keys: %[1]v\x02error apply" +
-	"ing schema: %[1]v\x02error getting caps: %[1]v\x02bad hash type found in" +
-	" database: %[1]v\x02error getting identities: %[1]v\x02error scanning id" +
-	"entity: %[1]v\x02error iterating over identity rows: %[1]v\x02error clos" +
-	"ing identity rows: %[1]v\x02error getting features: %[1]v\x02error scann" +
-	"ing feature row: %[1]v\x02error iterating over feature rows: %[1]v\x02er" +
-	"ror closing feature rows: %[1]v\x02error querying for disco forms: %[1]v" +
-	"\x02error decoding forms: %[1]v\x02error inserting caps: %[1]v\x02encodi" +
-	"ng root forms start element failed: %[1]v\x02encoding form failed: %[1]v" +
-	"\x02encoding root forms end element failed: %[1]v\x02flushing encoded fo" +
-	"rm failed: %[1]v\x02error inserting JIDCapsForm: %[1]v\x02error insertin" +
-	"g identity %[1]v: %[2]v\x02error inserting identity caps joiner: %[1]v" +
-	"\x02error inserting feature %[1]s: %[2]v\x02error inserting feature caps" +
-	" joiner: %[1]v\x02error getting services: %[1]v\x02error scanning servic" +
-	"es: %[1]v\x02failed to parse service JID: %[1]v\x02error iterating over " +
-	"services rows: %[1]v\x02Password\x02Login\x02Enter password for: %[1]q" +
-	"\x02Roster\x02Chat: %[1]q (%[2]s)\x02Status: %[1]s\x02Search\x02Set Stat" +
-	"us\x02Online %[1]s\x02Away %[1]s\x02Busy %[1]s\x02Offline %[1]s\x02no fi" +
-	"le picker set, see the example configuration file for more information" +
-	"\x02failed to read process' standard error: %[1]v\x02failed to read proc" +
-	"ess' standard output: %[1]v\x02Data Form\x02error setting bool form fiel" +
-	"d %[1]s: %[2]v\x02error parsing jid-multi value for field %[1]s: %[2]v" +
-	"\x02error setting jid-multi form field %[1]s: %[2]v\x02error setting jid" +
-	" form field %[1]s: %[2]v\x02error setting list or list-multi form field " +
-	"%[1]s: %[2]v\x02error setting text or text-multi form field %[1]s: %[2]v" +
-	"\x02error setting password form field %[1]s: %[2]v\x02No commands found " +
-	"for %[1]v!\x02Select\x02Pick Address\x02Roster info:\x02no sidebar open," +
-	" not showing info pane…\x02unrecognized sidebar item type %[1]T, not sho" +
-	"wing info…\x02error executing info template: %[1]v"
+	"ing carbons: %[1]q\x02error setting deadline: %[1]v\x02error closing fil" +
+	"e: %[1]v\x02cannot upload directory\x02error when closing response body:" +
+	" %[1]v\x02unexpected status code: %[1]d (%[2]s)\x02error finding user ho" +
+	"me directory: %[1]v\x02error getting current working directory: %[1]v" +
+	"\x02error creating db dir, skipping: %[1]v\x02error opening or creating " +
+	"db, skipping: %[1]v\x02error closing db file: %[1]v\x02could not create " +
+	"or open database for writing\x02error opening DB: %[1]v\x02error enablin" +
+	"g foreign keys: %[1]v\x02error applying schema: %[1]v\x02error getting c" +
+	"aps: %[1]v\x02bad hash type found in database: %[1]v\x02error getting id" +
+	"entities: %[1]v\x02error scanning identity: %[1]v\x02error iterating ove" +
+	"r identity rows: %[1]v\x02error closing identity rows: %[1]v\x02error ge" +
+	"tting features: %[1]v\x02error scanning feature row: %[1]v\x02error iter" +
+	"ating over feature rows: %[1]v\x02error closing feature rows: %[1]v\x02e" +
+	"rror querying for disco forms: %[1]v\x02error decoding forms: %[1]v\x02e" +
+	"rror inserting caps: %[1]v\x02encoding root forms start element failed: " +
+	"%[1]v\x02encoding form failed: %[1]v\x02encoding root forms end element " +
+	"failed: %[1]v\x02flushing encoded form failed: %[1]v\x02error inserting " +
+	"JIDCapsForm: %[1]v\x02error inserting identity %[1]v: %[2]v\x02error ins" +
+	"erting identity caps joiner: %[1]v\x02error inserting feature %[1]s: %[2" +
+	"]v\x02error inserting feature caps joiner: %[1]v\x02error getting servic" +
+	"es: %[1]v\x02error scanning services: %[1]v\x02failed to parse service J" +
+	"ID: %[1]v\x02error iterating over services rows: %[1]v\x02Password\x02Lo" +
+	"gin\x02Enter password for: %[1]q\x02Roster\x02Chat: %[1]q (%[2]s)\x02Sta" +
+	"tus: %[1]s\x02Search\x02Set Status\x02Online %[1]s\x02Away %[1]s\x02Busy" +
+	" %[1]s\x02Offline %[1]s\x02no file picker set, see the example configura" +
+	"tion file for more information\x02failed to read process' standard error" +
+	": %[1]v\x02failed to read process' standard output: %[1]v\x02Data Form" +
+	"\x02error setting bool form field %[1]s: %[2]v\x02error parsing jid-mult" +
+	"i value for field %[1]s: %[2]v\x02error setting jid-multi form field %[1" +
+	"]s: %[2]v\x02error setting jid form field %[1]s: %[2]v\x02error setting " +
+	"list or list-multi form field %[1]s: %[2]v\x02error setting text or text" +
+	"-multi form field %[1]s: %[2]v\x02error setting password form field %[1]" +
+	"s: %[2]v\x02No commands found for %[1]v!\x02Select\x02Pick Address\x02Ro" +
+	"ster info:\x02no sidebar open, not showing info pane…\x02unrecognized si" +
+	"debar item type %[1]T, not showing info…\x02error executing info templat" +
+	"e: %[1]v"
 
-	// Total table size 14691 bytes (14KiB); checksum: C07BDE7E
+	// Total table size 14729 bytes (14KiB); checksum: FBC29A8F

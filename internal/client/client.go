@@ -456,12 +456,14 @@ func (c *Client) Offline() error {
 		c.online = false
 	}()
 
-	/* #nosec */
-	_ = c.SetCloseDeadline(time.Now().Add(2 * c.timeout))
-	// Don't handle the error when setting the close deadline; we still want to
-	// attempt to close the connection.
+	err := c.SetCloseDeadline(time.Now().Add(2 * c.timeout))
+	if err != nil {
+		// Don't return the error when setting the close deadline; we still want to
+		// attempt to close the connection.
+		c.debug.Print(c.p.Sprintf("error setting deadline: %v", err))
+	}
 
-	err := c.Close()
+	err = c.Close()
 	if err != nil {
 		return err
 	}

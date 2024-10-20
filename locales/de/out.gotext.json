@@ -1743,6 +1743,21 @@
             ]
         },
         {
+            "id": "error setting deadline: {Err}",
+            "message": "error setting deadline: {Err}",
+            "translation": "",
+            "placeholders": [
+                {
+                    "id": "Err",
+                    "string": "%[1]v",
+                    "type": "error",
+                    "underlyingType": "interface{Error() string}",
+                    "argNum": 1,
+                    "expr": "err"
+                }
+            ]
+        },
+        {
             "id": "error closing file: {Err}",
             "message": "error closing file: {Err}",
             "translation": "",
