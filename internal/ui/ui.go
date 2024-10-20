@@ -860,6 +860,7 @@ func (ui *UI) ShowManualPage() {
 }
 
 // GetRosterJID gets the currently selected roster or bookmark JID.
+// If no JID is selected, the zero value is returned.
 func (ui *UI) GetRosterJID() jid.JID {
 	selected, ok := ui.sidebar.GetSelected()
 	if !ok {

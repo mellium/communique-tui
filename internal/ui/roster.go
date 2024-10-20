@@ -260,7 +260,7 @@ func (r Roster) MarkUnread(j, msgID string) bool {
 	}
 
 	// The unread size is the moment at which the item first became unread, so if
-	// it's already set don't chagne it.
+	// it's already set don't change it.
 	if item.firstUnread == "" {
 		item.firstUnread = msgID
 		r.items[j] = item
