@@ -7,14 +7,11 @@ steps:
     commands:
       - go version
       - go env
-    when:
-      - event: [tag, push, pull_request, release, manual]
   lint:
     << : *info
     commands:
       - go install honnef.co/go/tools/cmd/staticcheck@latest
       - go install github.com/securego/gosec/v2/cmd/gosec@latest
-      - go install mellium.im/checkmd@latest
       - go install mellium.im/checkdoc@latest
       - export PATH=$(go env GOPATH)/bin:$PATH
       - go vet ./...
@@ -27,14 +24,25 @@ steps:
         Use of this source code is governed by the BSD 2-clause
         license that can be found in the LICENSE file\.
         EOF
-      - checkmd .
-  validate:
-    << : *info
-    commands:
       - apk add git
       - go mod tidy
-      - |
-        git diff --exit-code -- go.mod go.sum
+      - git diff --exit-code -- go.mod go.sum
+    when:
+      - path:
+          include: ['**/*.go', 'go.mod', 'go.sum']
+  markdown:
+    << : *info
+    commands:
+      - go install mellium.im/checkmd@latest
+      - export PATH=$(go env GOPATH)/bin:$PATH
+      - checkmd .
+    when:
+      - path:
+          include: ['**/*.md']
 
+when:
+  - event: [tag, push, pull_request, release, manual]
+    path:
+      include: ['**/*.go', 'go.mod', 'go.sum', '**/*.md']
 depends_on:
   - dco
