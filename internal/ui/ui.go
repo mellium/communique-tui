@@ -333,6 +333,18 @@ func New(p *message.Printer, logger *log.Logger, opts ...Option) *UI {
 	return ui
 }
 
+// MarkRead sets the given jid back to the normal font in whatever views it
+// appears in.
+func (ui *UI) MarkRead(j string) {
+	ui.sidebar.MarkRead(j)
+}
+
+// MarkUnread sets the given jid to bold and sets the first message seen after
+// the unread marker (unless the unread marker is already set).
+func (ui *UI) MarkUnread(j, msgID string) bool {
+	return ui.sidebar.MarkUnread(j, msgID)
+}
+
 // RosterLen returns the length of the currently visible roster.
 func (ui *UI) RosterLen() int {
 	roster := ui.sidebar.getFrontList()

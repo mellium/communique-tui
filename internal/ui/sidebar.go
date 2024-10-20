@@ -365,6 +365,21 @@ func (s *Sidebar) InputHandler() func(event *tcell.EventKey, setFocus func(p tvi
 	})
 }
 
+// MarkRead sets the given jid back to the normal font in whatever views it
+// appears in.
+func (s *Sidebar) MarkRead(j string) {
+	s.roster.MarkRead(j)
+	s.conversations.MarkRead(j)
+}
+
+// MarkUnread sets the given jid to bold and sets the first message seen after
+// the unread marker (unless the unread marker is already set).
+func (s *Sidebar) MarkUnread(j, msgID string) bool {
+	r := s.roster.MarkUnread(j, msgID)
+	c := s.conversations.MarkUnread(j, msgID)
+	return r || c
+}
+
 // Search looks forward in the roster trying to find items that match s.
 // It is case insensitive and looks in the primary or secondary texts.
 // If a match is found after the current selection, we jump to the match,
