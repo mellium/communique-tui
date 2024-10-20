@@ -13,6 +13,7 @@ func newLogs(p *message.Printer, app *tview.Application) *tview.TextView {
 	logs := tview.NewTextView()
 	logs.SetText("")
 	logs.SetBorder(true).SetTitle(p.Sprintf("Logs"))
+	logs.ScrollToEnd()
 
 	return logs
 }

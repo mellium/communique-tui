@@ -32,6 +32,7 @@ func NewConversationView(ui *UI) *ConversationView {
 		TextView: tview.NewTextView().
 			SetDynamicColors(true).
 			SetRegions(true).
+			ScrollToEnd().
 			Highlight(UnreadRegion),
 		input: tview.NewInputField().
 			SetFieldBackgroundColor(tview.Styles.PrimitiveBackgroundColor),
