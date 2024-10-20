@@ -166,7 +166,7 @@ func (c *Client) reconnect(ctx context.Context) error {
 			c.logger.Print(p.Sprintf("Error while handling XMPP streams: %q", err))
 		}
 
-		c.handler(event.StatusOffline{})
+		c.handler(event.StatusOffline(c.LocalAddr()))
 		err = c.Offline()
 		if err != nil {
 			c.logger.Print(p.Sprintf("Error going offline: %q", err))
