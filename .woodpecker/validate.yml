@@ -25,8 +25,9 @@ steps:
         license that can be found in the LICENSE file\.
         EOF
       - apk add git
+      - make catalog.go
       - go mod tidy
-      - git diff --exit-code -- go.mod go.sum
+      - git diff --exit-code -- go.mod go.sum catalog.go
     when:
       - path:
           include: ['**/*.go', 'go.mod', 'go.sum']
