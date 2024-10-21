@@ -143,14 +143,15 @@ func OpenDB(ctx context.Context, appName, account, dbFile, schema string, p *mes
 		db.Close()
 		return nil, localerr.Wrap(p, "error applying schema: %v", err)
 	}
-	return prepareQueries(ctx, db, debug)
+	return prepareQueries(ctx, db, debug, p)
 }
 
-func prepareQueries(ctx context.Context, db *sql.DB, debug *log.Logger) (*DB, error) {
+func prepareQueries(ctx context.Context, db *sql.DB, debug *log.Logger, p *message.Printer) (*DB, error) {
 	var err error
 	wrapDB := &DB{
 		DB:    db,
 		debug: debug,
+		p:     p,
 	}
 	wrapDB.truncateRoster, err = db.PrepareContext(ctx, `
 DELETE FROM rosterJIDs;
