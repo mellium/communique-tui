@@ -9,6 +9,7 @@ import (
 	"github.com/rivo/tview"
 
 	"mellium.im/communique/internal/client/event"
+	"mellium.im/filechooser"
 	"mellium.im/xmpp/stanza"
 )
 
@@ -19,10 +20,16 @@ const UnreadRegion = "unreadMarker"
 // important for displaying chats.
 type ConversationView struct {
 	*tview.Flex
-	TextView *tview.TextView
-	input    *tview.InputField
-	ui       *UI
+	TextView   *tview.TextView
+	inputPages *tview.Pages
+	ui         *UI
 }
+
+const (
+	pageFilePicker  = "page_filepick"
+	pageInput       = "page_input"
+	filePickerLabel = "📎"
+)
 
 // NewConversationView configures and creates a new chat view.
 func NewConversationView(ui *UI) *ConversationView {
@@ -34,19 +41,46 @@ func NewConversationView(ui *UI) *ConversationView {
 			SetRegions(true).
 			ScrollToEnd().
 			Highlight(UnreadRegion),
-		input: tview.NewInputField().
-			SetFieldBackgroundColor(tview.Styles.PrimitiveBackgroundColor),
-		ui: ui,
+		inputPages: tview.NewPages(),
+		ui:         ui,
 	}
+	filePicker := filechooser.NewPathInputField()
+	filePicker.SetFieldBackgroundColor(tview.Styles.PrimitiveBackgroundColor)
+	filePicker.SetBorder(true)
+	filePicker.SetLabel(filePickerLabel)
+	filePicker.SetDoneFunc(func(key tcell.Key) {
+		files := filePicker.Files()
+		if key == tcell.KeyEnter && len(files) > 0 {
+			cv.uploadFiles(files)
+		}
+		filePicker.SetText("")
+		cv.ShowInput()
+	})
 	cv.TextView.SetBorder(true).SetTitle(p.Sprintf("Conversation"))
-	cv.input.SetBorder(true)
+	input := tview.NewInputField()
+	input.SetFieldBackgroundColor(tview.Styles.PrimitiveBackgroundColor)
+	input.SetBorder(true)
+	cv.inputPages.AddPage(pageFilePicker, filePicker, true, false)
+	cv.inputPages.AddPage(pageInput, input, true, true)
 	cv.Flex.SetBorder(false)
 	cv.Flex.AddItem(unreadTextView{TextView: cv.TextView}, 0, 100, false)
-	cv.Flex.AddItem(cv.input, 3, 1, true)
+	cv.Flex.AddItem(cv.inputPages, 3, 1, true)
 	cv.TextView.SetChangedFunc(func() {
 		ui.app.Draw()
 	})
 	return &cv
+}
+
+// ShowFilePicker shows the file picker field.
+func (cv *ConversationView) ShowFilePicker() {
+	cv.inputPages.SwitchToPage(pageFilePicker)
+	_, prim := cv.inputPages.GetFrontPage()
+	prim.(*filechooser.PathInputField).SetText("")
+}
+
+// ShowInput shows the text input field.
+func (cv *ConversationView) ShowInput() {
+	cv.inputPages.SwitchToPage(pageInput)
 }
 
 func checkScroll(cv *ConversationView, f func()) {
@@ -106,50 +140,48 @@ func (cv *ConversationView) ScrollToHighlight() {
 // InputHandler returns the handler for this primitive.
 func (cv *ConversationView) InputHandler() func(event *tcell.EventKey, setFocus func(p tview.Primitive)) {
 	return func(ev *tcell.EventKey, setFocus func(p tview.Primitive)) {
+
+		// If the file upload dialog is selected, always pass through control to it.
+		pageName, _ := cv.inputPages.GetFrontPage()
+		if cv.inputPages.HasFocus() && pageName == pageFilePicker {
+			cv.inputPages.InputHandler()(ev, setFocus)
+			return
+		}
+
 		switch ev.Key() {
 		case tcell.KeyUp, tcell.KeyDown, tcell.KeyRight, tcell.KeyLeft, tcell.KeyPgUp, tcell.KeyPgDn:
 			cv.TextView.InputHandler()(ev, setFocus)
 		case tcell.KeyTAB, tcell.KeyBacktab:
-			if cv.input.HasFocus() {
+			if cv.inputPages.HasFocus() {
 				setFocus(cv.TextView)
 			} else {
-				setFocus(cv.input)
+				setFocus(cv.inputPages)
 			}
 		case tcell.KeyESC:
 			cv.ui.SelectRoster()
 		case tcell.KeyEnter:
-			if !cv.input.HasFocus() {
+			if !cv.inputPages.HasFocus() {
 				break
 			}
-			body := cv.input.GetText()
-			if body == "" {
-				return
-			}
-			c, ok := cv.ui.sidebar.conversations.GetSelected()
-			if !ok {
-				return
-			}
-			typ := stanza.ChatMessage
-			to := c.JID
-			if c.Room {
-				typ = stanza.GroupChatMessage
-				to = to.Bare()
-			}
-			cv.ui.handler(event.ChatMessage{
-				Message: stanza.Message{
-					To:   to,
-					Type: typ,
-				},
-				Body: body,
-				Sent: true,
-			})
-			cv.input.SetText("")
+			sendMsg(cv, ev, setFocus)
 		case tcell.KeyCtrlU:
-			cv.uploadFile()
+			if cv.ui.FilePickerConfigured() {
+				p := cv.ui.Printer()
+				files, err := cv.ui.FilePicker()
+				if err != nil {
+					cv.ui.logger.Print(p.Sprintf("error while picking files: %v", err))
+					return
+				}
+				cv.uploadFiles(files)
+				return
+			}
+			// If an external file picker isn't configured, launch the built-in one.
+			cv.ShowFilePicker()
+			setFocus(cv.inputPages)
 		default:
 			// Pass anything else to the input handler.
-			if cv.input.HasFocus() {
-				cv.input.InputHandler()(ev, setFocus)
+			if cv.inputPages.HasFocus() {
+				cv.inputPages.InputHandler()(ev, setFocus)
 			} else {
 				checkScroll(cv, func() {
 					cv.TextView.InputHandler()(ev, setFocus)
@@ -159,7 +191,34 @@ func (cv *ConversationView) InputHandler() func(event *tcell.EventKey, setFocus 
 	}
 }
 
-func (cv *ConversationView) uploadFile() {
+func sendMsg(cv *ConversationView, ev *tcell.EventKey, setFocus func(p tview.Primitive)) {
+	_, prim := cv.inputPages.GetFrontPage()
+	body := prim.(*tview.InputField).GetText()
+	if body == "" {
+		return
+	}
+	c, ok := cv.ui.sidebar.conversations.GetSelected()
+	if !ok {
+		return
+	}
+	typ := stanza.ChatMessage
+	to := c.JID
+	if c.Room {
+		typ = stanza.GroupChatMessage
+		to = to.Bare()
+	}
+	cv.ui.handler(event.ChatMessage{
+		Message: stanza.Message{
+			To:   to,
+			Type: typ,
+		},
+		Body: body,
+		Sent: true,
+	})
+	prim.(*tview.InputField).SetText("")
+}
+
+func (cv *ConversationView) uploadFiles(files []string) {
 	p := cv.ui.Printer()
 
 	rcpt, ok := cv.ui.sidebar.conversations.GetSelected()
@@ -172,11 +231,6 @@ func (cv *ConversationView) uploadFile() {
 	if rcpt.Room {
 		typ = stanza.GroupChatMessage
 		to = to.Bare()
-	}
-	files, err := cv.ui.FilePicker()
-	if err != nil {
-		cv.ui.logger.Print(p.Sprintf("error while picking files: %v", err))
-		return
 	}
 	for _, file := range files {
 		cv.ui.handler(event.UploadFile{

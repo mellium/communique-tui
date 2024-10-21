@@ -97,11 +97,16 @@ func (ui *UI) Printer() *message.Printer {
 	return ui.p
 }
 
-// FilePicker runs the file picker and returns the list of selected paths. The
-// picker is run inside a shell.
+// FilePickerConfigured returns whether an external file picker has been
+// configured or not.
+func (ui *UI) FilePickerConfigured() bool {
+	return len(ui.filePicker) > 0
+}
+
+// FilePicker runs the file picker and returns the list of selected paths.
 func (ui *UI) FilePicker() ([]string, error) {
 	var results []string
-	if len(ui.filePicker) == 0 {
+	if !ui.FilePickerConfigured() {
 		return results, errors.New(ui.p.Sprintf("no file picker set, see the example configuration file for more information"))
 	}
 	cmd := exec.Command(ui.filePicker[0], ui.filePicker[1:]...) // #nosec G204
@@ -1112,6 +1117,7 @@ func (ui *UI) SelectRoster() {
 			ui.handler(event.CloseChat(item.Item))
 		}
 	}
+	ui.chatsOpen.Set(false)
 	ui.buffers.SwitchToPage(logsPageName)
 	ui.app.SetFocus(ui.sidebar)
 }
@@ -1159,8 +1165,9 @@ func (ui *UI) handleInput(event *tcell.EventKey) *tcell.EventKey {
 		return event
 	case tcell.KeyESC:
 		if ui.buffers.HasFocus() {
-			ui.chatsOpen.Set(false)
-			ui.SelectRoster()
+			ui.buffers.InputHandler()(event, func(p tview.Primitive) {
+				ui.app.SetFocus(p)
+			})
 			return nil
 		}
 		return event
