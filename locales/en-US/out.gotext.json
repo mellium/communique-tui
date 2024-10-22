@@ -2483,11 +2483,6 @@
             "translation": "Conversation"
         },
         {
-            "id": "failed to get the recipient",
-            "message": "failed to get the recipient",
-            "translation": "failed to get the recipient"
-        },
-        {
             "id": "error while picking files: {Err}",
             "message": "error while picking files: {Err}",
             "translation": "error while picking files: {Err}",
@@ -2501,6 +2496,11 @@
                     "expr": "err"
                 }
             ]
+        },
+        {
+            "id": "failed to get the recipient",
+            "message": "failed to get the recipient",
+            "translation": "failed to get the recipient"
         },
         {
             "id": "Conversations",

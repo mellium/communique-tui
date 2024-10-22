@@ -204,14 +204,14 @@ var messageKeyToIndex = map[string]int{
 	"error updating to roster ver %q: %v":                                         0,
 	"error when closing response body: %v":                                        138,
 	"error when closing the items iterator: %v":                                   88,
-	"error while picking files: %v":                                               104,
+	"error while picking files: %v":                                               103,
 	"error writing history message to chat: %v":                                   9,
 	"error writing history to database: %v":                                       10,
 	"error writing history: %v":                                                   22,
 	"error writing message to database: %v":                                       8,
 	"error writing received message to chat: %v":                                  7,
 	"executing command: %+v":                                                      52,
-	"failed to get the recipient":                                                 103,
+	"failed to get the recipient":                                                 104,
 	"failed to parse service JID: %v":                                             173,
 	"failed to read process' standard error: %v":                                  188,
 	"failed to read process' standard output: %v":                                 189,
@@ -277,7 +277,7 @@ var deIndex = []uint32{ // 206 elements
 	// Entry 60 - 7F
 	0x00001307, 0x00001338, 0x0000136d, 0x00001381,
 	0x0000138a, 0x0000138f, 0x00001397, 0x000013a4,
-	0x000013ca, 0x000013f3, 0x00001402, 0x0000140d,
+	0x000013cd, 0x000013f3, 0x00001402, 0x0000140d,
 	0x00001417, 0x00001435, 0x00001446, 0x0000144e,
 	0x00001455, 0x0000145e, 0x0000146c, 0x0000149b,
 	0x000014a3, 0x000014ad, 0x000014bd, 0x000014c9,
@@ -383,8 +383,8 @@ const deData string = "" + // Size: 5552 bytes
 	" beim Schließen des Lesezeichen-Streams: %[1]v\x02Fehler beim Schließen " +
 	"des roster-Streams: %[1]q\x02potentiell gefälschter Nachrichtenverlauf v" +
 	"on %[1]s\x02Kontakt hinzufügen\x02Addresse\x02Name\x02Kanäle\x02Konversa" +
-	"tion\x02Empfänger kann nicht gefunden werden\x02Fehler beim Auswählen vo" +
-	"n Datein: %[1]v\x02Konversationen\x02Protokolle\x02Entfernen\x02Kontakt " +
+	"tion\x02Fehler beim Auswählen von Datein: %[1]v\x02Empfänger kann nicht " +
+	"gefunden werden\x02Konversationen\x02Protokolle\x02Entfernen\x02Kontakt " +
 	"vom Roster entfernen?\x02Kanal entfernen?\x02Offline\x02Online\x02Abwese" +
 	"nd\x02Beschäfftigt\x02Bist du dir sicher, dass du Schließen willst?\x02B" +
 	"eenden\x02Beitreten\x02Kanal beitreten\x02Hinzufügen\x02Befehle\x02Lade " +
@@ -424,7 +424,7 @@ var en_USIndex = []uint32{ // 206 elements
 	// Entry 60 - 7F
 	0x00000eaa, 0x00000ecd, 0x00000ef9, 0x00000f05,
 	0x00000f0d, 0x00000f12, 0x00000f1b, 0x00000f28,
-	0x00000f44, 0x00000f65, 0x00000f73, 0x00000f78,
+	0x00000f49, 0x00000f65, 0x00000f73, 0x00000f78,
 	0x00000f7f, 0x00000fa5, 0x00000fba, 0x00000fc2,
 	0x00000fc9, 0x00000fce, 0x00000fd3, 0x00000ff2,
 	0x00000ff7, 0x00000ffc, 0x00001009, 0x0000100d,
@@ -515,7 +515,7 @@ const en_USData string = "" + // Size: 7481 bytes
 	"pport the latest features.\x02error closing bookmarks stream: %[1]v\x02E" +
 	"rror closing roster stream: %[1]q\x02possibly spoofed history message fr" +
 	"om %[1]s\x02Add Contact\x02Address\x02Name\x02Channels\x02Conversation" +
-	"\x02failed to get the recipient\x02error while picking files: %[1]v\x02C" +
+	"\x02error while picking files: %[1]v\x02failed to get the recipient\x02C" +
 	"onversations\x02Logs\x02Remove\x02Remove this contact from your roster?" +
 	"\x02Remove this channel?\x02Offline\x02Online\x02Away\x02Busy\x02Are you" +
 	" sure you want to quit?\x02Quit\x02Join\x02Join Channel\x02Add\x02Comman" +
@@ -572,4 +572,4 @@ const en_USData string = "" + // Size: 7481 bytes
 	"debar item type %[1]T, not showing info…\x02error executing info templat" +
 	"e: %[1]v"
 
-	// Total table size 14729 bytes (14KiB); checksum: FBC29A8F
+	// Total table size 14729 bytes (14KiB); checksum: 57DC950B
