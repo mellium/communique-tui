@@ -30,6 +30,7 @@ import (
 func newClientHandler(client *client.Client, pane *ui.UI, db *storage.DB, logger, debug *log.Logger) func(interface{}) {
 	p := client.Printer()
 	return func(ev interface{}) {
+		defer panicHandler()
 		switch e := ev.(type) {
 		case event.StatusAway:
 			pane.Away(jid.JID(e), jid.JID(e).Equal(client.LocalAddr()))
@@ -159,6 +160,7 @@ func newClientHandler(client *client.Client, pane *ui.UI, db *storage.DB, logger
 			}
 		case event.NewCaps:
 			go func() {
+				defer panicHandler()
 				ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 				defer cancel()
 				err := db.InsertCaps(ctx, e.From, e.Caps)
@@ -175,6 +177,7 @@ func newClientHandler(client *client.Client, pane *ui.UI, db *storage.DB, logger
 }
 
 func newFeatures(e event.NewFeatures, client *client.Client, db *storage.DB, debug, logger *log.Logger) {
+	defer panicHandler()
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 	result := struct {

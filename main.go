@@ -67,6 +67,8 @@ func printHelp(flags *flag.FlagSet, w io.Writer, p *message.Printer) {
 }
 
 func main() {
+	defer panicHandler()
+
 	// Setup internationalization and translations.
 	lang := os.Getenv("LC_ALL")
 	if lang == "" {
@@ -205,6 +207,7 @@ Try running '%s -config' to generate a default config file.`, err, os.Args[0]))
 		ui.FilePicker(cfg.UI.FilePicker),
 		ui.Notify(cfg.UI.Notify),
 		ui.RosterWidth(cfg.UI.Width))
+	uiShutdown = pane.Stop
 
 	if cfg.Log.XML {
 		xmlInLog.SetOutput(pane)
@@ -314,18 +317,6 @@ Go %s %s
 	)
 	c.Handler(newClientHandler(c, pane, db, logger, debug))
 	pane.Handle(newUIHandler(acct, pane, db, c, logger, debug))
-
-	// Hopefully nothing ever panics, but in case it does ensure that we exit
-	// TUI mode so that we don't hose the users terminal.
-	//defer func() {
-	//	// TODO: this isn't great because we lose the stack trace. Update the
-	//	// error handling so that we can attempt to recover a trace from the
-	//	// error.
-	//	if r := recover(); r != nil {
-	//		pane.Stop()
-	//		panic(r)
-	//	}
-	//}()
 
 	go func() {
 		ctx, cancel := context.WithTimeout(context.Background(), 3*timeout)
