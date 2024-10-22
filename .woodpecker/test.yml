@@ -1,6 +1,6 @@
 steps:
   info: &info
-    image: golang:${GO_VERSION}-alpine
+    image: golang:alpine
     environment:
       CGO_ENABLED: "0"
     commands:
@@ -10,11 +10,6 @@ steps:
     << : *info
     commands:
       - go test -v -cover ./...
-
-matrix:
-  GO_VERSION:
-    - 1.22
-    - 1.23
 
 when:
   - event: [tag, push, pull_request, release, manual]
