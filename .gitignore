@@ -4,8 +4,8 @@ communique.db
 communiqué.db
 communiqué.test
 communiqué.toml
-coverage.html
 history/
+*.html
 *.out
 *.svg
 vendor/
