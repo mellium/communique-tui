@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file.
 
+## Unreleased
+
+### Fixed
+
+- Incoming conversations from contacts in your roster now open in the
+  conversations view as well.
+
 
 ## v0.0.1 — 2024-10-27
 

@@ -102,17 +102,14 @@ func writeMessage(pane *ui.UI, msg event.ChatMessage, notNew bool) error {
 	// unread in the roster and recent conversations view.
 	// If the message isn't a new one (we're just loading history), skip all this.
 	if !msg.Sent && !notNew {
-		ok := pane.MarkUnread(j.String(), msg.ID)
-		if !ok {
-			// If the item did not exist, create it then try to mark it as unread
-			// again.
-			pane.UpdateConversations(ui.Conversation{
-				JID: j,
-				// TODO: get the preferred nickname.
-				Name: j.Localpart(),
-			})
-			pane.MarkUnread(j.String(), msg.ID)
-		}
+		// Always try to create the item in the conversations pane.
+		// If it already exists, move it to the front.
+		pane.UpdateConversations(ui.Conversation{
+			JID: j,
+			// TODO: get the preferred nickname.
+			Name: j.Localpart(),
+		})
+		pane.MarkUnread(j.String(), msg.ID)
 		pane.Redraw()
 	}
 	return nil
