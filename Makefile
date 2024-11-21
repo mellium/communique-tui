@@ -24,3 +24,6 @@ install: communiqué communiqué.1
 	install -d ${DESTDIR}${BINDIR} ${DESTDIR}${MANDIR}/man1
 	install communiqué ${DESTDIR}${BINDIR}
 	install -m 644 communiqué.1 ${DESTDIR}${MANDIR}/man1
+
+magic.txt.mgc: magic.txt
+	file -m magic.txt -C

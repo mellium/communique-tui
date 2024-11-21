@@ -40,6 +40,13 @@ steps:
     when:
       - path:
           include: ['**/*.md']
+  magic:
+    << : *info
+    commands:
+      - make magic.txt.mgc
+    when:
+      - path:
+          include: ['magic.txt']
 
 when:
   - event: [tag, push, pull_request, release, manual]

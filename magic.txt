@@ -1,0 +1,9 @@
+# Suggested magic(5) text. This lets file(1) distinguish our database files from
+# generic SQLite3 databases.
+0    string  =SQLite\ format\ 3
+>68  belong  =0x636f6d6d  Communiqué database,
+!:mime application/vnd.sqlite3
+!:ext db
+>>40 belong  x            schema version %d,
+>>60 belong  x            file version %d,
+>0   string  =SQLite      SQLite3 database

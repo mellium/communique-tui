@@ -6,6 +6,8 @@
 --  - Tables with primary keys that are not integers and that don't need auto
 --    incrementing counters can use WITHOUT ROWID to save some space.
 
+PRAGMA application_id = 0x636f6d6d;
+
 CREATE TABLE IF NOT EXISTS messages (
 	id         INTEGER  PRIMARY KEY NOT NULL,
 	sent       BOOLEAN  NOT NULL,
