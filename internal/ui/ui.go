@@ -23,8 +23,8 @@ import (
 	"github.com/rivo/tview"
 	"golang.org/x/text/message"
 
-	"mellium.im/communique/internal/client/event"
 	"mellium.im/communique/internal/localerr"
+	"mellium.im/communique/internal/ui/event"
 	"mellium.im/xmpp/bookmarks"
 	"mellium.im/xmpp/commands"
 	"mellium.im/xmpp/form"

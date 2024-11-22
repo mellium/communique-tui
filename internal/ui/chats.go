@@ -8,7 +8,7 @@ import (
 	"github.com/gdamore/tcell/v2"
 	"github.com/rivo/tview"
 
-	"mellium.im/communique/internal/client/event"
+	"mellium.im/communique/internal/ui/event"
 	"mellium.im/filechooser"
 	"mellium.im/xmpp/stanza"
 )
@@ -213,7 +213,6 @@ func sendMsg(cv *ConversationView, ev *tcell.EventKey, setFocus func(p tview.Pri
 			Type: typ,
 		},
 		Body: body,
-		Sent: true,
 	})
 	prim.(*tview.InputField).SetText("")
 }
@@ -239,7 +238,6 @@ func (cv *ConversationView) uploadFiles(files []string) {
 					To:   to,
 					Type: typ,
 				},
-				Sent: true,
 			},
 			Path: file,
 		})

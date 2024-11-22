@@ -7,7 +7,6 @@ package event // import "mellium.im/communique/internal/client/event"
 
 import (
 	"mellium.im/xmpp/bookmarks"
-	"mellium.im/xmpp/commands"
 	"mellium.im/xmpp/delay"
 	"mellium.im/xmpp/disco"
 	"mellium.im/xmpp/forward"
@@ -17,9 +16,6 @@ import (
 )
 
 type (
-	// Connected is sent immediately after the connection is esablished.
-	Connected struct{}
-
 	// StatusOnline is sent when the user should come online.
 	StatusOnline jid.JID
 
@@ -32,26 +28,20 @@ type (
 	// StatusBusy is sent when the user should change their status to busy.
 	StatusBusy jid.JID
 
-	// LoadingCommands is sent by the UI when the ad-hoc command window opens.
-	LoadingCommands jid.JID
-
-	// ExecCommand is sent by the UI when an ad-hoc command should be executed.
-	ExecCommand commands.Command
-
 	// FetchRoster is sent when a roster is fetched.
 	FetchRoster struct {
 		Ver   string
 		Items <-chan UpdateRoster
 	}
 
+	// UpdateBookmark is sent when a bookmark should be updated (eg. if you have
+	// subscribed to bookmark updates and received a push).
+	UpdateBookmark bookmarks.Channel
+
 	// FetchBookmarks is sent when the full list of bookmarks is fetched.
 	FetchBookmarks struct {
 		Items <-chan UpdateBookmark
 	}
-
-	// DeleteRosterItem is sent when a roster item has been removed (eg. after
-	// UpdateRoster triggers a removal or it is removed in the UI).
-	DeleteRosterItem roster.Item
 
 	// UpdateRoster is sent when a roster item should be updated (eg. after a
 	// roster push).
@@ -59,13 +49,6 @@ type (
 		roster.Item
 		Ver string
 	}
-
-	// UpdateBookmark is sent when a bookmark should be updated (eg. if you have
-	// subscribed to bookmark updates and received a push).
-	UpdateBookmark bookmarks.Channel
-
-	// DeleteBookmark is sent when a bookmark has been removed.
-	DeleteBookmark bookmarks.Channel
 
 	// ChatMessage is sent when messages of type "chat" or "normal" are received
 	// or sent.
@@ -104,22 +87,6 @@ type (
 	// if the payload containing the receipt also contains other events.
 	Receipt string
 
-	// OpenChat is sent when a roster item is selected.
-	OpenChat roster.Item
-
-	// OpenChannel is sent when a bookmark is selected.
-	OpenChannel bookmarks.Channel
-
-	// CloseChat is sent when the chat view is closed.
-	CloseChat roster.Item
-
-	// Subscribe is sent when we subscribe to a users presence.
-	Subscribe jid.JID
-
-	// PullToRefreshChat is sent when we scroll up while already at the top of
-	// the history or when we simply scroll to the top of the history.
-	PullToRefreshChat roster.Item
-
 	// NewCaps is sent when new capabilities have been discovered.
 	NewCaps struct {
 		From jid.JID
@@ -133,11 +100,5 @@ type (
 			Info disco.Info
 			Err  error
 		}
-	}
-
-	// UploadFile is sent to instruct the client to perform HTTP upload.
-	UploadFile struct {
-		Path    string
-		Message ChatMessage
 	}
 )

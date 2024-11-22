@@ -14,9 +14,10 @@ import (
 	_ "crypto/sha256"
 
 	"mellium.im/communique/internal/client"
-	"mellium.im/communique/internal/client/event"
+	clientevent "mellium.im/communique/internal/client/event"
 	"mellium.im/communique/internal/storage"
 	"mellium.im/communique/internal/ui"
+	"mellium.im/communique/internal/ui/event"
 	legacybookmarks "mellium.im/legacy/bookmarks"
 	"mellium.im/xmpp/bookmarks"
 	"mellium.im/xmpp/commands"
@@ -218,26 +219,28 @@ func sendMessage(c *client.Client, logger *log.Logger, db *storage.DB, ui *ui.UI
 
 	p := c.Printer()
 
-	var err error
-	message, err = c.SendMessage(ctx, message)
+	msg, err := c.SendMessage(ctx, clientevent.ChatMessage{
+		Message: message.Message,
+		Body:    message.Body,
+	})
 	if err != nil {
 		logger.Print(p.Sprintf("error sending message: %v", err))
 	}
-	if err = writeMessage(ui, message, false); err != nil {
+	if err = writeMessage(ui, msg, false); err != nil {
 		logger.Print(p.Sprintf("error saving sent message to history: %v", err))
 	}
-	if err = db.InsertMsg(ctx, message.Account, message, c.LocalAddr()); err != nil {
+	if err = db.InsertMsg(ctx, msg.Account, msg, c.LocalAddr()); err != nil {
 		logger.Print(p.Sprintf("error writing message to database: %v", err))
 	}
 	// If we sent the message that wasn't automated (it has a body), assume
 	// we've read everything before it.
-	if message.Sent && message.Body != "" {
+	if message.Body != "" {
 		ui.Roster().MarkRead(message.To.Bare().String())
 	}
 }
 
 // uploadFile HTTP-uploads a file and sends the GET URL to recipients.
-func uploadFile(c *client.Client, logger *log.Logger, debug *log.Logger, db *storage.DB, ui *ui.UI, event event.UploadFile) {
+func uploadFile(c *client.Client, logger *log.Logger, debug *log.Logger, db *storage.DB, ui *ui.UI, ev event.UploadFile) {
 	p := c.Printer()
 
 	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
@@ -251,14 +254,14 @@ func uploadFile(c *client.Client, logger *log.Logger, debug *log.Logger, db *sto
 		logger.Print(p.Sprintf("no upload service available"))
 		return
 	}
-	url, err := c.Upload(ctx, event.Path, services[0])
+	url, err := c.Upload(ctx, ev.Path, services[0])
 	if err != nil {
-		logger.Print(p.Sprintf("could not upload %q: %v", event.Path, err))
+		logger.Print(p.Sprintf("could not upload %q: %v", ev.Path, err))
 		return
 	}
-	debug.Print(p.Sprintf("uploaded %q as %s", event.Path, url))
-	event.Message.Body = url
-	sendMessage(c, logger, db, ui, event.Message)
+	debug.Print(p.Sprintf("uploaded %q as %s", ev.Path, url))
+	ev.Message.Body = url
+	sendMessage(c, logger, db, ui, ev.Message)
 }
 
 func openChat(e event.OpenChat, pane *ui.UI, db *storage.DB, logger *log.Logger) {
