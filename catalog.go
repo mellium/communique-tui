@@ -119,9 +119,9 @@ var messageKeyToIndex = map[string]int{
 	"error closing feature rows: %v":                                              158,
 	"error closing file: %v":                                                      136,
 	"error closing identity rows: %v":                                             154,
-	"error copying early log data to output buffer: %q":                           40,
+	"error copying early log data to output buffer: %q":                           51,
 	"error creating db dir, skipping: %v":                                         142,
-	"error creating keylog file: %q":                                              47,
+	"error creating keylog file: %q":                                              46,
 	"error decoding forms: %v":                                                    160,
 	"error dialing connection: %v":                                                132,
 	"error discovering bookmarks support: %v":                                     63,
@@ -168,8 +168,8 @@ var messageKeyToIndex = map[string]int{
 	"error parsing config file: %v":                                               34,
 	"error parsing jid-multi value for field %s: %v":                              192,
 	"error parsing main account as XMPP address: %v":                              37,
-	"error parsing timeout, defaulting to 30s: %q":                                46,
-	"error parsing user address: %q":                                              45,
+	"error parsing timeout, defaulting to 30s: %q":                                45,
+	"error parsing user address: %q":                                              44,
 	"error publishing bookmark %s: %v":                                            65,
 	"error publishing legacy bookmark %s: %v":                                     64,
 	"error querying database for last seen messages: %v":                          1,
@@ -178,8 +178,8 @@ var messageKeyToIndex = map[string]int{
 	"error removing bookmark %s: %v":                                              67,
 	"error removing legacy bookmark %s: %v":                                       66,
 	"error removing roster item %s: %v":                                           62,
-	"error retrieving roster version, falling back to full roster fetch: %v":      48,
-	"error running password command, falling back to prompt: %v":                  42,
+	"error retrieving roster version, falling back to full roster fetch: %v":      47,
+	"error running password command, falling back to prompt: %v":                  41,
 	"error saving entity caps to the database: %v":                                17,
 	"error saving sent message to history: %v":                                    72,
 	"error scanning feature row: %v":                                              156,
@@ -223,29 +223,29 @@ var messageKeyToIndex = map[string]int{
 	"feature discovery failed for %q: %v":                                         89,
 	"fetching scrollback before %v for %v…":                                       82,
 	"flushing encoded form failed: %v":                                            165,
-	"got signal: %v":                                                              51,
-	"initial login failed: %v":                                                    49,
+	"got signal: %v":                                                              50,
+	"initial login failed: %v":                                                    48,
 	"invalid nick %s in config: %v":                                               77,
 	"joining room %v…":                                                            78,
-	"logged in as: %q":                                                            50,
+	"logged in as: %q":                                                            49,
 	"no file picker set, see the example configuration file for more information": 187,
 	"no scrollback for %v":                                                        81,
 	"no sidebar open, not showing info pane…":                                     204,
 	"no upload service available":                                                 74,
-	"no user address specified, edit %q and add:\n\n\tjid=\"me@example.com\"\n\n": 43,
+	"no user address specified, edit %q and add:\n\n\tjid=\"me@example.com\"\n\n": 42,
 	"notification subprocess failed: %v\n%s":                                      124,
 	"override the account set in the config file":                                 29,
 	"possibly spoofed history message from %s":                                    97,
 	"print a default config file to stdout":                                       31,
 	"print this help message":                                                     30,
-	"running command: %q":                                                         41,
+	"running command: %q":                                                         40,
 	"the config file to load":                                                     28,
 	"unexpected status code: %d (%s)":                                             139,
 	"unrecognized client event: %T(%[1]q)":                                        12,
 	"unrecognized sidebar item type %T, not showing info…":                        205,
 	"unrecognized ui event: %T(%[1]q)":                                            70,
 	"uploaded %q as %s":                                                           130,
-	"user address: %q":                                                            44,
+	"user address: %q":                                                            43,
 }
 
 var deIndex = []uint32{ // 208 elements
@@ -261,9 +261,9 @@ var deIndex = []uint32{ // 208 elements
 	// Entry 20 - 3F
 	0x00000531, 0x00000570, 0x000005c8, 0x000005fa,
 	0x00000630, 0x00000672, 0x000006b0, 0x000006d9,
-	0x00000706, 0x0000074e, 0x00000767, 0x000007b9,
-	0x00000822, 0x0000083a, 0x00000869, 0x000008b6,
-	0x000008e4, 0x00000940, 0x00000969, 0x0000097f,
+	0x00000706, 0x0000071f, 0x00000771, 0x000007da,
+	0x000007f2, 0x00000821, 0x0000086e, 0x0000089c,
+	0x000008f8, 0x00000921, 0x00000937, 0x0000094e,
 	0x00000996, 0x000009b4, 0x000009ed, 0x00000a2a,
 	0x00000a5d, 0x00000a9b, 0x00000acb, 0x00000af9,
 	0x00000b2e, 0x00000b4e, 0x00000b87, 0x00000bbe,
@@ -337,18 +337,18 @@ const deData string = "" + // Size: 5552 bytes
 	"er beim Schließen der Konfigurationsdatei: %[1]v\x02Der Account %[1]q wu" +
 	"rde nicht in der Konfigurationsdatei gefunden\x02Fehler beim parsen der " +
 	"XMPP-Addresse des Hauptaccounts: %[1]v\x02Fehler beim Öffnen der Datenba" +
-	"nk: %[1]v\x02Fehler beim Protokollieren zum Paneel: %[1]v\x02Fehler beim" +
-	" Kopieren früher Protokolldaten in den Ausgabepuffer: %[1]q\x02Führt Bef" +
-	"ehl aus: %[1]q\x02Fehler beim Ausführen des Passwort-Befehls; Rückfall z" +
-	"ur Passwortabfrage: %[1]v\x04\x00\x02\x0a\x0ac\x02Keine Benutzeraddresse" +
-	" festgelegt, bearbeite %[1]q und füge folgendes ein:\x0a\x0a\x09jid=\x22" +
-	"me@example.com\x22\x02Benutzeraddresse: %[1]q\x02Fehler beim Parsen der " +
-	"Benutzeraddresse: %[1]q\x02Fehler beim Parsen des Zeitlimits, rückfall z" +
-	"um Standartwert von 30s: %[1]q\x02Fehler beim Erstellen der Keylog-Datei" +
-	": %[1]q\x02Fehler beim Feststellen der roster-Version, rückfall zu einer" +
-	" vollen roster-Abfrage: %[1]v\x02Initiale Anmeldung fehlgeschlagen: %[1]" +
-	"v\x02Angemeldet als: %[1]q\x02Signal bekommen: %[1]v\x02ausführen von Be" +
-	"fehl: %+[1]v\x02Fehler beim Ausführen vom Befehl %[1]q auf %[2]q: %[3]v" +
+	"nk: %[1]v\x02Fehler beim Protokollieren zum Paneel: %[1]v\x02Führt Befeh" +
+	"l aus: %[1]q\x02Fehler beim Ausführen des Passwort-Befehls; Rückfall zur" +
+	" Passwortabfrage: %[1]v\x04\x00\x02\x0a\x0ac\x02Keine Benutzeraddresse f" +
+	"estgelegt, bearbeite %[1]q und füge folgendes ein:\x0a\x0a\x09jid=\x22me" +
+	"@example.com\x22\x02Benutzeraddresse: %[1]q\x02Fehler beim Parsen der Be" +
+	"nutzeraddresse: %[1]q\x02Fehler beim Parsen des Zeitlimits, rückfall zum" +
+	" Standartwert von 30s: %[1]q\x02Fehler beim Erstellen der Keylog-Datei: " +
+	"%[1]q\x02Fehler beim Feststellen der roster-Version, rückfall zu einer v" +
+	"ollen roster-Abfrage: %[1]v\x02Initiale Anmeldung fehlgeschlagen: %[1]v" +
+	"\x02Angemeldet als: %[1]q\x02Signal bekommen: %[1]v\x02Fehler beim Kopie" +
+	"ren früher Protokolldaten in den Ausgabepuffer: %[1]q\x02ausführen von B" +
+	"efehl: %+[1]v\x02Fehler beim Ausführen vom Befehl %[1]q auf %[2]q: %[3]v" +
 	"\x02Fehler beim anzeigen des nächsten Befehls für %[1]q: %[2]v\x02Fehler" +
 	" beim Abfragen der Befehle für %[1]q: %[2]v\x02Fehler beim Schließen des" +
 	" Befehlsiterators für %[1]q: %[2]v\x02Fehler beim Setzen des Abwesent-St" +
@@ -408,9 +408,9 @@ var en_USIndex = []uint32{ // 208 elements
 	// Entry 20 - 3F
 	0x00000420, 0x0000044d, 0x00000493, 0x000004b4,
 	0x000004d5, 0x000004fc, 0x0000052e, 0x0000054c,
-	0x00000569, 0x0000059e, 0x000005b5, 0x000005f3,
-	0x0000063f, 0x00000653, 0x00000675, 0x000006a5,
-	0x000006c7, 0x00000711, 0x0000072d, 0x00000741,
+	0x00000569, 0x00000580, 0x000005be, 0x0000060a,
+	0x0000061e, 0x00000640, 0x00000670, 0x00000692,
+	0x000006dc, 0x000006f8, 0x0000070c, 0x0000071e,
 	0x00000753, 0x0000076d, 0x0000079b, 0x000007c7,
 	0x000007f0, 0x0000081d, 0x0000083e, 0x00000861,
 	0x00000882, 0x0000089d, 0x000008c3, 0x000008eb,
@@ -479,14 +479,14 @@ const en_USData string = "" + // Size: 7551 bytes
 	"e.\x02error parsing config file: %[1]v\x02error closing config file: %[1" +
 	"]v\x02account %[1]q not found in config file\x02error parsing main accou" +
 	"nt as XMPP address: %[1]v\x02error opening database: %[1]v\x02error logg" +
-	"ing to pane: %[1]v\x02error copying early log data to output buffer: %[1" +
-	"]q\x02running command: %[1]q\x02error running password command, falling " +
-	"back to prompt: %[1]v\x04\x00\x02\x0a\x0aF\x02no user address specified," +
-	" edit %[1]q and add:\x0a\x0a\x09jid=\x22me@example.com\x22\x02user addre" +
-	"ss: %[1]q\x02error parsing user address: %[1]q\x02error parsing timeout," +
-	" defaulting to 30s: %[1]q\x02error creating keylog file: %[1]q\x02error " +
-	"retrieving roster version, falling back to full roster fetch: %[1]v\x02i" +
-	"nitial login failed: %[1]v\x02logged in as: %[1]q\x02got signal: %[1]v" +
+	"ing to pane: %[1]v\x02running command: %[1]q\x02error running password c" +
+	"ommand, falling back to prompt: %[1]v\x04\x00\x02\x0a\x0aF\x02no user ad" +
+	"dress specified, edit %[1]q and add:\x0a\x0a\x09jid=\x22me@example.com" +
+	"\x22\x02user address: %[1]q\x02error parsing user address: %[1]q\x02erro" +
+	"r parsing timeout, defaulting to 30s: %[1]q\x02error creating keylog fil" +
+	"e: %[1]q\x02error retrieving roster version, falling back to full roster" +
+	" fetch: %[1]v\x02initial login failed: %[1]v\x02logged in as: %[1]q\x02g" +
+	"ot signal: %[1]v\x02error copying early log data to output buffer: %[1]q" +
 	"\x02executing command: %+[1]v\x02error executing command %[1]q on %[2]q:" +
 	" %[3]v\x02error showing next command for %[1]q: %[2]v\x02error fetching " +
 	"commands for %[1]q: %[2]v\x02error closing commands iter for %[1]q: %[2]" +
@@ -575,4 +575,4 @@ const en_USData string = "" + // Size: 7551 bytes
 	"zed sidebar item type %[1]T, not showing info…\x02error executing info t" +
 	"emplate: %[1]v"
 
-	// Total table size 14815 bytes (14KiB); checksum: 99652B5B
+	// Total table size 14815 bytes (14KiB); checksum: 7E4CB336

@@ -649,21 +649,6 @@
             ]
         },
         {
-            "id": "error copying early log data to output buffer: {Err}",
-            "message": "error copying early log data to output buffer: {Err}",
-            "translation": "Fehler beim Kopieren früher Protokolldaten in den Ausgabepuffer: {Err}",
-            "placeholders": [
-                {
-                    "id": "Err",
-                    "string": "%[1]q",
-                    "type": "error",
-                    "underlyingType": "interface{Error() string}",
-                    "argNum": 1,
-                    "expr": "err"
-                }
-            ]
-        },
-        {
             "id": "running command: {PassCmd}",
             "message": "running command: {PassCmd}",
             "translation": "Führt Befehl aus: {PassCmd}",
@@ -825,6 +810,21 @@
                     "underlyingType": "interface{Signal(); String() string}",
                     "argNum": 1,
                     "expr": "s"
+                }
+            ]
+        },
+        {
+            "id": "error copying early log data to output buffer: {Err}",
+            "message": "error copying early log data to output buffer: {Err}",
+            "translation": "Fehler beim Kopieren früher Protokolldaten in den Ausgabepuffer: {Err}",
+            "placeholders": [
+                {
+                    "id": "Err",
+                    "string": "%[1]q",
+                    "type": "error",
+                    "underlyingType": "interface{Error() string}",
+                    "argNum": 1,
+                    "expr": "err"
                 }
             ]
         },

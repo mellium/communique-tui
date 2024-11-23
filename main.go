@@ -222,15 +222,6 @@ Go %s %s
 		debug.Print(p.Sprintf("error logging to pane: %v", err))
 	}
 
-	_, err = io.Copy(pane, earlyLogs)
-	logger.SetOutput(pane)
-	if cfg.Log.Verbose {
-		debug.SetOutput(pane)
-	}
-	if err != nil {
-		debug.Print(p.Sprintf("error copying early log data to output buffer: %q", err))
-	}
-
 	pass := &bytes.Buffer{}
 	if len(acct.PassCmd) > 0 {
 		args := strings.Fields(acct.PassCmd)
@@ -334,6 +325,14 @@ Go %s %s
 		pane.Stop()
 	}()
 
+	_, err = io.Copy(pane, earlyLogs)
+	logger.SetOutput(pane)
+	if cfg.Log.Verbose {
+		debug.SetOutput(pane)
+	}
+	if err != nil {
+		debug.Print(p.Sprintf("error copying early log data to output buffer: %q", err))
+	}
 	defer pane.Stop()
 	if err := pane.Run(); err != nil {
 		panic(err)
