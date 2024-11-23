@@ -9,6 +9,10 @@ All notable changes to this project will be documented in this file.
 - Incoming conversations from contacts in your roster now open in the
   conversations view as well.
 
+### Added
+
+- Forms now support multi-line text input fields.
+
 
 ## v0.0.1 — 2024-10-27
 

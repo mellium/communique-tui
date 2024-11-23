@@ -700,22 +700,39 @@ func (ui *UI) ShowForm(formData *form.Data, buttons []string, onDone func(string
 					ui.debug.Print(p.Sprintf("error setting jid form field %s: %v", field.Var, err))
 				}
 			})
-		case form.TypeListMulti, form.TypeList:
+		case form.TypeListMulti:
 			// TODO: multi select list?
+			opts, _ := formData.GetStrings(field.Var)
+			box.AddDropDown(field.Label, opts, 0, func(option string, optionIndex int) {
+				_, err := formData.Set(field.Var, []string{option})
+				if err != nil {
+					ui.debug.Print(p.Sprintf("error setting list-multi form field %s: %v", field.Var, err))
+				}
+			})
+		case form.TypeList:
 			opts, _ := formData.GetStrings(field.Var)
 			box.AddDropDown(field.Label, opts, 0, func(option string, optionIndex int) {
 				_, err := formData.Set(field.Var, option)
 				if err != nil {
-					ui.debug.Print(p.Sprintf("error setting list or list-multi form field %s: %v", field.Var, err))
+					ui.debug.Print(p.Sprintf("error setting list form field %s: %v", field.Var, err))
 				}
 			})
-		case form.TypeTextMulti, form.TypeText:
-			// TODO: multi line text, max lengths, etc.
+		case form.TypeText:
+			// TODO: max lengths, etc.
 			t, _ := formData.GetString(field.Var)
 			box.AddInputField(field.Label, t, 20, nil, func(text string) {
 				_, err := formData.Set(field.Var, text)
 				if err != nil {
-					ui.debug.Print(p.Sprintf("error setting text or text-multi form field %s: %v", field.Var, err))
+					ui.debug.Print(p.Sprintf("error setting text form field %s: %v", field.Var, err))
+				}
+			})
+		case form.TypeTextMulti:
+			// TODO: max lengths, etc.
+			t, _ := formData.GetString(field.Var)
+			box.AddTextArea(field.Label, t, 0, 0, 0, func(text string) {
+				_, err := formData.Set(field.Var, text)
+				if err != nil {
+					ui.debug.Print(p.Sprintf("error setting text-multi form field %s: %v", field.Var, err))
 				}
 			})
 		case form.TypeTextPrivate:
