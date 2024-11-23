@@ -701,18 +701,37 @@ func (ui *UI) ShowForm(formData *form.Data, buttons []string, onDone func(string
 				}
 			})
 		case form.TypeListMulti:
-			// TODO: multi select list?
-			opts, _ := formData.GetStrings(field.Var)
-			box.AddDropDown(field.Label, opts, 0, func(option string, optionIndex int) {
-				_, err := formData.Set(field.Var, []string{option})
+			// TODO: right now we're treating this like a single-select list, but it
+			// should allow multi-select. See #98.
+			opts, _ := formData.GetOptions(field.Var)
+			labels := make([]string, 0, len(opts))
+			selected, ok := formData.GetStrings(field.Var)
+			var initial int
+			for i, opt := range opts {
+				labels = append(labels, opt.Label)
+				if ok && opt.Value == selected[0] {
+					initial = i
+				}
+			}
+			box.AddDropDown(field.Label, labels, initial, func(_ string, optionIndex int) {
+				_, err := formData.Set(field.Var, []string{opts[optionIndex].Value})
 				if err != nil {
 					ui.debug.Print(p.Sprintf("error setting list-multi form field %s: %v", field.Var, err))
 				}
 			})
 		case form.TypeList:
-			opts, _ := formData.GetStrings(field.Var)
-			box.AddDropDown(field.Label, opts, 0, func(option string, optionIndex int) {
-				_, err := formData.Set(field.Var, option)
+			opts, _ := formData.GetOptions(field.Var)
+			labels := make([]string, 0, len(opts))
+			selected, ok := formData.GetString(field.Var)
+			var initial int
+			for i, opt := range opts {
+				labels = append(labels, opt.Label)
+				if ok && opt.Value == selected {
+					initial = i
+				}
+			}
+			box.AddDropDown(field.Label, labels, initial, func(_ string, optionIndex int) {
+				_, err := formData.Set(field.Var, opts[optionIndex].Value)
 				if err != nil {
 					ui.debug.Print(p.Sprintf("error setting list form field %s: %v", field.Var, err))
 				}

@@ -8,6 +8,8 @@ All notable changes to this project will be documented in this file.
 
 - Incoming conversations from contacts in your roster now open in the
   conversations view as well.
+- List selection elements on forms now show all items, not just the default
+  selection.
 
 ### Added
 
