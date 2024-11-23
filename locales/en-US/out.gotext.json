@@ -846,7 +846,7 @@
                 {
                     "id": "ExecCommand",
                     "string": "%+[1]v",
-                    "type": "mellium.im/communique/internal/client/event.ExecCommand",
+                    "type": "mellium.im/communique/internal/ui/event.ExecCommand",
                     "underlyingType": "struct{JID mellium.im/xmpp/jid.JID \"xml:\\\"jid,attr\\\"\"; Action string \"xml:\\\"action,attr\\\"\"; Name string \"xml:\\\"name,attr\\\"\"; Node string \"xml:\\\"node,attr\\\"\"; SID string \"xml:\\\"sessionid,attr\\\"\"}",
                     "argNum": 1,
                     "expr": "e"
@@ -1296,7 +1296,7 @@
                     "type": "string",
                     "underlyingType": "string",
                     "argNum": 1,
-                    "expr": "event.Path"
+                    "expr": "ev.Path"
                 },
                 {
                     "id": "Err",
@@ -1320,7 +1320,7 @@
                     "type": "string",
                     "underlyingType": "string",
                     "argNum": 1,
-                    "expr": "event.Path"
+                    "expr": "ev.Path"
                 },
                 {
                     "id": "Url",
@@ -1417,7 +1417,7 @@
                 {
                     "id": "PullToRefreshChat",
                     "string": "%[1]v",
-                    "type": "mellium.im/communique/internal/client/event.PullToRefreshChat",
+                    "type": "mellium.im/communique/internal/ui/event.PullToRefreshChat",
                     "underlyingType": "struct{JID mellium.im/xmpp/jid.JID \"xml:\\\"jid,attr,omitempty\\\"\"; Name string \"xml:\\\"name,attr,omitempty\\\"\"; Subscription string \"xml:\\\"subscription,attr,omitempty\\\"\"; Group []string \"xml:\\\"group,omitempty\\\"\"}",
                     "argNum": 1,
                     "expr": "e"
@@ -2893,9 +2893,9 @@
             "fuzzy": true
         },
         {
-            "id": "error setting list or list-multi form field {Var}: {Err}",
-            "message": "error setting list or list-multi form field {Var}: {Err}",
-            "translation": "error setting list or list-multi form field {Var}: {Err}",
+            "id": "error setting list-multi form field {Var}: {Err}",
+            "message": "error setting list-multi form field {Var}: {Err}",
+            "translation": "error setting list-multi form field {Var}: {Err}",
             "translatorComment": "Copied from source.",
             "placeholders": [
                 {
@@ -2918,9 +2918,59 @@
             "fuzzy": true
         },
         {
-            "id": "error setting text or text-multi form field {Var}: {Err}",
-            "message": "error setting text or text-multi form field {Var}: {Err}",
-            "translation": "error setting text or text-multi form field {Var}: {Err}",
+            "id": "error setting list form field {Var}: {Err}",
+            "message": "error setting list form field {Var}: {Err}",
+            "translation": "error setting list form field {Var}: {Err}",
+            "translatorComment": "Copied from source.",
+            "placeholders": [
+                {
+                    "id": "Var",
+                    "string": "%[1]s",
+                    "type": "string",
+                    "underlyingType": "string",
+                    "argNum": 1,
+                    "expr": "field.Var"
+                },
+                {
+                    "id": "Err",
+                    "string": "%[2]v",
+                    "type": "error",
+                    "underlyingType": "interface{Error() string}",
+                    "argNum": 2,
+                    "expr": "err"
+                }
+            ],
+            "fuzzy": true
+        },
+        {
+            "id": "error setting text form field {Var}: {Err}",
+            "message": "error setting text form field {Var}: {Err}",
+            "translation": "error setting text form field {Var}: {Err}",
+            "translatorComment": "Copied from source.",
+            "placeholders": [
+                {
+                    "id": "Var",
+                    "string": "%[1]s",
+                    "type": "string",
+                    "underlyingType": "string",
+                    "argNum": 1,
+                    "expr": "field.Var"
+                },
+                {
+                    "id": "Err",
+                    "string": "%[2]v",
+                    "type": "error",
+                    "underlyingType": "interface{Error() string}",
+                    "argNum": 2,
+                    "expr": "err"
+                }
+            ],
+            "fuzzy": true
+        },
+        {
+            "id": "error setting text-multi form field {Var}: {Err}",
+            "message": "error setting text-multi form field {Var}: {Err}",
+            "translation": "error setting text-multi form field {Var}: {Err}",
             "translatorComment": "Copied from source.",
             "placeholders": [
                 {

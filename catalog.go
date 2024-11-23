@@ -72,13 +72,13 @@ var messageKeyToIndex = map[string]int{
 	"Logs":                                      106,
 	"Name":                                      100,
 	"Next":                                      19,
-	"No commands found for %v!":                 198,
+	"No commands found for %v!":                 200,
 	"Offline":                                   110,
 	"Offline %s":                                186,
 	"Online":                                    111,
 	"Online %s":                                 183,
 	"Password":                                  175,
-	"Pick Address":                              200,
+	"Pick Address":                              202,
 	"Prev":                                      18,
 	"Quit":                                      115,
 	"RECV":                                      26,
@@ -86,10 +86,10 @@ var messageKeyToIndex = map[string]int{
 	"Remove this channel?":                      109,
 	"Remove this contact from your roster?":     108,
 	"Roster":                                    178,
-	"Roster info:":                              201,
+	"Roster info:":                              203,
 	"SENT":                                      27,
 	"Search":                                    181,
-	"Select":                                    199,
+	"Select":                                    201,
 	"Set Status":                                182,
 	"Status: %s":                                180,
 	"To fix this, contact your server administrator and ask them to enable %q": 93,
@@ -128,7 +128,7 @@ var messageKeyToIndex = map[string]int{
 	"error enabling carbons: %q":                                                  134,
 	"error enabling foreign keys: %v":                                             147,
 	"error executing command %q on %q: %v":                                        53,
-	"error executing info template: %v":                                           204,
+	"error executing info template: %v":                                           206,
 	"error fetching bookmarks: %q":                                                91,
 	"error fetching commands for %q: %v":                                          55,
 	"error fetching earliest message info for %v from database: %v":               80,
@@ -194,10 +194,12 @@ var messageKeyToIndex = map[string]int{
 	"error setting deadline: %v":                                                  135,
 	"error setting jid form field %s: %v":                                         194,
 	"error setting jid-multi form field %s: %v":                                   193,
-	"error setting list or list-multi form field %s: %v":                          195,
+	"error setting list form field %s: %v":                                        196,
+	"error setting list-multi form field %s: %v":                                  195,
 	"error setting online status: %v":                                             58,
-	"error setting password form field %s: %v":                                    197,
-	"error setting text or text-multi form field %s: %v":                          196,
+	"error setting password form field %s: %v":                                    199,
+	"error setting text form field %s: %v":                                        197,
+	"error setting text-multi form field %s: %v":                                  198,
 	"error showing next command for %q: %v":                                       54,
 	"error showing next command: %v":                                              128,
 	"error updating roster version: %v":                                           5,
@@ -228,7 +230,7 @@ var messageKeyToIndex = map[string]int{
 	"logged in as: %q":                                                            50,
 	"no file picker set, see the example configuration file for more information": 187,
 	"no scrollback for %v":                                                        81,
-	"no sidebar open, not showing info pane…":                                     202,
+	"no sidebar open, not showing info pane…":                                     204,
 	"no upload service available":                                                 74,
 	"no user address specified, edit %q and add:\n\n\tjid=\"me@example.com\"\n\n": 43,
 	"notification subprocess failed: %v\n%s":                                      124,
@@ -240,13 +242,13 @@ var messageKeyToIndex = map[string]int{
 	"the config file to load":                                                     28,
 	"unexpected status code: %d (%s)":                                             139,
 	"unrecognized client event: %T(%[1]q)":                                        12,
-	"unrecognized sidebar item type %T, not showing info…":                        203,
+	"unrecognized sidebar item type %T, not showing info…":                        205,
 	"unrecognized ui event: %T(%[1]q)":                                            70,
 	"uploaded %q as %s":                                                           130,
 	"user address: %q":                                                            44,
 }
 
-var deIndex = []uint32{ // 206 elements
+var deIndex = []uint32{ // 208 elements
 	// Entry 0 - 1F
 	0x00000000, 0x0000003a, 0x00000081, 0x000000bd,
 	0x000000f4, 0x00000127, 0x0000015c, 0x00000199,
@@ -305,8 +307,8 @@ var deIndex = []uint32{ // 206 elements
 	0x000015b0, 0x000015b0, 0x000015b0, 0x000015b0,
 	0x000015b0, 0x000015b0, 0x000015b0, 0x000015b0,
 	0x000015b0, 0x000015b0, 0x000015b0, 0x000015b0,
-	0x000015b0, 0x000015b0,
-} // Size: 848 bytes
+	0x000015b0, 0x000015b0, 0x000015b0, 0x000015b0,
+} // Size: 856 bytes
 
 const deData string = "" + // Size: 5552 bytes
 	"\x02Error beim Aktuellisieren von roster Version %[1]q: %[2]v\x02Fehler " +
@@ -393,7 +395,7 @@ const deData string = "" + // Size: 5552 bytes
 	"ichtigungsbefehls: %[1]v\x02Benachrichtigungsunterprozess abgestürzt: %[" +
 	"1]v\x0a%[2]s"
 
-var en_USIndex = []uint32{ // 206 elements
+var en_USIndex = []uint32{ // 208 elements
 	// Entry 0 - 1F
 	0x00000000, 0x0000002a, 0x00000060, 0x00000094,
 	0x000000c0, 0x000000e9, 0x0000010e, 0x0000013d,
@@ -450,12 +452,12 @@ var en_USIndex = []uint32{ // 206 elements
 	0x00001ab0, 0x00001ade, 0x00001b0d, 0x00001b17,
 	// Entry C0 - DF
 	0x00001b42, 0x00001b77, 0x00001ba7, 0x00001bd1,
-	0x00001c0a, 0x00001c43, 0x00001c72, 0x00001c8f,
-	0x00001c96, 0x00001ca3, 0x00001cb0, 0x00001cda,
-	0x00001d14, 0x00001d39,
-} // Size: 848 bytes
+	0x00001c02, 0x00001c2d, 0x00001c58, 0x00001c89,
+	0x00001cb8, 0x00001cd5, 0x00001cdc, 0x00001ce9,
+	0x00001cf6, 0x00001d20, 0x00001d5a, 0x00001d7f,
+} // Size: 856 bytes
 
-const en_USData string = "" + // Size: 7481 bytes
+const en_USData string = "" + // Size: 7551 bytes
 	"\x02error updating to roster ver %[1]q: %[2]v\x02error querying database" +
 	" for last seen messages: %[1]v\x02error fetching history after %[1]s for" +
 	" %[2]s: %[3]v\x02error bootstraping history for %[1]s: %[2]v\x02error it" +
@@ -565,11 +567,12 @@ const en_USData string = "" + // Size: 7481 bytes
 	"\x02error setting bool form field %[1]s: %[2]v\x02error parsing jid-mult" +
 	"i value for field %[1]s: %[2]v\x02error setting jid-multi form field %[1" +
 	"]s: %[2]v\x02error setting jid form field %[1]s: %[2]v\x02error setting " +
-	"list or list-multi form field %[1]s: %[2]v\x02error setting text or text" +
-	"-multi form field %[1]s: %[2]v\x02error setting password form field %[1]" +
-	"s: %[2]v\x02No commands found for %[1]v!\x02Select\x02Pick Address\x02Ro" +
-	"ster info:\x02no sidebar open, not showing info pane…\x02unrecognized si" +
-	"debar item type %[1]T, not showing info…\x02error executing info templat" +
-	"e: %[1]v"
+	"list-multi form field %[1]s: %[2]v\x02error setting list form field %[1]" +
+	"s: %[2]v\x02error setting text form field %[1]s: %[2]v\x02error setting " +
+	"text-multi form field %[1]s: %[2]v\x02error setting password form field " +
+	"%[1]s: %[2]v\x02No commands found for %[1]v!\x02Select\x02Pick Address" +
+	"\x02Roster info:\x02no sidebar open, not showing info pane…\x02unrecogni" +
+	"zed sidebar item type %[1]T, not showing info…\x02error executing info t" +
+	"emplate: %[1]v"
 
-	// Total table size 14729 bytes (14KiB); checksum: 57DC950B
+	// Total table size 14815 bytes (14KiB); checksum: 99652B5B
