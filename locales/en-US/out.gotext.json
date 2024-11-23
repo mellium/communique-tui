@@ -446,6 +446,13 @@
             "fuzzy": true
         },
         {
+            "id": "Data Form",
+            "message": "Data Form",
+            "translation": "Data Form",
+            "translatorComment": "Copied from source.",
+            "fuzzy": true
+        },
+        {
             "id": "# This is a config file for Communiqué.\n# If the -f option is not provided, Communiqué will search for a config file in:\n#\n#   - ./communiqué.toml\n#   - $XDG_CONFIG_HOME/communiqué/config.toml\n#   - $HOME/.config/communiqué/config.toml\n#   - /etc/communiqué/config.toml\n#\n# The only required field is \"address\". The \"password_eval\" field should be set\n# to a command that writes the password to standard out. Normally this should\n# decrypt an encrypted file containing the password. If it is not specified, the\n# user will be prompted to enter a password.",
             "message": "# This is a config file for Communiqué.\n# If the -f option is not provided, Communiqué will search for a config file in:\n#\n#   - ./communiqué.toml\n#   - $XDG_CONFIG_HOME/communiqué/config.toml\n#   - $HOME/.config/communiqué/config.toml\n#   - /etc/communiqué/config.toml\n#\n# The only required field is \"address\". The \"password_eval\" field should be set\n# to a command that writes the password to standard out. Normally this should\n# decrypt an encrypted file containing the password. If it is not specified, the\n# user will be prompted to enter a password.",
             "translation": "# This is a config file for Communiqué.\n# If the -f option is not provided, Communiqué will search for a config file in:\n#\n#   - ./communiqué.toml\n#   - $XDG_CONFIG_HOME/communiqué/config.toml\n#   - $HOME/.config/communiqué/config.toml\n#   - /etc/communiqué/config.toml\n#\n# The only required field is \"address\". The \"password_eval\" field should be set\n# to a command that writes the password to standard out. Normally this should\n# decrypt an encrypted file containing the password. If it is not specified, the\n# user will be prompted to enter a password.",
@@ -2784,13 +2791,6 @@
             "id": "Loading commands…",
             "message": "Loading commands…",
             "translation": "Loading commands…"
-        },
-        {
-            "id": "Data Form",
-            "message": "Data Form",
-            "translation": "Data Form",
-            "translatorComment": "Copied from source.",
-            "fuzzy": true
         },
         {
             "id": "error setting bool form field {Var}: {Err}",

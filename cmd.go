@@ -161,7 +161,7 @@ func showCmd(pane *ui.UI, client *client.Client, resp commands.Response, payload
 
 	switch {
 	case formData != nil:
-		pane.ShowForm(formData, buttons, onDone)
+		pane.ShowForm(formData, p.Sprintf("Data Form"), buttons, onDone)
 	case note.Value != "":
 		pane.ShowNote(note, buttons, onDone)
 	}

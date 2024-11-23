@@ -631,7 +631,8 @@ func (ui *UI) ShowLoadCmd(j jid.JID) {
 }
 
 // ShowForm displays an ad-hoc commands form.
-func (ui *UI) ShowForm(formData *form.Data, buttons []string, onDone func(string)) {
+// The title is a fallback in case formData does not have its own title.
+func (ui *UI) ShowForm(formData *form.Data, title string, buttons []string, onDone func(string)) {
 	p := ui.Printer()
 	defer func() {
 		ui.buffers.SwitchToPage(cmdPageName)
@@ -639,7 +640,6 @@ func (ui *UI) ShowForm(formData *form.Data, buttons []string, onDone func(string
 		ui.Redraw()
 	}()
 	ui.cmdPane.Form().SetButtonsAlign(tview.AlignLeft)
-	title := p.Sprintf("Data Form")
 	if t := formData.Title(); t != "" {
 		title = t
 	}
