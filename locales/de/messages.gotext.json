@@ -1908,6 +1908,46 @@
                     "expr": "err"
                 }
             ]
+        },
+        {
+            "id": "error enabling carbons: {Err}",
+            "message": "error enabling carbons: {Err}",
+            "fuzzy": true,
+            "translation": "Fehler beim Aktivieren von Carbons: {Err}",
+            "placeholders": [
+                {
+                    "id": "Err",
+                    "string": "%[1]q",
+                    "type": "error",
+                    "underlyingType": "interface{Error() string}",
+                    "argNum": 1,
+                    "expr": "err"
+                }
+            ]
+        },
+        {
+            "id": "error loading scrollback into pane for {JID}: {Err}",
+            "message": "error loading scrollback into pane for {JID}: {Err}",
+            "fuzzy": true,
+            "translation": "Fehler beim Laden des Verlaufs im Paneel for {JID}: {Err}",
+            "placeholders": [
+                {
+                    "id": "JID",
+                    "string": "%[1]v",
+                    "type": "mellium.im/xmpp/jid.JID",
+                    "underlyingType": "struct{locallen int; domainlen int; data []byte}",
+                    "argNum": 1,
+                    "expr": "e.JID"
+                },
+                {
+                    "id": "Err",
+                    "string": "%[2]v",
+                    "type": "error",
+                    "underlyingType": "interface{Error() string}",
+                    "argNum": 2,
+                    "expr": "err"
+                }
+            ]
         }
     ]
 }
