@@ -322,6 +322,7 @@ Go %s %s
 		},
 	}
 	cmds.Commands = []*cli.Command{
+		aboutCmd(os.Stdout, configPath, Version, p, logger),
 		genCfgCmd(p, logger),
 		cli.Help(cmds),
 	}
