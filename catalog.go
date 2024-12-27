@@ -40,277 +40,279 @@ func init() {
 
 var messageKeyToIndex = map[string]int{
 	"# This is a config file for Communiqué.\n# If the -f option is not provided, Communiqué will search for a config file in:\n#\n#   - ./communiqué.toml\n#   - $XDG_CONFIG_HOME/communiqué/config.toml\n#   - $HOME/.config/communiqué/config.toml\n#   - /etc/communiqué/config.toml\n#\n# The only required field is \"address\". The \"password_eval\" field should be set\n# to a command that writes the password to standard out. Normally this should\n# decrypt an encrypted file containing the password. If it is not specified, the\n# user will be prompted to enter a password.\n": 132,
-	"%v\n\nTry running '%s -config' to generate a default config file.": 33,
-	"Add":                              120,
-	"Add Contact":                      100,
-	"Address":                          101,
-	"Are you sure you want to quit?":   116,
-	"Away":                             114,
-	"Away %s":                          185,
-	"Busy":                             115,
-	"Busy %s":                          186,
+	"%v\n\nTry running '%s config' to generate a default config file.": 133,
+	"Add":                              117,
+	"Add Contact":                      97,
+	"Address":                          98,
+	"Are you sure you want to quit?":   113,
+	"Away":                             111,
+	"Away %s":                          186,
+	"Busy":                             112,
+	"Busy %s":                          187,
 	"Cancel":                           21,
-	"Channels":                         103,
-	"Chat: %q (%s)":                    180,
-	"Commands":                         121,
+	"Channels":                         100,
+	"Chat: %q (%s)":                    181,
+	"Commands":                         118,
 	"Complete":                         20,
-	"Conversation":                     104,
-	"Conversations":                    107,
+	"Conversation":                     101,
+	"Conversations":                    104,
 	"DEBUG":                            25,
-	"Data Form":                        131,
-	"Enter password for: %q":           178,
-	"Error closing roster stream: %q":  98,
-	"Error closing the connection: %q": 87,
-	"Error encoding default config as TOML: %v": 32,
-	"Error going offline: %q":                   86,
-	"Error while handling XMPP streams: %q":     85,
-	"Exec":                                      123,
-	"Join":                                      118,
-	"Join Channel":                              119,
-	"Loading commands…":                         122,
-	"Login":                                     177,
-	"Logs":                                      108,
-	"Name":                                      102,
+	"Data Form":                        130,
+	"Enter password for: %q":           179,
+	"Error closing roster stream: %q":  95,
+	"Error closing the connection: %q": 84,
+	"Error encoding default config as TOML: %v": 22,
+	"Error going offline: %q":                   83,
+	"Error while handling XMPP streams: %q":     82,
+	"Exec":                                      120,
+	"Join":                                      115,
+	"Join Channel":                              116,
+	"Loading commands…":                         119,
+	"Login":                                     178,
+	"Logs":                                      105,
+	"Name":                                      99,
 	"Next":                                      19,
-	"No commands found for %v!":                 200,
-	"Offline":                                   112,
-	"Offline %s":                                187,
-	"Online":                                    113,
-	"Online %s":                                 184,
-	"Password":                                  176,
-	"Pick Address":                              202,
+	"No commands found for %v!":                 201,
+	"Offline":                                   109,
+	"Offline %s":                                188,
+	"Online":                                    110,
+	"Online %s":                                 185,
+	"Password":                                  177,
+	"Pick Address":                              203,
 	"Prev":                                      18,
-	"Quit":                                      117,
-	"RECV":                                      26,
-	"Remove":                                    109,
-	"Remove this channel?":                      111,
-	"Remove this contact from your roster?":     110,
-	"Roster":                                    179,
-	"Roster info:":                              203,
-	"SENT":                                      27,
-	"Search":                                    182,
-	"Select":                                    201,
-	"Set Status":                                183,
-	"Status: %s":                                181,
-	"To fix this, contact your server administrator and ask them to enable %q": 95,
-	"Usage of communiqué:\n\n": 24,
-	"Your server does not support bookmark unification, an important feature that stops newer clients from seeing a different list of chat rooms than older clients that do not yet support the latest features.": 96,
-	"account %q not found in config file":                                         36,
-	"bad hash type found in database: %v":                                         151,
-	"cannot upload directory":                                                     138,
+	"Prints a default config file to stdout.": 131,
+	"Quit":                                  114,
+	"RECV":                                  26,
+	"Remove":                                106,
+	"Remove this channel?":                  108,
+	"Remove this contact from your roster?": 107,
+	"Roster":                                180,
+	"Roster info:":                          204,
+	"SENT":                                  27,
+	"Search":                                183,
+	"Select":                                202,
+	"Set Status":                            184,
+	"Show information about this application.": 125,
+	"Status: %s": 182,
+	"To fix this, contact your server administrator and ask them to enable %q": 92,
+	"Your server does not support bookmark unification, an important feature that stops newer clients from seeing a different list of chat rooms than older clients that do not yet support the latest features.": 93,
+	"account %q not found in config file":                                         33,
+	"bad hash type found in database: %v":                                         152,
+	"cannot upload directory":                                                     139,
 	"caps cache hit for %s: %s:%s":                                                15,
 	"caps cache miss for %s: %s:%s, %[2]s:%[4]s":                                  16,
-	"could not create or open database for writing":                               146,
-	"could not get the upload services: %v":                                       73,
-	"could not upload %q: %v":                                                     75,
-	"encoding form failed: %v":                                                    164,
-	"encoding root forms end element failed: %v":                                  165,
-	"encoding root forms start element failed: %v":                                163,
-	"error adding roster item %s: %v":                                             61,
-	"error applying schema: %v":                                                   149,
+	"could not create or open database for writing":                               147,
+	"could not get the upload services: %v":                                       70,
+	"could not upload %q: %v":                                                     72,
+	"encoding form failed: %v":                                                    165,
+	"encoding root forms end element failed: %v":                                  166,
+	"encoding root forms start element failed: %v":                                164,
+	"error adding roster item %s: %v":                                             58,
+	"error applying schema: %v":                                                   150,
 	"error bootstraping history for %s: %v":                                       3,
-	"error canceling command session: %v":                                         127,
-	"error closing bookmarks stream: %v":                                          97,
-	"error closing cancel command payload: %v":                                    128,
-	"error closing command session: %v":                                           129,
-	"error closing commands iter for %q: %v":                                      56,
-	"error closing config file: %v":                                               35,
-	"error closing db file: %v":                                                   145,
-	"error closing feature rows: %v":                                              159,
-	"error closing file: %v":                                                      137,
-	"error closing identity rows: %v":                                             155,
-	"error copying early log data to output buffer: %q":                           51,
-	"error creating db dir, skipping: %v":                                         143,
-	"error creating keylog file: %q":                                              46,
-	"error decoding forms: %v":                                                    161,
-	"error dialing connection: %v":                                                134,
-	"error discovering bookmarks support: %v":                                     63,
-	"error enabling carbons: %q":                                                  91,
-	"error enabling foreign keys: %v":                                             148,
-	"error executing command %q on %q: %v":                                        53,
-	"error executing info template: %v":                                           206,
-	"error fetching bookmarks: %q":                                                93,
-	"error fetching commands for %q: %v":                                          55,
-	"error fetching earliest message info for %v from database: %v":               80,
+	"error canceling command session: %v":                                         126,
+	"error closing bookmarks stream: %v":                                          94,
+	"error closing cancel command payload: %v":                                    127,
+	"error closing command session: %v":                                           128,
+	"error closing commands iter for %q: %v":                                      53,
+	"error closing config file: %v":                                               32,
+	"error closing db file: %v":                                                   146,
+	"error closing feature rows: %v":                                              160,
+	"error closing file: %v":                                                      138,
+	"error closing identity rows: %v":                                             156,
+	"error copying early log data to output buffer: %q":                           48,
+	"error creating db dir, skipping: %v":                                         144,
+	"error creating keylog file: %q":                                              43,
+	"error decoding forms: %v":                                                    162,
+	"error dialing connection: %v":                                                135,
+	"error discovering bookmarks support: %v":                                     60,
+	"error enabling carbons: %q":                                                  88,
+	"error enabling foreign keys: %v":                                             149,
+	"error executing command %q on %q: %v":                                        50,
+	"error executing info template: %v":                                           207,
+	"error fetching bookmarks: %q":                                                90,
+	"error fetching commands for %q: %v":                                          52,
+	"error fetching earliest message info for %v from database: %v":               77,
 	"error fetching history after %s for %s: %v":                                  2,
 	"error fetching info from cache: %v":                                          13,
-	"error fetching roster: %q":                                                   92,
-	"error fetching scrollback for %v: %v":                                        83,
-	"error fetching version information: %v":                                      94,
-	"error finding user home directory: %v":                                       141,
-	"error getting caps: %v":                                                      150,
-	"error getting current working directory: %v":                                 142,
-	"error getting features: %v":                                                  156,
-	"error getting identities: %v":                                                152,
-	"error getting services: %v":                                                  172,
-	"error going offline: %v":                                                     60,
-	"error inserting JIDCapsForm: %v":                                             167,
-	"error inserting caps: %v":                                                    162,
+	"error fetching roster: %q":                                                   89,
+	"error fetching scrollback for %v: %v":                                        80,
+	"error fetching version information: %v":                                      91,
+	"error finding user home directory: %v":                                       142,
+	"error getting caps: %v":                                                      151,
+	"error getting current working directory: %v":                                 143,
+	"error getting features: %v":                                                  157,
+	"error getting identities: %v":                                                153,
+	"error getting services: %v":                                                  173,
+	"error going offline: %v":                                                     57,
+	"error inserting JIDCapsForm: %v":                                             168,
+	"error inserting caps: %v":                                                    163,
 	"error inserting entity capbailities hash: %v":                                11,
-	"error inserting feature %s: %v":                                              170,
-	"error inserting feature caps joiner: %v":                                     171,
-	"error inserting identity %v: %v":                                             168,
-	"error inserting identity caps joiner: %v":                                    169,
-	"error iterating over feature rows: %v":                                       158,
-	"error iterating over identity rows: %v":                                      154,
+	"error inserting feature %s: %v":                                              171,
+	"error inserting feature caps joiner: %v":                                     172,
+	"error inserting identity %v: %v":                                             169,
+	"error inserting identity caps joiner: %v":                                    170,
+	"error iterating over feature rows: %v":                                       159,
+	"error iterating over identity rows: %v":                                      155,
 	"error iterating over roster items: %v":                                       4,
-	"error iterating over services rows: %v":                                      175,
-	"error joining room %s: %v":                                                   79,
-	"error loading chat: %v":                                                      76,
-	"error loading scrollback into pane for %v: %v":                               84,
-	"error logging to pane: %v":                                                   39,
+	"error iterating over services rows: %v":                                      176,
+	"error joining room %s: %v":                                                   76,
+	"error loading chat: %v":                                                      73,
+	"error loading scrollback into pane for %v: %v":                               81,
+	"error logging to pane: %v":                                                   36,
 	"error marking message %q as received: %v":                                    6,
-	"error negotiating session: %v":                                               135,
-	"error occured during service discovery: %v":                                  88,
-	"error opening DB: %v":                                                        147,
-	"error opening database: %v":                                                  38,
-	"error opening or creating db, skipping: %v":                                  144,
-	"error parsing config file: %v":                                               34,
-	"error parsing jid-multi value for field %s: %v":                              192,
-	"error parsing main account as XMPP address: %v":                              37,
-	"error parsing timeout, defaulting to 30s: %q":                                45,
-	"error parsing user address: %q":                                              44,
-	"error publishing bookmark %s: %v":                                            65,
-	"error publishing legacy bookmark %s: %v":                                     64,
+	"error negotiating session: %v":                                               136,
+	"error occured during service discovery: %v":                                  85,
+	"error opening DB: %v":                                                        148,
+	"error opening database: %v":                                                  35,
+	"error opening or creating db, skipping: %v":                                  145,
+	"error parsing config file: %v":                                               31,
+	"error parsing jid-multi value for field %s: %v":                              193,
+	"error parsing main account as XMPP address: %v":                              34,
+	"error parsing timeout, defaulting to 30s: %q":                                42,
+	"error parsing user address: %q":                                              41,
+	"error publishing bookmark %s: %v":                                            62,
+	"error publishing legacy bookmark %s: %v":                                     61,
 	"error querying database for last seen messages: %v":                          1,
-	"error querying for disco forms: %v":                                          160,
-	"error querying history for %s: %v":                                           23,
-	"error removing bookmark %s: %v":                                              67,
-	"error removing legacy bookmark %s: %v":                                       66,
-	"error removing roster item %s: %v":                                           62,
-	"error retrieving roster version, falling back to full roster fetch: %v":      47,
-	"error running password command, falling back to prompt: %v":                  41,
+	"error querying for disco forms: %v":                                          161,
+	"error querying history for %s: %v":                                           24,
+	"error removing bookmark %s: %v":                                              64,
+	"error removing legacy bookmark %s: %v":                                       63,
+	"error removing roster item %s: %v":                                           59,
+	"error retrieving roster version, falling back to full roster fetch: %v":      44,
+	"error running password command, falling back to prompt: %v":                  38,
 	"error saving entity caps to the database: %v":                                17,
-	"error saving sent message to history: %v":                                    72,
-	"error scanning feature row: %v":                                              157,
-	"error scanning identity: %v":                                                 153,
-	"error scanning services: %v":                                                 173,
-	"error sending message: %v":                                                   71,
-	"error sending presence pre-approval to %s: %v":                               68,
-	"error sending presence request to %s: %v":                                    69,
-	"error setting away status: %v":                                               57,
-	"error setting bool form field %s: %v":                                        191,
-	"error setting busy status: %v":                                               59,
-	"error setting deadline: %v":                                                  136,
-	"error setting jid form field %s: %v":                                         194,
-	"error setting jid-multi form field %s: %v":                                   193,
-	"error setting list form field %s: %v":                                        196,
-	"error setting list-multi form field %s: %v":                                  195,
-	"error setting online status: %v":                                             58,
-	"error setting password form field %s: %v":                                    199,
-	"error setting text form field %s: %v":                                        197,
-	"error setting text-multi form field %s: %v":                                  198,
-	"error showing next command for %q: %v":                                       54,
-	"error showing next command: %v":                                              130,
+	"error saving sent message to history: %v":                                    69,
+	"error scanning feature row: %v":                                              158,
+	"error scanning identity: %v":                                                 154,
+	"error scanning services: %v":                                                 174,
+	"error sending message: %v":                                                   68,
+	"error sending presence pre-approval to %s: %v":                               65,
+	"error sending presence request to %s: %v":                                    66,
+	"error setting away status: %v":                                               54,
+	"error setting bool form field %s: %v":                                        192,
+	"error setting busy status: %v":                                               56,
+	"error setting deadline: %v":                                                  137,
+	"error setting jid form field %s: %v":                                         195,
+	"error setting jid-multi form field %s: %v":                                   194,
+	"error setting list form field %s: %v":                                        197,
+	"error setting list-multi form field %s: %v":                                  196,
+	"error setting online status: %v":                                             55,
+	"error setting password form field %s: %v":                                    200,
+	"error setting text form field %s: %v":                                        198,
+	"error setting text-multi form field %s: %v":                                  199,
+	"error showing next command for %q: %v":                                       51,
+	"error showing next command: %v":                                              129,
 	"error updating roster version: %v":                                           5,
 	"error updating to roster ver %q: %v":                                         0,
-	"error when closing response body: %v":                                        139,
-	"error when closing the items iterator: %v":                                   89,
-	"error while picking files: %v":                                               105,
+	"error when closing response body: %v":                                        140,
+	"error when closing the items iterator: %v":                                   86,
+	"error while picking files: %v":                                               102,
 	"error writing history message to chat: %v":                                   9,
 	"error writing history to database: %v":                                       10,
-	"error writing history: %v":                                                   22,
+	"error writing history: %v":                                                   23,
 	"error writing message to database: %v":                                       8,
 	"error writing received message to chat: %v":                                  7,
-	"executing command: %+v":                                                      52,
-	"failed to get the recipient":                                                 106,
-	"failed to parse service JID: %v":                                             174,
-	"failed to read process' standard error: %v":                                  189,
-	"failed to read process' standard output: %v":                                 190,
-	"failed to read stderr of the notification subprocess: %v":                    124,
-	"failed to run notification command: %v":                                      125,
+	"executing command: %+v":                                                      49,
+	"failed to get the recipient":                                                 103,
+	"failed to parse service JID: %v":                                             175,
+	"failed to read process' standard error: %v":                                  190,
+	"failed to read process' standard output: %v":                                 191,
+	"failed to read stderr of the notification subprocess: %v":                    121,
+	"failed to run notification command: %v":                                      122,
 	"falling back to network query…":                                              14,
-	"feature discovery failed for %q: %v":                                         90,
-	"fetching scrollback before %v for %v…":                                       82,
-	"flushing encoded form failed: %v":                                            166,
-	"got signal: %v":                                                              50,
-	"initial login failed: %v":                                                    48,
-	"invalid nick %s in config: %v":                                               77,
-	"joining room %v…":                                                            78,
-	"logged in as: %q":                                                            49,
-	"no file picker set, see the example configuration file for more information": 188,
-	"no scrollback for %v":                                                        81,
-	"no sidebar open, not showing info pane…":                                     204,
-	"no upload service available":                                                 74,
-	"no user address specified, edit %q and add:\n\n\tjid=\"me@example.com\"\n\n": 42,
-	"notification subprocess failed: %v\n%s":                                      126,
+	"feature discovery failed for %q: %v":                                         87,
+	"fetching scrollback before %v for %v…":                                       79,
+	"flushing encoded form failed: %v":                                            167,
+	"got signal: %v":                                                              47,
+	"initial login failed: %v":                                                    45,
+	"invalid nick %s in config: %v":                                               74,
+	"joining room %v…":                                                            75,
+	"logged in as: %q":                                                            46,
+	"no file picker set, see the example configuration file for more information": 189,
+	"no scrollback for %v":                                                        78,
+	"no sidebar open, not showing info pane…":                                     205,
+	"no upload service available":                                                 71,
+	"no user address specified, edit %q and add:\n\n\tjid=\"me@example.com\"\n\n": 39,
+	"notification subprocess failed: %v\n%s":                                      123,
 	"override the account set in the config file":                                 29,
-	"possibly spoofed history message from %s":                                    99,
-	"print a default config file to stdout":                                       31,
+	"possibly spoofed history message from %s":                                    96,
 	"print this help message":                                                     30,
-	"running command: %q":                                                         40,
+	"running command: %q":                                                         37,
+	"show embedded build information":                                             124,
 	"the config file to load":                                                     28,
-	"unexpected status code: %d (%s)":                                             140,
+	"unexpected status code: %d (%s)":                                             141,
 	"unrecognized client event: %T(%[1]q)":                                        12,
-	"unrecognized sidebar item type %T, not showing info…":                        205,
-	"unrecognized ui event: %T(%[1]q)":                                            70,
-	"uploaded %q as %s":                                                           133,
-	"user address: %q":                                                            43,
+	"unrecognized sidebar item type %T, not showing info…":                        206,
+	"unrecognized ui event: %T(%[1]q)":                                            67,
+	"uploaded %q as %s":                                                           134,
+	"user address: %q":                                                            40,
 }
 
-var deIndex = []uint32{ // 208 elements
+var deIndex = []uint32{ // 209 elements
 	// Entry 0 - 1F
 	0x00000000, 0x0000003a, 0x00000081, 0x000000bd,
 	0x000000f4, 0x00000127, 0x0000015c, 0x00000199,
 	0x000001d0, 0x000001fb, 0x0000022f, 0x0000026a,
 	0x000002a3, 0x000002cf, 0x00000308, 0x00000329,
 	0x00000354, 0x0000038d, 0x000003cb, 0x000003d4,
-	0x000003de, 0x000003eb, 0x000003f5, 0x0000041f,
-	0x00000453, 0x00000475, 0x0000047b, 0x00000485,
-	0x0000048e, 0x000004b1, 0x000004da, 0x000004f7,
+	0x000003de, 0x000003eb, 0x000003f5, 0x00000434,
+	0x0000045e, 0x00000492, 0x00000498, 0x000004a2,
+	0x000004ab, 0x000004ce, 0x000004f7, 0x00000514,
 	// Entry 20 - 3F
-	0x00000531, 0x00000570, 0x000005c8, 0x000005fa,
-	0x00000630, 0x00000672, 0x000006b0, 0x000006d9,
-	0x00000706, 0x0000071f, 0x00000771, 0x000007da,
-	0x000007f2, 0x00000821, 0x0000086e, 0x0000089c,
-	0x000008f8, 0x00000921, 0x00000937, 0x0000094e,
-	0x00000996, 0x000009b4, 0x000009ed, 0x00000a2a,
-	0x00000a5d, 0x00000a9b, 0x00000acb, 0x00000af9,
-	0x00000b2e, 0x00000b4e, 0x00000b87, 0x00000bbe,
+	0x00000546, 0x0000057c, 0x000005be, 0x000005fc,
+	0x00000625, 0x00000652, 0x0000066b, 0x000006bd,
+	0x00000726, 0x0000073e, 0x0000076d, 0x000007ba,
+	0x000007e8, 0x00000844, 0x0000086d, 0x00000883,
+	0x0000089a, 0x000008e2, 0x00000900, 0x00000939,
+	0x00000976, 0x000009a9, 0x000009e7, 0x00000a17,
+	0x00000a45, 0x00000a7a, 0x00000a9a, 0x00000ad3,
+	0x00000b0a, 0x00000b47, 0x00000b88, 0x00000bc0,
 	// Entry 40 - 5F
-	0x00000bfb, 0x00000c3c, 0x00000c74, 0x00000cae,
-	0x00000ce1, 0x00000d20, 0x00000d58, 0x00000d91,
-	0x00000db9, 0x00000dfe, 0x00000e30, 0x00000e4e,
-	0x00000e7b, 0x00000e9e, 0x00000ed6, 0x00000ef2,
-	0x00000f18, 0x00000f79, 0x00000fa0, 0x00000fcb,
-	0x00000ffb, 0x00001035, 0x00001065, 0x00001085,
-	0x000010b2, 0x000010e0, 0x00001115, 0x00001149,
-	0x00001173, 0x00001197, 0x000011c0, 0x000011f3,
+	0x00000bfa, 0x00000c2d, 0x00000c6c, 0x00000ca4,
+	0x00000cdd, 0x00000d05, 0x00000d4a, 0x00000d7c,
+	0x00000d9a, 0x00000dc7, 0x00000dea, 0x00000e22,
+	0x00000e3e, 0x00000e64, 0x00000ec5, 0x00000eec,
+	0x00000f17, 0x00000f47, 0x00000f81, 0x00000fb1,
+	0x00000fd1, 0x00000ffe, 0x0000102c, 0x00001061,
+	0x00001095, 0x000010bf, 0x000010e3, 0x0000110c,
+	0x0000113f, 0x000011bc, 0x00001281, 0x000012b7,
 	// Entry 60 - 7F
-	0x00001270, 0x00001335, 0x0000136b, 0x0000139c,
-	0x000013d1, 0x000013e5, 0x000013ee, 0x000013f3,
-	0x000013fb, 0x00001408, 0x00001431, 0x00001457,
-	0x00001466, 0x00001471, 0x0000147b, 0x00001499,
-	0x000014aa, 0x000014b2, 0x000014b9, 0x000014c2,
-	0x000014d0, 0x000014ff, 0x00001507, 0x00001511,
-	0x00001521, 0x0000152d, 0x00001535, 0x00001545,
-	0x0000154a, 0x000015a2, 0x000015dd, 0x00001614,
+	0x000012e8, 0x0000131d, 0x00001331, 0x0000133a,
+	0x0000133f, 0x00001347, 0x00001354, 0x0000137d,
+	0x000013a3, 0x000013b2, 0x000013bd, 0x000013c7,
+	0x000013e5, 0x000013f6, 0x000013fe, 0x00001405,
+	0x0000140e, 0x0000141c, 0x0000144b, 0x00001453,
+	0x0000145d, 0x0000146d, 0x00001479, 0x00001481,
+	0x00001491, 0x00001496, 0x000014ee, 0x00001529,
+	0x00001560, 0x00001560, 0x00001560, 0x00001560,
 	// Entry 80 - 9F
-	0x00001614, 0x00001614, 0x00001614, 0x00001614,
-	0x00001614, 0x00001614, 0x00001614, 0x00001614,
-	0x00001614, 0x00001614, 0x00001614, 0x00001614,
-	0x00001614, 0x00001614, 0x00001614, 0x00001614,
-	0x00001614, 0x00001614, 0x00001614, 0x00001614,
-	0x00001614, 0x00001614, 0x00001614, 0x00001614,
-	0x00001614, 0x00001614, 0x00001614, 0x00001614,
-	0x00001614, 0x00001614, 0x00001614, 0x00001614,
+	0x00001560, 0x00001560, 0x00001560, 0x00001560,
+	0x00001560, 0x00001560, 0x00001560, 0x00001560,
+	0x00001560, 0x00001560, 0x00001560, 0x00001560,
+	0x00001560, 0x00001560, 0x00001560, 0x00001560,
+	0x00001560, 0x00001560, 0x00001560, 0x00001560,
+	0x00001560, 0x00001560, 0x00001560, 0x00001560,
+	0x00001560, 0x00001560, 0x00001560, 0x00001560,
+	0x00001560, 0x00001560, 0x00001560, 0x00001560,
 	// Entry A0 - BF
-	0x00001614, 0x00001614, 0x00001614, 0x00001614,
-	0x00001614, 0x00001614, 0x00001614, 0x00001614,
-	0x00001614, 0x00001614, 0x00001614, 0x00001614,
-	0x00001614, 0x00001614, 0x00001614, 0x00001614,
-	0x00001614, 0x00001614, 0x00001614, 0x00001614,
-	0x00001614, 0x00001614, 0x00001614, 0x00001614,
-	0x00001614, 0x00001614, 0x00001614, 0x00001614,
-	0x00001614, 0x00001614, 0x00001614, 0x00001614,
+	0x00001560, 0x00001560, 0x00001560, 0x00001560,
+	0x00001560, 0x00001560, 0x00001560, 0x00001560,
+	0x00001560, 0x00001560, 0x00001560, 0x00001560,
+	0x00001560, 0x00001560, 0x00001560, 0x00001560,
+	0x00001560, 0x00001560, 0x00001560, 0x00001560,
+	0x00001560, 0x00001560, 0x00001560, 0x00001560,
+	0x00001560, 0x00001560, 0x00001560, 0x00001560,
+	0x00001560, 0x00001560, 0x00001560, 0x00001560,
 	// Entry C0 - DF
-	0x00001614, 0x00001614, 0x00001614, 0x00001614,
-	0x00001614, 0x00001614, 0x00001614, 0x00001614,
-	0x00001614, 0x00001614, 0x00001614, 0x00001614,
-	0x00001614, 0x00001614, 0x00001614, 0x00001614,
-} // Size: 856 bytes
+	0x00001560, 0x00001560, 0x00001560, 0x00001560,
+	0x00001560, 0x00001560, 0x00001560, 0x00001560,
+	0x00001560, 0x00001560, 0x00001560, 0x00001560,
+	0x00001560, 0x00001560, 0x00001560, 0x00001560,
+	0x00001560,
+} // Size: 860 bytes
 
-const deData string = "" + // Size: 5652 bytes
+const deData string = "" + // Size: 5472 bytes
 	"\x02Error beim Aktuellisieren von roster Version %[1]q: %[2]v\x02Fehler " +
 	"bei einer Datenbankabfrage über die letzten Nachrichten: %[1]v\x02Fehler" +
 	" beim laden des Verlaufs nach %[1]s für %[2]s: %[3]v\x02Error beim Boots" +
@@ -326,26 +328,23 @@ const deData string = "" + // Size: 5652 bytes
 	"effer für %[1]s: %[2]s:%[3]s\x02Caps-Cache verfehlt für %[1]s: %[2]s:%[3" +
 	"]s, %[2]s:%[4]s\x02Fehler beim Speichern der Entity-Caps in die Datenban" +
 	"k: %[1]v\x02Vorherig\x02Nächstes\x02Vollständig\x02Abbrechen\x02Fehler b" +
-	"eim Speichern des Verlaufs: %[1]v\x02Fehler beim Abfragen des Verlaufs f" +
-	"ür %[1]s: %[2]v\x04\x00\x02\x0a\x0a\x1c\x02Verwendung von communiqué:" +
-	"\x02DEBUG\x02EMPFANGEN\x02GESENDET\x02Die zu ladente Konfigurationsdatei" +
-	"\x02den eingestellten Account überschreiben\x02Druckt diese Hilfe-Nachri" +
-	"cht\x02Gibt die Standartkonfiguration in der Standartausgabe aus\x02Fehl" +
-	"er beim Kodieren der Standartkonfiguration als TOML: %[1]v\x02%[1]v\x0a" +
-	"\x0aVersuche '%[2]s -config' auszuführen, um die Standartkonfiguration z" +
-	"u erzeugen.\x02Fehler beim parsen der Konfigurationsdatei: %[1]v\x02Fehl" +
-	"er beim Schließen der Konfigurationsdatei: %[1]v\x02Der Account %[1]q wu" +
-	"rde nicht in der Konfigurationsdatei gefunden\x02Fehler beim parsen der " +
-	"XMPP-Addresse des Hauptaccounts: %[1]v\x02Fehler beim Öffnen der Datenba" +
-	"nk: %[1]v\x02Fehler beim Protokollieren zum Paneel: %[1]v\x02Führt Befeh" +
-	"l aus: %[1]q\x02Fehler beim Ausführen des Passwort-Befehls; Rückfall zur" +
-	" Passwortabfrage: %[1]v\x04\x00\x02\x0a\x0ac\x02Keine Benutzeraddresse f" +
-	"estgelegt, bearbeite %[1]q und füge folgendes ein:\x0a\x0a\x09jid=\x22me" +
-	"@example.com\x22\x02Benutzeraddresse: %[1]q\x02Fehler beim Parsen der Be" +
-	"nutzeraddresse: %[1]q\x02Fehler beim Parsen des Zeitlimits, rückfall zum" +
-	" Standartwert von 30s: %[1]q\x02Fehler beim Erstellen der Keylog-Datei: " +
-	"%[1]q\x02Fehler beim Feststellen der roster-Version, rückfall zu einer v" +
-	"ollen roster-Abfrage: %[1]v\x02Initiale Anmeldung fehlgeschlagen: %[1]v" +
+	"eim Kodieren der Standartkonfiguration als TOML: %[1]v\x02Fehler beim Sp" +
+	"eichern des Verlaufs: %[1]v\x02Fehler beim Abfragen des Verlaufs für %[1" +
+	"]s: %[2]v\x02DEBUG\x02EMPFANGEN\x02GESENDET\x02Die zu ladente Konfigurat" +
+	"ionsdatei\x02den eingestellten Account überschreiben\x02Druckt diese Hil" +
+	"fe-Nachricht\x02Fehler beim parsen der Konfigurationsdatei: %[1]v\x02Feh" +
+	"ler beim Schließen der Konfigurationsdatei: %[1]v\x02Der Account %[1]q w" +
+	"urde nicht in der Konfigurationsdatei gefunden\x02Fehler beim parsen der" +
+	" XMPP-Addresse des Hauptaccounts: %[1]v\x02Fehler beim Öffnen der Datenb" +
+	"ank: %[1]v\x02Fehler beim Protokollieren zum Paneel: %[1]v\x02Führt Befe" +
+	"hl aus: %[1]q\x02Fehler beim Ausführen des Passwort-Befehls; Rückfall zu" +
+	"r Passwortabfrage: %[1]v\x04\x00\x02\x0a\x0ac\x02Keine Benutzeraddresse " +
+	"festgelegt, bearbeite %[1]q und füge folgendes ein:\x0a\x0a\x09jid=\x22m" +
+	"e@example.com\x22\x02Benutzeraddresse: %[1]q\x02Fehler beim Parsen der B" +
+	"enutzeraddresse: %[1]q\x02Fehler beim Parsen des Zeitlimits, rückfall zu" +
+	"m Standartwert von 30s: %[1]q\x02Fehler beim Erstellen der Keylog-Datei:" +
+	" %[1]q\x02Fehler beim Feststellen der roster-Version, rückfall zu einer " +
+	"vollen roster-Abfrage: %[1]v\x02Initiale Anmeldung fehlgeschlagen: %[1]v" +
 	"\x02Angemeldet als: %[1]q\x02Signal bekommen: %[1]v\x02Fehler beim Kopie" +
 	"ren früher Protokolldaten in den Ausgabepuffer: %[1]q\x02ausführen von B" +
 	"efehl: %+[1]v\x02Fehler beim Ausführen vom Befehl %[1]q auf %[2]q: %[3]v" +
@@ -396,69 +395,70 @@ const deData string = "" + // Size: 5652 bytes
 	"\x02Fehler beim Ausführen des Benachrichtigungsbefehls: %[1]v\x02Benachr" +
 	"ichtigungsunterprozess abgestürzt: %[1]v\x0a%[2]s"
 
-var en_USIndex = []uint32{ // 208 elements
+var en_USIndex = []uint32{ // 209 elements
 	// Entry 0 - 1F
 	0x00000000, 0x0000002a, 0x00000060, 0x00000094,
 	0x000000c0, 0x000000e9, 0x0000010e, 0x0000013d,
 	0x0000016b, 0x00000194, 0x000001c1, 0x000001ea,
 	0x0000021a, 0x00000242, 0x00000268, 0x00000289,
 	0x000002af, 0x000002e3, 0x00000313, 0x00000318,
-	0x0000031d, 0x00000326, 0x0000032d, 0x0000034a,
-	0x00000372, 0x0000038e, 0x00000394, 0x00000399,
-	0x0000039e, 0x000003b6, 0x000003e2, 0x000003fa,
+	0x0000031d, 0x00000326, 0x0000032d, 0x0000035a,
+	0x00000377, 0x0000039f, 0x000003a5, 0x000003aa,
+	0x000003af, 0x000003c7, 0x000003f3, 0x0000040b,
 	// Entry 20 - 3F
-	0x00000420, 0x0000044d, 0x00000493, 0x000004b4,
-	0x000004d5, 0x000004fc, 0x0000052e, 0x0000054c,
-	0x00000569, 0x00000580, 0x000005be, 0x0000060a,
-	0x0000061e, 0x00000640, 0x00000670, 0x00000692,
-	0x000006dc, 0x000006f8, 0x0000070c, 0x0000071e,
-	0x00000753, 0x0000076d, 0x0000079b, 0x000007c7,
-	0x000007f0, 0x0000081d, 0x0000083e, 0x00000861,
-	0x00000882, 0x0000089d, 0x000008c3, 0x000008eb,
+	0x0000042c, 0x0000044d, 0x00000474, 0x000004a6,
+	0x000004c4, 0x000004e1, 0x000004f8, 0x00000536,
+	0x00000582, 0x00000596, 0x000005b8, 0x000005e8,
+	0x0000060a, 0x00000654, 0x00000670, 0x00000684,
+	0x00000696, 0x000006cb, 0x000006e5, 0x00000713,
+	0x0000073f, 0x00000768, 0x00000795, 0x000007b6,
+	0x000007d9, 0x000007fa, 0x00000815, 0x0000083b,
+	0x00000863, 0x0000088e, 0x000008bc, 0x000008e3,
 	// Entry 40 - 5F
-	0x00000916, 0x00000944, 0x0000096b, 0x00000997,
-	0x000009bc, 0x000009f0, 0x00000a1f, 0x00000a43,
-	0x00000a60, 0x00000a8c, 0x00000ab5, 0x00000ad1,
-	0x00000aef, 0x00000b09, 0x00000b2d, 0x00000b43,
-	0x00000b63, 0x00000ba7, 0x00000bbf, 0x00000bed,
-	0x00000c18, 0x00000c4c, 0x00000c75, 0x00000c90,
-	0x00000cb4, 0x00000ce2, 0x00000d0f, 0x00000d39,
-	0x00000d57, 0x00000d74, 0x00000d94, 0x00000dbe,
+	0x0000090f, 0x00000934, 0x00000968, 0x00000997,
+	0x000009bb, 0x000009d8, 0x00000a04, 0x00000a2d,
+	0x00000a49, 0x00000a67, 0x00000a81, 0x00000aa5,
+	0x00000abb, 0x00000adb, 0x00000b1f, 0x00000b37,
+	0x00000b65, 0x00000b90, 0x00000bc4, 0x00000bed,
+	0x00000c08, 0x00000c2c, 0x00000c5a, 0x00000c87,
+	0x00000cb1, 0x00000ccf, 0x00000cec, 0x00000d0c,
+	0x00000d36, 0x00000d82, 0x00000e4e, 0x00000e74,
 	// Entry 60 - 7F
-	0x00000e0a, 0x00000ed6, 0x00000efc, 0x00000f1f,
-	0x00000f4b, 0x00000f57, 0x00000f5f, 0x00000f64,
-	0x00000f6d, 0x00000f7a, 0x00000f9b, 0x00000fb7,
-	0x00000fc5, 0x00000fca, 0x00000fd1, 0x00000ff7,
-	0x0000100c, 0x00001014, 0x0000101b, 0x00001020,
-	0x00001025, 0x00001044, 0x00001049, 0x0000104e,
-	0x0000105b, 0x0000105f, 0x00001068, 0x0000107c,
-	0x00001081, 0x000010bd, 0x000010e7, 0x00001113,
+	0x00000e97, 0x00000ec3, 0x00000ecf, 0x00000ed7,
+	0x00000edc, 0x00000ee5, 0x00000ef2, 0x00000f13,
+	0x00000f2f, 0x00000f3d, 0x00000f42, 0x00000f49,
+	0x00000f6f, 0x00000f84, 0x00000f8c, 0x00000f93,
+	0x00000f98, 0x00000f9d, 0x00000fbc, 0x00000fc1,
+	0x00000fc6, 0x00000fd3, 0x00000fd7, 0x00000fe0,
+	0x00000ff4, 0x00000ff9, 0x00001035, 0x0000105f,
+	0x0000108b, 0x000010ab, 0x000010d4, 0x000010fb,
 	// Entry 80 - 9F
-	0x0000113a, 0x00001166, 0x0000118b, 0x000011ad,
-	0x000011b7, 0x000013ef, 0x00001407, 0x00001427,
-	0x00001448, 0x00001466, 0x00001480, 0x00001498,
-	0x000014c0, 0x000014e6, 0x0000150f, 0x0000153e,
-	0x00001565, 0x00001593, 0x000015b0, 0x000015de,
-	0x000015f6, 0x00001619, 0x00001636, 0x00001650,
-	0x00001677, 0x00001697, 0x000016b6, 0x000016e0,
-	0x00001703, 0x00001721, 0x00001743, 0x0000176c,
+	0x00001127, 0x0000114c, 0x0000116e, 0x00001178,
+	0x000011a0, 0x000013d8, 0x0000141d, 0x00001435,
+	0x00001455, 0x00001476, 0x00001494, 0x000014ae,
+	0x000014c6, 0x000014ee, 0x00001514, 0x0000153d,
+	0x0000156c, 0x00001593, 0x000015c1, 0x000015de,
+	0x0000160c, 0x00001624, 0x00001647, 0x00001664,
+	0x0000167e, 0x000016a5, 0x000016c5, 0x000016e4,
+	0x0000170e, 0x00001731, 0x0000174f, 0x00001771,
 	// Entry A0 - BF
-	0x0000178e, 0x000017b4, 0x000017d0, 0x000017ec,
-	0x0000181c, 0x00001838, 0x00001866, 0x0000188a,
-	0x000018ad, 0x000018d3, 0x000018ff, 0x00001924,
-	0x0000194f, 0x0000196d, 0x0000198c, 0x000019af,
-	0x000019d9, 0x000019e2, 0x000019e8, 0x00001a02,
-	0x00001a09, 0x00001a1d, 0x00001a2b, 0x00001a32,
-	0x00001a3d, 0x00001a4a, 0x00001a55, 0x00001a60,
-	0x00001a6e, 0x00001aba, 0x00001ae8, 0x00001b17,
+	0x0000179a, 0x000017bc, 0x000017e2, 0x000017fe,
+	0x0000181a, 0x0000184a, 0x00001866, 0x00001894,
+	0x000018b8, 0x000018db, 0x00001901, 0x0000192d,
+	0x00001952, 0x0000197d, 0x0000199b, 0x000019ba,
+	0x000019dd, 0x00001a07, 0x00001a10, 0x00001a16,
+	0x00001a30, 0x00001a37, 0x00001a4b, 0x00001a59,
+	0x00001a60, 0x00001a6b, 0x00001a78, 0x00001a83,
+	0x00001a8e, 0x00001a9c, 0x00001ae8, 0x00001b16,
 	// Entry C0 - DF
-	0x00001b42, 0x00001b77, 0x00001ba7, 0x00001bd1,
-	0x00001c02, 0x00001c2d, 0x00001c58, 0x00001c89,
-	0x00001cb8, 0x00001cd5, 0x00001cdc, 0x00001ce9,
-	0x00001cf6, 0x00001d20, 0x00001d5a, 0x00001d7f,
-} // Size: 856 bytes
+	0x00001b45, 0x00001b70, 0x00001ba5, 0x00001bd5,
+	0x00001bff, 0x00001c30, 0x00001c5b, 0x00001c86,
+	0x00001cb7, 0x00001ce6, 0x00001d03, 0x00001d0a,
+	0x00001d17, 0x00001d24, 0x00001d4e, 0x00001d88,
+	0x00001dad,
+} // Size: 860 bytes
 
-const en_USData string = "" + // Size: 7551 bytes
+const en_USData string = "" + // Size: 7597 bytes
 	"\x02error updating to roster ver %[1]q: %[2]v\x02error querying database" +
 	" for last seen messages: %[1]v\x02error fetching history after %[1]s for" +
 	" %[2]s: %[3]v\x02error bootstraping history for %[1]s: %[2]v\x02error it" +
@@ -471,109 +471,109 @@ const en_USData string = "" + // Size: 7551 bytes
 	"cache: %[1]v\x02falling back to network query…\x02caps cache hit for %[1" +
 	"]s: %[2]s:%[3]s\x02caps cache miss for %[1]s: %[2]s:%[3]s, %[2]s:%[4]s" +
 	"\x02error saving entity caps to the database: %[1]v\x02Prev\x02Next\x02C" +
-	"omplete\x02Cancel\x02error writing history: %[1]v\x02error querying hist" +
-	"ory for %[1]s: %[2]v\x04\x00\x02\x0a\x0a\x16\x02Usage of communiqué:\x02" +
+	"omplete\x02Cancel\x02Error encoding default config as TOML: %[1]v\x02err" +
+	"or writing history: %[1]v\x02error querying history for %[1]s: %[2]v\x02" +
 	"DEBUG\x02RECV\x02SENT\x02the config file to load\x02override the account" +
-	" set in the config file\x02print this help message\x02print a default co" +
-	"nfig file to stdout\x02Error encoding default config as TOML: %[1]v\x02%" +
-	"[1]v\x0a\x0aTry running '%[2]s -config' to generate a default config fil" +
-	"e.\x02error parsing config file: %[1]v\x02error closing config file: %[1" +
-	"]v\x02account %[1]q not found in config file\x02error parsing main accou" +
-	"nt as XMPP address: %[1]v\x02error opening database: %[1]v\x02error logg" +
-	"ing to pane: %[1]v\x02running command: %[1]q\x02error running password c" +
-	"ommand, falling back to prompt: %[1]v\x04\x00\x02\x0a\x0aF\x02no user ad" +
-	"dress specified, edit %[1]q and add:\x0a\x0a\x09jid=\x22me@example.com" +
-	"\x22\x02user address: %[1]q\x02error parsing user address: %[1]q\x02erro" +
-	"r parsing timeout, defaulting to 30s: %[1]q\x02error creating keylog fil" +
-	"e: %[1]q\x02error retrieving roster version, falling back to full roster" +
-	" fetch: %[1]v\x02initial login failed: %[1]v\x02logged in as: %[1]q\x02g" +
-	"ot signal: %[1]v\x02error copying early log data to output buffer: %[1]q" +
-	"\x02executing command: %+[1]v\x02error executing command %[1]q on %[2]q:" +
-	" %[3]v\x02error showing next command for %[1]q: %[2]v\x02error fetching " +
-	"commands for %[1]q: %[2]v\x02error closing commands iter for %[1]q: %[2]" +
-	"v\x02error setting away status: %[1]v\x02error setting online status: %[" +
-	"1]v\x02error setting busy status: %[1]v\x02error going offline: %[1]v" +
-	"\x02error adding roster item %[1]s: %[2]v\x02error removing roster item " +
-	"%[1]s: %[2]v\x02error discovering bookmarks support: %[1]v\x02error publ" +
-	"ishing legacy bookmark %[1]s: %[2]v\x02error publishing bookmark %[1]s: " +
-	"%[2]v\x02error removing legacy bookmark %[1]s: %[2]v\x02error removing b" +
-	"ookmark %[1]s: %[2]v\x02error sending presence pre-approval to %[1]s: %[" +
-	"2]v\x02error sending presence request to %[1]s: %[2]v\x02unrecognized ui" +
-	" event: %[1]T(%[1]q)\x02error sending message: %[1]v\x02error saving sen" +
-	"t message to history: %[1]v\x02could not get the upload services: %[1]v" +
-	"\x02no upload service available\x02could not upload %[1]q: %[2]v\x02erro" +
-	"r loading chat: %[1]v\x02invalid nick %[1]s in config: %[2]v\x02joining " +
-	"room %[1]v…\x02error joining room %[1]s: %[2]v\x02error fetching earlies" +
-	"t message info for %[1]v from database: %[2]v\x02no scrollback for %[1]v" +
-	"\x02fetching scrollback before %[1]v for %[2]v…\x02error fetching scroll" +
-	"back for %[1]v: %[2]v\x02error loading scrollback into pane for %[1]v: %" +
-	"[2]v\x02Error while handling XMPP streams: %[1]q\x02Error going offline:" +
-	" %[1]q\x02Error closing the connection: %[1]q\x02error occured during se" +
-	"rvice discovery: %[1]v\x02error when closing the items iterator: %[1]v" +
-	"\x02feature discovery failed for %[1]q: %[2]v\x02error enabling carbons:" +
-	" %[1]q\x02error fetching roster: %[1]q\x02error fetching bookmarks: %[1]" +
-	"q\x02error fetching version information: %[1]v\x02To fix this, contact y" +
-	"our server administrator and ask them to enable %[1]q\x02Your server doe" +
-	"s not support bookmark unification, an important feature that stops newe" +
-	"r clients from seeing a different list of chat rooms than older clients " +
-	"that do not yet support the latest features.\x02error closing bookmarks " +
-	"stream: %[1]v\x02Error closing roster stream: %[1]q\x02possibly spoofed " +
-	"history message from %[1]s\x02Add Contact\x02Address\x02Name\x02Channels" +
-	"\x02Conversation\x02error while picking files: %[1]v\x02failed to get th" +
-	"e recipient\x02Conversations\x02Logs\x02Remove\x02Remove this contact fr" +
-	"om your roster?\x02Remove this channel?\x02Offline\x02Online\x02Away\x02" +
-	"Busy\x02Are you sure you want to quit?\x02Quit\x02Join\x02Join Channel" +
-	"\x02Add\x02Commands\x02Loading commands…\x02Exec\x02failed to read stder" +
-	"r of the notification subprocess: %[1]v\x02failed to run notification co" +
-	"mmand: %[1]v\x02notification subprocess failed: %[1]v\x0a%[2]s\x02error " +
-	"canceling command session: %[1]v\x02error closing cancel command payload" +
-	": %[1]v\x02error closing command session: %[1]v\x02error showing next co" +
-	"mmand: %[1]v\x02Data Form\x04\x00\x01\x0a\xb2\x04\x02# This is a config " +
-	"file for Communiqué.\x0a# If the -f option is not provided, Communiqué w" +
-	"ill search for a config file in:\x0a#\x0a#   - ./communiqué.toml\x0a#   " +
-	"- $XDG_CONFIG_HOME/communiqué/config.toml\x0a#   - $HOME/.config/communi" +
-	"qué/config.toml\x0a#   - /etc/communiqué/config.toml\x0a#\x0a# The only " +
-	"required field is \x22address\x22. The \x22password_eval\x22 field shoul" +
-	"d be set\x0a# to a command that writes the password to standard out. Nor" +
-	"mally this should\x0a# decrypt an encrypted file containing the password" +
-	". If it is not specified, the\x0a# user will be prompted to enter a pass" +
-	"word.\x02uploaded %[1]q as %[2]s\x02error dialing connection: %[1]v\x02e" +
-	"rror negotiating session: %[1]v\x02error setting deadline: %[1]v\x02erro" +
-	"r closing file: %[1]v\x02cannot upload directory\x02error when closing r" +
-	"esponse body: %[1]v\x02unexpected status code: %[1]d (%[2]s)\x02error fi" +
-	"nding user home directory: %[1]v\x02error getting current working direct" +
-	"ory: %[1]v\x02error creating db dir, skipping: %[1]v\x02error opening or" +
-	" creating db, skipping: %[1]v\x02error closing db file: %[1]v\x02could n" +
-	"ot create or open database for writing\x02error opening DB: %[1]v\x02err" +
-	"or enabling foreign keys: %[1]v\x02error applying schema: %[1]v\x02error" +
-	" getting caps: %[1]v\x02bad hash type found in database: %[1]v\x02error " +
-	"getting identities: %[1]v\x02error scanning identity: %[1]v\x02error ite" +
-	"rating over identity rows: %[1]v\x02error closing identity rows: %[1]v" +
-	"\x02error getting features: %[1]v\x02error scanning feature row: %[1]v" +
-	"\x02error iterating over feature rows: %[1]v\x02error closing feature ro" +
-	"ws: %[1]v\x02error querying for disco forms: %[1]v\x02error decoding for" +
-	"ms: %[1]v\x02error inserting caps: %[1]v\x02encoding root forms start el" +
-	"ement failed: %[1]v\x02encoding form failed: %[1]v\x02encoding root form" +
-	"s end element failed: %[1]v\x02flushing encoded form failed: %[1]v\x02er" +
-	"ror inserting JIDCapsForm: %[1]v\x02error inserting identity %[1]v: %[2]" +
-	"v\x02error inserting identity caps joiner: %[1]v\x02error inserting feat" +
-	"ure %[1]s: %[2]v\x02error inserting feature caps joiner: %[1]v\x02error " +
-	"getting services: %[1]v\x02error scanning services: %[1]v\x02failed to p" +
-	"arse service JID: %[1]v\x02error iterating over services rows: %[1]v\x02" +
-	"Password\x02Login\x02Enter password for: %[1]q\x02Roster\x02Chat: %[1]q " +
-	"(%[2]s)\x02Status: %[1]s\x02Search\x02Set Status\x02Online %[1]s\x02Away" +
-	" %[1]s\x02Busy %[1]s\x02Offline %[1]s\x02no file picker set, see the exa" +
-	"mple configuration file for more information\x02failed to read process' " +
-	"standard error: %[1]v\x02failed to read process' standard output: %[1]v" +
-	"\x02error setting bool form field %[1]s: %[2]v\x02error parsing jid-mult" +
-	"i value for field %[1]s: %[2]v\x02error setting jid-multi form field %[1" +
-	"]s: %[2]v\x02error setting jid form field %[1]s: %[2]v\x02error setting " +
-	"list-multi form field %[1]s: %[2]v\x02error setting list form field %[1]" +
-	"s: %[2]v\x02error setting text form field %[1]s: %[2]v\x02error setting " +
-	"text-multi form field %[1]s: %[2]v\x02error setting password form field " +
-	"%[1]s: %[2]v\x02No commands found for %[1]v!\x02Select\x02Pick Address" +
-	"\x02Roster info:\x02no sidebar open, not showing info pane…\x02unrecogni" +
-	"zed sidebar item type %[1]T, not showing info…\x02error executing info t" +
-	"emplate: %[1]v"
+	" set in the config file\x02print this help message\x02error parsing conf" +
+	"ig file: %[1]v\x02error closing config file: %[1]v\x02account %[1]q not " +
+	"found in config file\x02error parsing main account as XMPP address: %[1]" +
+	"v\x02error opening database: %[1]v\x02error logging to pane: %[1]v\x02ru" +
+	"nning command: %[1]q\x02error running password command, falling back to " +
+	"prompt: %[1]v\x04\x00\x02\x0a\x0aF\x02no user address specified, edit %[" +
+	"1]q and add:\x0a\x0a\x09jid=\x22me@example.com\x22\x02user address: %[1]" +
+	"q\x02error parsing user address: %[1]q\x02error parsing timeout, default" +
+	"ing to 30s: %[1]q\x02error creating keylog file: %[1]q\x02error retrievi" +
+	"ng roster version, falling back to full roster fetch: %[1]v\x02initial l" +
+	"ogin failed: %[1]v\x02logged in as: %[1]q\x02got signal: %[1]v\x02error " +
+	"copying early log data to output buffer: %[1]q\x02executing command: %+[" +
+	"1]v\x02error executing command %[1]q on %[2]q: %[3]v\x02error showing ne" +
+	"xt command for %[1]q: %[2]v\x02error fetching commands for %[1]q: %[2]v" +
+	"\x02error closing commands iter for %[1]q: %[2]v\x02error setting away s" +
+	"tatus: %[1]v\x02error setting online status: %[1]v\x02error setting busy" +
+	" status: %[1]v\x02error going offline: %[1]v\x02error adding roster item" +
+	" %[1]s: %[2]v\x02error removing roster item %[1]s: %[2]v\x02error discov" +
+	"ering bookmarks support: %[1]v\x02error publishing legacy bookmark %[1]s" +
+	": %[2]v\x02error publishing bookmark %[1]s: %[2]v\x02error removing lega" +
+	"cy bookmark %[1]s: %[2]v\x02error removing bookmark %[1]s: %[2]v\x02erro" +
+	"r sending presence pre-approval to %[1]s: %[2]v\x02error sending presenc" +
+	"e request to %[1]s: %[2]v\x02unrecognized ui event: %[1]T(%[1]q)\x02erro" +
+	"r sending message: %[1]v\x02error saving sent message to history: %[1]v" +
+	"\x02could not get the upload services: %[1]v\x02no upload service availa" +
+	"ble\x02could not upload %[1]q: %[2]v\x02error loading chat: %[1]v\x02inv" +
+	"alid nick %[1]s in config: %[2]v\x02joining room %[1]v…\x02error joining" +
+	" room %[1]s: %[2]v\x02error fetching earliest message info for %[1]v fro" +
+	"m database: %[2]v\x02no scrollback for %[1]v\x02fetching scrollback befo" +
+	"re %[1]v for %[2]v…\x02error fetching scrollback for %[1]v: %[2]v\x02err" +
+	"or loading scrollback into pane for %[1]v: %[2]v\x02Error while handling" +
+	" XMPP streams: %[1]q\x02Error going offline: %[1]q\x02Error closing the " +
+	"connection: %[1]q\x02error occured during service discovery: %[1]v\x02er" +
+	"ror when closing the items iterator: %[1]v\x02feature discovery failed f" +
+	"or %[1]q: %[2]v\x02error enabling carbons: %[1]q\x02error fetching roste" +
+	"r: %[1]q\x02error fetching bookmarks: %[1]q\x02error fetching version in" +
+	"formation: %[1]v\x02To fix this, contact your server administrator and a" +
+	"sk them to enable %[1]q\x02Your server does not support bookmark unifica" +
+	"tion, an important feature that stops newer clients from seeing a differ" +
+	"ent list of chat rooms than older clients that do not yet support the la" +
+	"test features.\x02error closing bookmarks stream: %[1]v\x02Error closing" +
+	" roster stream: %[1]q\x02possibly spoofed history message from %[1]s\x02" +
+	"Add Contact\x02Address\x02Name\x02Channels\x02Conversation\x02error whil" +
+	"e picking files: %[1]v\x02failed to get the recipient\x02Conversations" +
+	"\x02Logs\x02Remove\x02Remove this contact from your roster?\x02Remove th" +
+	"is channel?\x02Offline\x02Online\x02Away\x02Busy\x02Are you sure you wan" +
+	"t to quit?\x02Quit\x02Join\x02Join Channel\x02Add\x02Commands\x02Loading" +
+	" commands…\x02Exec\x02failed to read stderr of the notification subproce" +
+	"ss: %[1]v\x02failed to run notification command: %[1]v\x02notification s" +
+	"ubprocess failed: %[1]v\x0a%[2]s\x02show embedded build information\x02S" +
+	"how information about this application.\x02error canceling command sessi" +
+	"on: %[1]v\x02error closing cancel command payload: %[1]v\x02error closin" +
+	"g command session: %[1]v\x02error showing next command: %[1]v\x02Data Fo" +
+	"rm\x02Prints a default config file to stdout.\x04\x00\x01\x0a\xb2\x04" +
+	"\x02# This is a config file for Communiqué.\x0a# If the -f option is not" +
+	" provided, Communiqué will search for a config file in:\x0a#\x0a#   - ./" +
+	"communiqué.toml\x0a#   - $XDG_CONFIG_HOME/communiqué/config.toml\x0a#   " +
+	"- $HOME/.config/communiqué/config.toml\x0a#   - /etc/communiqué/config.t" +
+	"oml\x0a#\x0a# The only required field is \x22address\x22. The \x22passwo" +
+	"rd_eval\x22 field should be set\x0a# to a command that writes the passwo" +
+	"rd to standard out. Normally this should\x0a# decrypt an encrypted file " +
+	"containing the password. If it is not specified, the\x0a# user will be p" +
+	"rompted to enter a password.\x02%[1]v\x0a\x0aTry running '%[2]s config' " +
+	"to generate a default config file.\x02uploaded %[1]q as %[2]s\x02error d" +
+	"ialing connection: %[1]v\x02error negotiating session: %[1]v\x02error se" +
+	"tting deadline: %[1]v\x02error closing file: %[1]v\x02cannot upload dire" +
+	"ctory\x02error when closing response body: %[1]v\x02unexpected status co" +
+	"de: %[1]d (%[2]s)\x02error finding user home directory: %[1]v\x02error g" +
+	"etting current working directory: %[1]v\x02error creating db dir, skippi" +
+	"ng: %[1]v\x02error opening or creating db, skipping: %[1]v\x02error clos" +
+	"ing db file: %[1]v\x02could not create or open database for writing\x02e" +
+	"rror opening DB: %[1]v\x02error enabling foreign keys: %[1]v\x02error ap" +
+	"plying schema: %[1]v\x02error getting caps: %[1]v\x02bad hash type found" +
+	" in database: %[1]v\x02error getting identities: %[1]v\x02error scanning" +
+	" identity: %[1]v\x02error iterating over identity rows: %[1]v\x02error c" +
+	"losing identity rows: %[1]v\x02error getting features: %[1]v\x02error sc" +
+	"anning feature row: %[1]v\x02error iterating over feature rows: %[1]v" +
+	"\x02error closing feature rows: %[1]v\x02error querying for disco forms:" +
+	" %[1]v\x02error decoding forms: %[1]v\x02error inserting caps: %[1]v\x02" +
+	"encoding root forms start element failed: %[1]v\x02encoding form failed:" +
+	" %[1]v\x02encoding root forms end element failed: %[1]v\x02flushing enco" +
+	"ded form failed: %[1]v\x02error inserting JIDCapsForm: %[1]v\x02error in" +
+	"serting identity %[1]v: %[2]v\x02error inserting identity caps joiner: %" +
+	"[1]v\x02error inserting feature %[1]s: %[2]v\x02error inserting feature " +
+	"caps joiner: %[1]v\x02error getting services: %[1]v\x02error scanning se" +
+	"rvices: %[1]v\x02failed to parse service JID: %[1]v\x02error iterating o" +
+	"ver services rows: %[1]v\x02Password\x02Login\x02Enter password for: %[1" +
+	"]q\x02Roster\x02Chat: %[1]q (%[2]s)\x02Status: %[1]s\x02Search\x02Set St" +
+	"atus\x02Online %[1]s\x02Away %[1]s\x02Busy %[1]s\x02Offline %[1]s\x02no " +
+	"file picker set, see the example configuration file for more information" +
+	"\x02failed to read process' standard error: %[1]v\x02failed to read proc" +
+	"ess' standard output: %[1]v\x02error setting bool form field %[1]s: %[2]" +
+	"v\x02error parsing jid-multi value for field %[1]s: %[2]v\x02error setti" +
+	"ng jid-multi form field %[1]s: %[2]v\x02error setting jid form field %[1" +
+	"]s: %[2]v\x02error setting list-multi form field %[1]s: %[2]v\x02error s" +
+	"etting list form field %[1]s: %[2]v\x02error setting text form field %[1" +
+	"]s: %[2]v\x02error setting text-multi form field %[1]s: %[2]v\x02error s" +
+	"etting password form field %[1]s: %[2]v\x02No commands found for %[1]v!" +
+	"\x02Select\x02Pick Address\x02Roster info:\x02no sidebar open, not showi" +
+	"ng info pane…\x02unrecognized sidebar item type %[1]T, not showing info…" +
+	"\x02error executing info template: %[1]v"
 
-	// Total table size 14915 bytes (14KiB); checksum: 9DC93604
+	// Total table size 14789 bytes (14KiB); checksum: 222E6AE

@@ -2,6 +2,20 @@
     "language": "en-US",
     "messages": [
         {
+            "id": "show embedded build information",
+            "message": "show embedded build information",
+            "translation": "show embedded build information",
+            "translatorComment": "Copied from source.",
+            "fuzzy": true
+        },
+        {
+            "id": "Show information about this application.",
+            "message": "Show information about this application.",
+            "translation": "Show information about this application.",
+            "translatorComment": "Copied from source.",
+            "fuzzy": true
+        },
+        {
             "id": "error updating to roster ver {Ver}: {Err}",
             "message": "error updating to roster ver {Ver}: {Err}",
             "translation": "error updating to roster ver {Ver}: {Err}",
@@ -453,6 +467,28 @@
             "fuzzy": true
         },
         {
+            "id": "Prints a default config file to stdout.",
+            "message": "Prints a default config file to stdout.",
+            "translation": "Prints a default config file to stdout.",
+            "translatorComment": "Copied from source.",
+            "fuzzy": true
+        },
+        {
+            "id": "Error encoding default config as TOML: {Err}",
+            "message": "Error encoding default config as TOML: {Err}",
+            "translation": "Error encoding default config as TOML: {Err}",
+            "placeholders": [
+                {
+                    "id": "Err",
+                    "string": "%[1]v",
+                    "type": "error",
+                    "underlyingType": "interface{Error() string}",
+                    "argNum": 1,
+                    "expr": "err"
+                }
+            ]
+        },
+        {
             "id": "# This is a config file for Communiqué.\n# If the -f option is not provided, Communiqué will search for a config file in:\n#\n#   - ./communiqué.toml\n#   - $XDG_CONFIG_HOME/communiqué/config.toml\n#   - $HOME/.config/communiqué/config.toml\n#   - /etc/communiqué/config.toml\n#\n# The only required field is \"address\". The \"password_eval\" field should be set\n# to a command that writes the password to standard out. Normally this should\n# decrypt an encrypted file containing the password. If it is not specified, the\n# user will be prompted to enter a password.",
             "message": "# This is a config file for Communiqué.\n# If the -f option is not provided, Communiqué will search for a config file in:\n#\n#   - ./communiqué.toml\n#   - $XDG_CONFIG_HOME/communiqué/config.toml\n#   - $HOME/.config/communiqué/config.toml\n#   - /etc/communiqué/config.toml\n#\n# The only required field is \"address\". The \"password_eval\" field should be set\n# to a command that writes the password to standard out. Normally this should\n# decrypt an encrypted file containing the password. If it is not specified, the\n# user will be prompted to enter a password.",
             "translation": "# This is a config file for Communiqué.\n# If the -f option is not provided, Communiqué will search for a config file in:\n#\n#   - ./communiqué.toml\n#   - $XDG_CONFIG_HOME/communiqué/config.toml\n#   - $HOME/.config/communiqué/config.toml\n#   - /etc/communiqué/config.toml\n#\n# The only required field is \"address\". The \"password_eval\" field should be set\n# to a command that writes the password to standard out. Normally this should\n# decrypt an encrypted file containing the password. If it is not specified, the\n# user will be prompted to enter a password.",
@@ -498,11 +534,6 @@
             ]
         },
         {
-            "id": "Usage of communiqué:",
-            "message": "Usage of communiqué:",
-            "translation": "Usage of communiqué:"
-        },
-        {
             "id": "DEBUG",
             "message": "DEBUG",
             "translation": "DEBUG"
@@ -533,29 +564,10 @@
             "translation": "print this help message"
         },
         {
-            "id": "print a default config file to stdout",
-            "message": "print a default config file to stdout",
-            "translation": "print a default config file to stdout"
-        },
-        {
-            "id": "Error encoding default config as TOML: {Err}",
-            "message": "Error encoding default config as TOML: {Err}",
-            "translation": "Error encoding default config as TOML: {Err}",
-            "placeholders": [
-                {
-                    "id": "Err",
-                    "string": "%[1]v",
-                    "type": "error",
-                    "underlyingType": "interface{Error() string}",
-                    "argNum": 1,
-                    "expr": "err"
-                }
-            ]
-        },
-        {
-            "id": "{Err}\n\nTry running '{Args0} -config' to generate a default config file.",
-            "message": "{Err}\n\nTry running '{Args0} -config' to generate a default config file.",
-            "translation": "{Err}\n\nTry running '{Args0} -config' to generate a default config file.",
+            "id": "{Err}\n\nTry running '{Args0} config' to generate a default config file.",
+            "message": "{Err}\n\nTry running '{Args0} config' to generate a default config file.",
+            "translation": "{Err}\n\nTry running '{Args0} config' to generate a default config file.",
+            "translatorComment": "Copied from source.",
             "placeholders": [
                 {
                     "id": "Err",
@@ -573,7 +585,8 @@
                     "argNum": 2,
                     "expr": "os.Args[0]"
                 }
-            ]
+            ],
+            "fuzzy": true
         },
         {
             "id": "error parsing config file: {Err}",
