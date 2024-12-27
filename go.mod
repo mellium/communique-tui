@@ -25,6 +25,8 @@ require (
 	modernc.org/sqlite v1.33.1
 )
 
+require mellium.im/cli v0.1.0
+
 require (
 	github.com/dustin/go-humanize v1.0.1 // indirect
 	github.com/gdamore/encoding v1.0.1 // indirect

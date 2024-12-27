@@ -7,6 +7,7 @@ package main
 import (
 	"fmt"
 	"io"
+	"log"
 	"os"
 	"path/filepath"
 
@@ -14,7 +15,24 @@ import (
 	"github.com/gdamore/tcell/v2"
 	"github.com/rivo/tview"
 	"golang.org/x/text/message"
+
+	"mellium.im/cli"
+	"mellium.im/communique/internal/localerr"
 )
+
+func genCfgCmd(p *message.Printer, logger *log.Logger) *cli.Command {
+	return &cli.Command{
+		Usage:       "config",
+		Description: p.Sprintf("Prints a default config file to stdout."),
+		Run: func(c *cli.Command, args ...string) error {
+			err := printConfig(os.Stdout, p)
+			if err != nil {
+				return localerr.Wrap(p, "Error encoding default config as TOML: %v", err)
+			}
+			return nil
+		},
+	}
+}
 
 func getColor(name string) tcell.Color {
 	if name == "default" || name == "" {
