@@ -1,6 +1,6 @@
 module mellium.im/communique
 
-go 1.22.8
+go 1.23
 
 toolchain go1.23.2
 

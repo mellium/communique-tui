@@ -2003,9 +2003,9 @@
             "fuzzy": true
         },
         {
-            "id": "error applying schema: {Err}",
-            "message": "error applying schema: {Err}",
-            "translation": "error applying schema: {Err}",
+            "id": "error running migrations: {Err}",
+            "message": "error running migrations: {Err}",
+            "translation": "error running migrations: {Err}",
             "translatorComment": "Copied from source.",
             "placeholders": [
                 {
@@ -2473,6 +2473,56 @@
                     "underlyingType": "interface{Error() string}",
                     "argNum": 1,
                     "expr": "err"
+                }
+            ],
+            "fuzzy": true
+        },
+        {
+            "id": "starting migration from {CurrentID} to {Target}…",
+            "message": "starting migration from {CurrentID} to {Target}…",
+            "translation": "starting migration from {CurrentID} to {Target}…",
+            "translatorComment": "Copied from source.",
+            "placeholders": [
+                {
+                    "id": "CurrentID",
+                    "string": "%[1]d",
+                    "type": "uint",
+                    "underlyingType": "uint",
+                    "argNum": 1,
+                    "expr": "currentID"
+                },
+                {
+                    "id": "Target",
+                    "string": "%[2]d",
+                    "type": "uint",
+                    "underlyingType": "uint",
+                    "argNum": 2,
+                    "expr": "target"
+                }
+            ],
+            "fuzzy": true
+        },
+        {
+            "id": "running migration {CurrentID}→{Target}…",
+            "message": "running migration {CurrentID}→{Target}…",
+            "translation": "running migration {CurrentID}→{Target}…",
+            "translatorComment": "Copied from source.",
+            "placeholders": [
+                {
+                    "id": "CurrentID",
+                    "string": "%[1]d",
+                    "type": "uint",
+                    "underlyingType": "uint",
+                    "argNum": 1,
+                    "expr": "currentID"
+                },
+                {
+                    "id": "Target",
+                    "string": "%[2]d",
+                    "type": "uint",
+                    "underlyingType": "uint",
+                    "argNum": 2,
+                    "expr": "target"
                 }
             ],
             "fuzzy": true

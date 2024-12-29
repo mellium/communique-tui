@@ -1951,8 +1951,8 @@
             ]
         },
         {
-            "id": "error applying schema: {Err}",
-            "message": "error applying schema: {Err}",
+            "id": "error running migrations: {Err}",
+            "message": "error running migrations: {Err}",
             "translation": "",
             "placeholders": [
                 {
@@ -2368,6 +2368,52 @@
                     "underlyingType": "interface{Error() string}",
                     "argNum": 1,
                     "expr": "err"
+                }
+            ]
+        },
+        {
+            "id": "starting migration from {CurrentID} to {Target}…",
+            "message": "starting migration from {CurrentID} to {Target}…",
+            "translation": "",
+            "placeholders": [
+                {
+                    "id": "CurrentID",
+                    "string": "%[1]d",
+                    "type": "uint",
+                    "underlyingType": "uint",
+                    "argNum": 1,
+                    "expr": "currentID"
+                },
+                {
+                    "id": "Target",
+                    "string": "%[2]d",
+                    "type": "uint",
+                    "underlyingType": "uint",
+                    "argNum": 2,
+                    "expr": "target"
+                }
+            ]
+        },
+        {
+            "id": "running migration {CurrentID}→{Target}…",
+            "message": "running migration {CurrentID}→{Target}…",
+            "translation": "",
+            "placeholders": [
+                {
+                    "id": "CurrentID",
+                    "string": "%[1]d",
+                    "type": "uint",
+                    "underlyingType": "uint",
+                    "argNum": 1,
+                    "expr": "currentID"
+                },
+                {
+                    "id": "Target",
+                    "string": "%[2]d",
+                    "type": "uint",
+                    "underlyingType": "uint",
+                    "argNum": 2,
+                    "expr": "target"
                 }
             ]
         },

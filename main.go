@@ -15,7 +15,6 @@ import (
 	"bytes"
 	"context"
 	"crypto/tls"
-	_ "embed"
 	"flag"
 	"fmt"
 	"io"
@@ -47,9 +46,6 @@ import (
 const (
 	appName = "communiqué"
 )
-
-//go:embed schema.sql
-var schema string
 
 // Set at build time while linking.
 var (
@@ -147,7 +143,7 @@ Try running '%s config' to generate a default config file.`, err, os.Args[0])
 			if err != nil {
 				return localerr.Wrap(p, "error parsing main account as XMPP address: %v", err)
 			}
-			db, err := storage.OpenDB(dbCtx, appName, account.Bare().String(), acct.DB, schema, p, debug)
+			db, err := storage.OpenDB(dbCtx, appName, account.Bare().String(), acct.DB, Migrations(), p, debug)
 			if err != nil {
 				return localerr.Wrap(p, "error opening database: %v", err)
 			}

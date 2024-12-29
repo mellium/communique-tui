@@ -6,6 +6,7 @@
 package storage // import "mellium.im/communique/internal/storage"
 
 import (
+	"cmp"
 	"context"
 	"database/sql"
 	"encoding/xml"
@@ -13,6 +14,7 @@ import (
 	"log"
 	"os"
 	"path/filepath"
+	"slices"
 	"strings"
 	"sync"
 	"time"
@@ -67,7 +69,7 @@ type DB struct {
 // If dbFile is empty a fallback sequence of names is used starting with
 // $XDG_DATA_HOME, then falling back to $HOME/.local/share, then falling back to
 // the current working directory.
-func OpenDB(ctx context.Context, appName, account, dbFile, schema string, p *message.Printer, debug *log.Logger) (*DB, error) {
+func OpenDB(ctx context.Context, appName, account, dbFile string, m Migrations, p *message.Printer, debug *log.Logger) (*DB, error) {
 	const (
 		dbDriver = "sqlite"
 	)
@@ -131,18 +133,20 @@ func OpenDB(ctx context.Context, appName, account, dbFile, schema string, p *mes
 	if err != nil {
 		return nil, localerr.Wrap(p, "error opening DB: %v", err)
 	}
-	_, err = db.Exec("PRAGMA foreign_keys = ON")
+	_, err = db.ExecContext(ctx, "PRAGMA foreign_keys = ON")
 	if err != nil {
-		/* #nosec */
-		db.Close()
+		err = errors.Join(err, db.Close())
 		return nil, localerr.Wrap(p, "error enabling foreign keys: %v", err)
 	}
-	_, err = db.Exec(schema)
+	target := slices.MaxFunc(m, func(a, b Migration) int {
+		return cmp.Compare(a.Version, b.Version)
+	})
+	err = runMigrations(ctx, db, target.Version, m, p, debug)
 	if err != nil {
-		/* #nosec */
-		db.Close()
-		return nil, localerr.Wrap(p, "error applying schema: %v", err)
+		err = errors.Join(err, db.Close())
+		return nil, localerr.Wrap(p, "error running migrations: %v", err)
 	}
+
 	return prepareQueries(ctx, db, debug, p)
 }
 
