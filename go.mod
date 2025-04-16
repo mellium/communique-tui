@@ -1,15 +1,14 @@
 module mellium.im/communique
 
 go 1.23
-
-toolchain go1.23.2
+toolchain go1.24.1
 
 require (
 	github.com/BurntSushi/toml v1.4.0
 	github.com/gdamore/tcell/v2 v2.7.4
 	github.com/mpvl/textutil v0.1.0
 	github.com/rivo/tview v0.0.0-20241227133733-17b7edb88c57
-	golang.org/x/text v0.21.0
+	golang.org/x/text v0.23.0
 	mellium.im/cli v0.1.0
 	mellium.im/filechooser v0.0.3
 	mellium.im/legacy v0.0.1
@@ -30,13 +29,13 @@ require (
 	github.com/ncruces/go-strftime v0.1.9 // indirect
 	github.com/remyoudompheng/bigfft v0.0.0-20230129092748-24d4a6f8daec // indirect
 	github.com/rivo/uniseg v0.4.7 // indirect
-	golang.org/x/crypto v0.31.0 // indirect
+	golang.org/x/crypto v0.36.0 // indirect
 	golang.org/x/exp v0.0.0-20241217172543-b2144cdd0a67 // indirect
 	golang.org/x/mod v0.22.0 // indirect
-	golang.org/x/net v0.33.0 // indirect
-	golang.org/x/sync v0.10.0 // indirect
-	golang.org/x/sys v0.28.0 // indirect
-	golang.org/x/term v0.27.0 // indirect
+	golang.org/x/net v0.38.0 // indirect
+	golang.org/x/sync v0.12.0 // indirect
+	golang.org/x/sys v0.31.0 // indirect
+	golang.org/x/term v0.30.0 // indirect
 	golang.org/x/tools v0.28.0 // indirect
 	mellium.im/reader v0.1.0 // indirect
 	modernc.org/gc/v3 v3.0.0-20241223112719-96e2e1e4408d // indirect
